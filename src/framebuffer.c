@@ -8,17 +8,19 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     
     position = r * 80 + c;
     out(0x3D4, 0x0F);
-    out(0x3D5, (uint8_t) (position & 0xff));
+    out(0x3D5, position);
     out(0x3D4, 0x0E);
-    out(0x3D5, (uint8_t) ((position >> 8) & 0xff));
+    out(0x3D5, position << 8);
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
     uint16_t color;
     volatile uint16_t * location;
+    volatile uint16_t * vgaOffset;
 
+    vgaOffset = (volatile uint16_t*) 0xb8000;
     color = (bg << 4) | (fg & 0x0F);
-    location = (volatile uint16_t*) 0xb8000 + (row* 80 + col);
+    location = vgaOffset + (row* 80 + col);
     *location = (color << 8) | c;
 }
 
