@@ -34,6 +34,7 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/framebuffer.c -o $(OUTPUT_FOLDER)/framebuffer.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/portio.c -o $(OUTPUT_FOLDER)/portio.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/gdt.c -o $(OUTPUT_FOLDER)/gdt.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/stdmem.c -o $(OUTPUT_FOLDER)/stdmem.o
 
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
@@ -55,6 +56,6 @@ iso: kernel
 			-boot-info-table           						\
 			-o OS2023.iso              						\
 			.
-	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./
+	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./bin
 	
 	@rm -r $(OUTPUT_FOLDER)/iso/
