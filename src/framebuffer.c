@@ -7,10 +7,22 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     uint16_t position;
     
     position = r * 80 + c;
-    out(CURSOR_PORT_CMD, 0x0F);
+    out(CURSOR_PORT_CMD, 0x0f);
     out(CURSOR_PORT_DATA, (uint8_t) position);
-    out(CURSOR_PORT_CMD, 0x0E);
-    out(CURSOR_PORT_DATA, (uint8_t) position >> 8);
+    out(CURSOR_PORT_CMD, 0x0e);
+    out(CURSOR_PORT_DATA, (uint8_t) (position >> 8));
+}
+
+uint16_t framebuffer_get_cursor(){
+    uint16_t position;
+
+    position = 0;
+    out(CURSOR_PORT_CMD, 0x0f);
+    position |= in(CURSOR_PORT_DATA);
+    out(CURSOR_PORT_CMD, 0x0e);
+    position |= (in(CURSOR_PORT_DATA) << 8);
+
+    return position;
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
@@ -30,4 +42,127 @@ void framebuffer_clear(void) {
             framebuffer_write(row, col, 0, 0x0, 0xf);
         }
     }
+    framebuffer_set_cursor(0, 0);
+}
+
+void framebuffer_scroll(){
+
+    memcpy(MEMORY_FRAMEBUFFER, MEMORY_FRAMEBUFFER + 2*80, 2*25*80);
+
+    for(int col2 = 0; col2 < 80; col2++){
+        framebuffer_write(24, col2, 0, 0x0, 0xf);
+    }
+}
+
+
+void framebuffer_print(char* string, uint8_t fg, uint8_t bg){
+    int i = 0;
+    uint16_t cursor = framebuffer_get_cursor();
+    uint8_t row = cursor/80;
+    uint8_t col = cursor%80;
+    while (string[i] != 0){
+
+        if(string[i] != '\n'){
+            framebuffer_write(row, col, string[i], fg, bg);
+
+            col += 1;
+            if(col > 79){
+                if(row == 24){
+                    framebuffer_scroll();
+                }
+                else{
+                    row += 1;
+                }
+                col = 0;
+            }
+        }
+        else{
+            if(row == 24){
+                framebuffer_scroll();
+            }
+            else{
+                row += 1;
+            }
+            col = 0;
+        }
+        
+
+        i++;
+    }
+    framebuffer_set_cursor(row, col);
+}
+
+void framebuffer_printDef(char* string){
+    int i = 0;
+    uint16_t cursor = framebuffer_get_cursor();
+    uint8_t row = cursor/80;
+    uint8_t col = cursor%80;
+    while (string[i] != 0){
+
+        if(string[i] != '\n'){
+            framebuffer_write(row, col, string[i], 0, 0xf);
+
+            col += 1;
+            if(col > 79){
+                if(row == 24){
+                    framebuffer_scroll();
+                }
+                else{
+                    row += 1;
+                }
+                col = 0;
+            }
+        }
+        else{
+            if(row == 24){
+                framebuffer_scroll();
+            }
+            else{
+                row += 1;
+            }
+            col = 0;
+        }
+        
+
+        i++;
+    }
+    framebuffer_set_cursor(row, col);
+}
+
+void int_toString(int x, char str[]){
+    int i = 0;
+    int negative = 0;
+
+    if(x < 0){
+        x = x*(-1);
+        negative = 1;
+    }
+
+    do{
+        str[i] = x % 10 + '0';
+        i++; 
+    } while  ( (x /= 10) > 0);
+
+    if(negative){
+        str[i] = '-';
+        str[i+1] = 0;
+    }
+    else{
+        str[i] = 0;
+    }
+
+    int j, k, temp;
+    for(j = 0, k = strlen(str) - 1; j < k; j++, k--){
+        temp = str[j];
+        str[j] = str[k];
+        str[k] = temp;
+    }
+}
+
+int strlen(char str[]){
+    int counter = 0;
+    while(str[counter] != 0){
+        counter++;
+    }
+    return counter;
 }

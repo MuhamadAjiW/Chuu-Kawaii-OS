@@ -42,4 +42,16 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  */
 void framebuffer_clear(void);
 
+
+
+//extras
+void framebuffer_print(char* string, uint8_t fg, uint8_t bg);
+void framebuffer_printDef(char* string);
+void framebuffer_backspace();
+void framebuffer_scroll();
+uint16_t framebuffer_get_cursor();
+void framebuffer_move_cursor(int direction);
+void int_toString(int x, char str[]);
+int strlen(char str[]);
+
 #endif
