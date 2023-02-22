@@ -6,6 +6,7 @@
 #include "lib-header/kernel_loader.h"
 #include "cpu/idt.h"
 #include "cpu/isr.h"
+#include "cpu/timer.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
@@ -13,7 +14,8 @@ void kernel_setup(void) {
 
     framebuffer_clear();
     /* Test the interrupts */
-    __asm__ volatile ("int $2");
+    __asm__ volatile ("sti");
+    init_timer(20); // Harus > 18, kalo gak rada unpredictable
     
     /*
     framebuffer_write(3, 8,  'H', 0, 0xF);
