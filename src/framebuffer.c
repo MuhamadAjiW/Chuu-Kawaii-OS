@@ -2,6 +2,15 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/portio.h"
+#include "shell.h"
+
+int limitCol = 0;
+int limitRow = 0;
+
+void framebuffer_set_limit(uint8_t r, uint8_t c){
+    limitCol = c;
+    limitRow = r;
+}
 
 void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     uint16_t position;
@@ -36,35 +45,45 @@ int framebuffer_find_edge(int row){
     return col;
 }
 
-void framebuffer_move_cursor(int direction){
+bool framebuffer_move_cursor(int direction){
     uint16_t cursor = framebuffer_get_cursor();
     uint8_t row = cursor/80;
     uint8_t col = cursor%80;
+    bool success = 0;
     switch (direction){
         case (1):
-            if((col == 79 || *(MEMORY_FRAMEBUFFER+(row* 80 + col)*2) == 0) && row != 24){
+            if((col == 79 && *(MEMORY_FRAMEBUFFER+(row* 80 + col)*2) != 0) && row != 24){
                 framebuffer_set_cursor(row+1, 0);
+                success = 1;
             }
             else{
                 if(*(MEMORY_FRAMEBUFFER+(row* 80 + col)*2) != 0){
                     framebuffer_set_cursor(row,col+1);
+                    success = 1;
                 }
             }
             break;
         case (-1):
-            if(col != 0){
-                framebuffer_set_cursor(row,col-1);
-            }
-            else{
-                if(row != 0){
-                    framebuffer_set_cursor(row-1, framebuffer_find_edge(row-1));
+            if(!(row == limitRow && col == limitCol + 1)){
+                if(col != 0){
+                    framebuffer_set_cursor(row,col-1);
+                    success = 1;
+                }
+                else{
+                    if(row != 0){
+                        framebuffer_set_cursor(row-1, framebuffer_find_edge(row-1));
+                        success = 1;
+                    }
                 }
             }
+            
             break;
         
         default:
+            success = 0;
             break;
     }
+    return success;
 }
 
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
@@ -156,6 +175,7 @@ void framebuffer_printDef(char* string){
             }
         }
         else{
+
             if(row == 24){
                 framebuffer_scroll();
             }
@@ -171,19 +191,29 @@ void framebuffer_printDef(char* string){
     framebuffer_set_cursor(row, col);
 }
 
-void framebuffer_backspace(){
+bool framebuffer_backspace(){
     uint16_t cursor = framebuffer_get_cursor();
     uint8_t row = cursor/80;
     uint8_t col = cursor%80;
+    bool success = 0;
 
-    if(col != 0 && col != 79){
-         memcpy(MEMORY_FRAMEBUFFER + (row* 80 + col-1)*2, MEMORY_FRAMEBUFFER + (row* 80 + col)*2, (MEMORY_FRAMEBUFFER + (row+1)*80*2) - (MEMORY_FRAMEBUFFER + (row* 80 + col)*2));
+    if(!(row == limitRow && col == limitCol + 1)){
+        if(col != 0 && col != 79){
+            memcpy(MEMORY_FRAMEBUFFER + (row* 80 + col-1)*2, MEMORY_FRAMEBUFFER + (row* 80 + col)*2, (MEMORY_FRAMEBUFFER + (row+1)*80*2) - (MEMORY_FRAMEBUFFER + (row* 80 + col)*2));
+            success = 1;
+        }
+        else if (col == 79){
+            framebuffer_write(row, col, 0, 0x0, 0xf);
+            success = 1;
+        }
     }
-    else if (col == 79){
-        framebuffer_write(row, col, 0, 0x0, 0xf);
+    else{
+        success = 0;
     }
     
     framebuffer_move_cursor(-1);
+
+    return success;
 }
 
 void int_toString(int x, char str[]){

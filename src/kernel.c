@@ -9,6 +9,8 @@
 #include "cpu/timer.h"
 #include "drivers/keyboard.h"
 
+#include "shell.h"
+
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     init_idt();
@@ -17,9 +19,19 @@ void kernel_setup(void) {
     /* Test the interrupts */
     __asm__ volatile ("sti");
     
-    init_keyboard();
     //init_timer(20); // Harus > 18, kalo gak rada unpredictable
+    init_shell();
     
+    /*
+    char buffer[3];
+    buffer[1] = '\n';
+    buffer[2] = 0;
+    for(int i = 0; i < 128; i++){
+        buffer[0] = i;
+        framebuffer_printDef(buffer);
+    }
+    */
+
     /*
     framebuffer_write(3, 8,  'H', 0, 0xF);
     framebuffer_write(3, 9,  'a', 0, 0xF);
