@@ -203,10 +203,10 @@ void framebuffer_printDef(char* string){
 }
 
 void framebuffer_insert_char(char in){
-    int edge = 5;
     uint16_t cursor = framebuffer_get_cursor();
     uint8_t row = cursor/80;
     uint8_t col = cursor%80;
+    int edge = framebuffer_find_edge_whole(row, col);
 
         if(in != '\n'){
             //edge = framebuffer_find_edge_whole(row, col);

@@ -2,7 +2,7 @@
 #include "lib-header/framebuffer.h"
 #include "lib-header/stdtype.h"
 
-char shellReader[80*24];
+char shellReader[1000];
 int maxIdx = 0;
 int currentIdx = 0;
 
@@ -62,18 +62,24 @@ void newline_shell(){
 }
 
 void append_reader(char in){
-    if(!(in == '\n' && closed_sentence())){
-        for(int i = maxIdx; i > currentIdx; i--){
-            shellReader[i] = shellReader[i-1];
-        }
+    if(maxIdx < 500){
+        if(!(in == '\n' && closed_sentence())){
+            for(int i = maxIdx; i > currentIdx; i--){
+                shellReader[i] = shellReader[i-1];
+            }
 
-        shellReader[currentIdx] = in;
-        maxIdx++;
-        currentIdx++;
+            shellReader[currentIdx] = in;
+            maxIdx++;
+            currentIdx++;
+        }
+        else{
+            shellReader[currentIdx] = 0;
+            execute_reader();
+            clear_reader();
+        }
     }
     else{
-        shellReader[currentIdx] = 0;
-        execute_reader();
+        framebuffer_printDef("\nBuffer overflowed, resetting buffer...\n");
         clear_reader();
     }
 }

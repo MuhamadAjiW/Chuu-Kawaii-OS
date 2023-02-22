@@ -16,7 +16,6 @@ void kernel_setup(void) {
     init_idt();
 
     framebuffer_clear();
-    /* Test the interrupts */
     __asm__ volatile ("sti");
     
     //init_timer(20); // Harus > 18, kalo gak rada unpredictable
