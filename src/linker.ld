@@ -4,6 +4,10 @@ ENTRY(loader)                /* the name of the entry label */
 SECTIONS {
     . = 0x00100000;          /* the code should be loaded at 1 MB */
 
+    .bootHeader : AT ( ADDR( .bootHeader ) ) {
+       *(.bootHeader)
+    }
+
     .text ALIGN (4096) :   /* align at 4 KB */
     {
         *(.text)             /* all text sections from all files */
