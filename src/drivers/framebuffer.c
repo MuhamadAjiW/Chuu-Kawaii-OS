@@ -1,8 +1,8 @@
-#include "lib-header/framebuffer.h"
-#include "lib-header/stdtype.h"
-#include "lib-header/stdmem.h"
-#include "lib-header/portio.h"
-#include "shell.h"
+#include "../lib-header/framebuffer.h"
+#include "../lib-header/stdtype.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/portio.h"
+#include "../lib-header/shell.h"
 
 int limitCol = 0;
 int limitRow = 0;

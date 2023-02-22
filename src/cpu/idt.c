@@ -1,5 +1,5 @@
-#include "idt.h"
-#include "isr.h"
+#include "../lib-header/idt.h"
+#include "../lib-header/isr.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/framebuffer.h"

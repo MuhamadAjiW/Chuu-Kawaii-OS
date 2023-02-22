@@ -5,6 +5,9 @@
         "framebuffer.h": "c",
         "portio.h": "c",
         "timer.h": "c",
-        "keyboard.h": "c"
+        "keyboard.h": "c",
+        "shell.h": "c",
+        "stdtype.h": "c",
+        "kernel_loader.h": "c"
     },
 }

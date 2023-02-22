@@ -4,12 +4,12 @@
 #include "lib-header/gdt.h"
 #include "lib-header/framebuffer.h"
 #include "lib-header/kernel_loader.h"
-#include "cpu/idt.h"
-#include "cpu/isr.h"
-#include "cpu/timer.h"
-#include "drivers/keyboard.h"
+#include "lib-header/idt.h"
+#include "lib-header/isr.h"
+#include "lib-header/timer.h"
+#include "lib-header/keyboard.h"
 
-#include "shell.h"
+#include "lib-header/shell.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);

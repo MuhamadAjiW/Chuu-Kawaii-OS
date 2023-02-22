@@ -1,8 +1,8 @@
-#include "keyboard.h"
-#include "../shell.h"
+#include "../lib-header/keyboard.h"
+#include "../lib-header/shell.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/framebuffer.h"
-#include "../cpu/isr.h"
+#include "../lib-header/isr.h"
 
 uint8_t caps = 0;
 uint8_t shift = 0;
