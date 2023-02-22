@@ -25,6 +25,48 @@ uint16_t framebuffer_get_cursor(){
     return position;
 }
 
+int framebuffer_find_edge(int row){
+    uint8_t col = 0;
+    uint8_t* location;
+    location = (uint8_t*) MEMORY_FRAMEBUFFER + (row* 80 + col)*2;
+    while (*location != 0 && col < 79){
+        col++;
+        location = (uint8_t*) MEMORY_FRAMEBUFFER + (row* 80 + col)*2;
+    }
+    return col;
+}
+
+void framebuffer_move_cursor(int direction){
+    uint16_t cursor = framebuffer_get_cursor();
+    uint8_t row = cursor/80;
+    uint8_t col = cursor%80;
+    switch (direction){
+        case (1):
+            if((col == 79 || *(MEMORY_FRAMEBUFFER+(row* 80 + col)*2) == 0) && row != 24){
+                framebuffer_set_cursor(row+1, 0);
+            }
+            else{
+                if(*(MEMORY_FRAMEBUFFER+(row* 80 + col)*2) != 0){
+                    framebuffer_set_cursor(row,col+1);
+                }
+            }
+            break;
+        case (-1):
+            if(col != 0){
+                framebuffer_set_cursor(row,col-1);
+            }
+            else{
+                if(row != 0){
+                    framebuffer_set_cursor(row-1, framebuffer_find_edge(row-1));
+                }
+            }
+            break;
+        
+        default:
+            break;
+    }
+}
+
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg) {
     uint8_t * location;
     uint8_t color;
@@ -127,6 +169,21 @@ void framebuffer_printDef(char* string){
         i++;
     }
     framebuffer_set_cursor(row, col);
+}
+
+void framebuffer_backspace(){
+    uint16_t cursor = framebuffer_get_cursor();
+    uint8_t row = cursor/80;
+    uint8_t col = cursor%80;
+
+    if(col != 0 && col != 79){
+         memcpy(MEMORY_FRAMEBUFFER + (row* 80 + col-1)*2, MEMORY_FRAMEBUFFER + (row* 80 + col)*2, (MEMORY_FRAMEBUFFER + (row+1)*80*2) - (MEMORY_FRAMEBUFFER + (row* 80 + col)*2));
+    }
+    else if (col == 79){
+        framebuffer_write(row, col, 0, 0x0, 0xf);
+    }
+    
+    framebuffer_move_cursor(-1);
 }
 
 void int_toString(int x, char str[]){

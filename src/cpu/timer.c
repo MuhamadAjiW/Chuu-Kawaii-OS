@@ -8,12 +8,12 @@ char buffer[256];
 
 static void timer_callback(){
     tick++;
-    framebuffer_printDef("Tick: ");
+    //framebuffer_printDef("Tick: ");
 
     int_toString(tick, buffer);
     
-    framebuffer_printDef(buffer);
-    framebuffer_printDef("\n");    
+    //framebuffer_printDef(buffer);
+    //framebuffer_printDef("\n");    
 }
 
 void init_timer(uint32_t freq){

@@ -3,6 +3,8 @@
     "files.associations": {
         "isr.h": "c",
         "framebuffer.h": "c",
-        "portio.h": "c"
+        "portio.h": "c",
+        "timer.h": "c",
+        "keyboard.h": "c"
     },
 }
