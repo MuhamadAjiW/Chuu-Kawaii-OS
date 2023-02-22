@@ -46,109 +46,109 @@ void keyboardDriver(uint8_t input){
 
             case 2:
                 if(shift){
-                    framebuffer_printDef("!");
+                    framebuffer_insert_char('!');
                     append_reader('!');
                 } else{
-                    framebuffer_printDef("1");
+                    framebuffer_insert_char('1');
                     append_reader('1');
                 }
                 break;
             case 3:
                 if(shift){
-                    framebuffer_printDef("@");
+                    framebuffer_insert_char('@');
                     append_reader('@');
                 } else{
-                    framebuffer_printDef("2");
+                    framebuffer_insert_char('2');
                     append_reader('2');
                 }
                 break;
             case 4:
                 if(shift){
-                    framebuffer_printDef("#");
+                    framebuffer_insert_char('#');
                     append_reader('#');
                 } else{
-                    framebuffer_printDef("3");
+                    framebuffer_insert_char('3');
                     append_reader('3');
                 }
                 break;
             case 5:
                 if(shift){
-                    framebuffer_printDef("$");
+                    framebuffer_insert_char('$');
                     append_reader('$');
                 } else{
-                    framebuffer_printDef("4");
+                    framebuffer_insert_char('4');
                     append_reader('4');
                 }
                 break;
             case 6:
                 if(shift){
-                    framebuffer_printDef("%%");
+                    framebuffer_insert_char('%');
                     append_reader('%');
                 } else{
-                    framebuffer_printDef("5");
+                    framebuffer_insert_char('5');
                     append_reader('5');
                 }
                 break;
             case 7:
                 if(shift){
-                    framebuffer_printDef("^");
+                    framebuffer_insert_char('^');
                     append_reader('^');
                 } else{
-                    framebuffer_printDef("6");
+                    framebuffer_insert_char('6');
                     append_reader('6');
                 }
                 break;
             case 8:
                 if(shift){
-                    framebuffer_printDef("&");
+                    framebuffer_insert_char('&');
                     append_reader('&');
                 } else{
-                    framebuffer_printDef("7");
+                    framebuffer_insert_char('7');
                     append_reader('7');
                 }
                 break;
             case 9:
                 if(shift){
-                    framebuffer_printDef("*");
+                    framebuffer_insert_char('*');
                     append_reader('*');
                 } else{
-                    framebuffer_printDef("8");
+                    framebuffer_insert_char('8');
                     append_reader('8');
                 }
                 break;
             case 10:
                 if(shift){
-                    framebuffer_printDef("(");
+                    framebuffer_insert_char('(');
                     append_reader('(');
                 } else{
-                    framebuffer_printDef("9");
+                    framebuffer_insert_char('9');
                     append_reader('9');
                 }
                 break;
             case 11:
                 if(shift){
-                    framebuffer_printDef(")");
+                    framebuffer_insert_char(')');
                     append_reader(')');
                 } else{
-                    framebuffer_printDef("0");
+                    framebuffer_insert_char('0');
                     append_reader('0');
                 }
                 break;
             case 12:
                 if(shift){
-                    framebuffer_printDef("_");
+                    framebuffer_insert_char('_');
                     append_reader('_');
                 } else{
-                    framebuffer_printDef("-");
+                    framebuffer_insert_char('-');
                     append_reader('-');
                 }
                 break;
             case 13:
                 if(shift){
-                    framebuffer_printDef("+");
+                    framebuffer_insert_char('+');
                     append_reader('+');
                 } else{
-                    framebuffer_printDef("=");
+                    framebuffer_insert_char('=');
                     append_reader('=');
                 }
                 break;
@@ -159,7 +159,10 @@ void keyboardDriver(uint8_t input){
                 break;
 
             case 15:
-                framebuffer_printDef("    ");
+                framebuffer_insert_char(' ');
+                framebuffer_insert_char(' ');
+                framebuffer_insert_char(' ');
+                framebuffer_insert_char(' ');
                 append_reader(' ');
                 append_reader(' ');
                 append_reader(' ');
@@ -167,335 +170,335 @@ void keyboardDriver(uint8_t input){
                 break;
             case 16:
                 if(caps ^ shift){
-                    framebuffer_printDef("Q");
+                    framebuffer_insert_char('Q');
                     append_reader('Q');
                 }
                 else{
-                    framebuffer_printDef("q");
+                    framebuffer_insert_char('q');
                     append_reader('q');
                 }
                 break;
             case 17:
                 if(caps ^ shift){
-                    framebuffer_printDef("W");
+                    framebuffer_insert_char('W');
                     append_reader('W');
                 }
                 else{
-                    framebuffer_printDef("w");
+                    framebuffer_insert_char('w');
                     append_reader('w');
                 }
                 break;
             case 18:
                 if(caps ^ shift){
-                    framebuffer_printDef("E");
+                    framebuffer_insert_char('E');
                     append_reader('E');
                 }
                 else{
-                    framebuffer_printDef("e");
+                    framebuffer_insert_char('e');
                     append_reader('e');
                 }
                 break;
             case 19:
                 if(caps ^ shift){
-                    framebuffer_printDef("R");
+                    framebuffer_insert_char('R');
                     append_reader('R');
                 }
                 else{
-                    framebuffer_printDef("r");
+                    framebuffer_insert_char('r');
                     append_reader('r');
                 }
                 break;
             case 20:
                 if(caps ^ shift){
-                    framebuffer_printDef("T");
+                    framebuffer_insert_char('T');
                     append_reader('T');
                 }
                 else{
-                    framebuffer_printDef("t");
+                    framebuffer_insert_char('t');
                     append_reader('t');
                 }
                 break;
             case 21:
                 if(caps ^ shift){
-                    framebuffer_printDef("Y");
+                    framebuffer_insert_char('Y');
                     append_reader('Y');
                 }
                 else{
-                    framebuffer_printDef("y");
+                    framebuffer_insert_char('y');
                     append_reader('y');
                 }
                 break;
             case 22:
                 if(caps ^ shift){
-                    framebuffer_printDef("U");
+                    framebuffer_insert_char('U');
                     append_reader('U');
                 }
                 else{
-                    framebuffer_printDef("u");
+                    framebuffer_insert_char('u');
                     append_reader('u');
                 }
                 break;
             case 23:
                 if(caps ^ shift){
-                    framebuffer_printDef("I");
+                    framebuffer_insert_char('I');
                     append_reader('I');
                 }
                 else{
-                    framebuffer_printDef("i");
+                    framebuffer_insert_char('i');
                     append_reader('i');
                 }
                 break;
             case 24:
                 if(caps ^ shift){
-                    framebuffer_printDef("O");
+                    framebuffer_insert_char('O');
                     append_reader('O');
                 }
                 else{
-                    framebuffer_printDef("o");
+                    framebuffer_insert_char('o');
                     append_reader('o');
                 }
                 break;
             case 25:
                 if(caps ^ shift){
-                    framebuffer_printDef("P");
+                    framebuffer_insert_char('P');
                     append_reader('P');
                 }
                 else{
-                    framebuffer_printDef("p");
+                    framebuffer_insert_char('p');
                     append_reader('p');
                 }
                 break;
             case 26:
                 if(shift){
-                    framebuffer_printDef("{");
+                    framebuffer_insert_char('{');
                     append_reader('{');
                 } else{
-                    framebuffer_printDef("[");
+                    framebuffer_insert_char('[');
                     append_reader('[');
                 }
                 break;
             case 27:
                 if(shift){
-                    framebuffer_printDef("}");
+                    framebuffer_insert_char('}');
                     append_reader('}');
                 } else{
-                    framebuffer_printDef("]");
+                    framebuffer_insert_char(']');
                     append_reader(']');
                 }
                 break;
             case 43:
                 if(shift){
-                    framebuffer_printDef("|");
+                    framebuffer_insert_char('|');
                     append_reader('|');
                 } else{
-                    framebuffer_printDef("\\");
+                    framebuffer_insert_char('\\');
                     append_reader('\\');
                 }
                 break;
 
             case 30:
                 if(caps ^ shift){
-                    framebuffer_printDef("A");
+                    framebuffer_insert_char('A');
                     append_reader('A');
                 }
                 else{
-                    framebuffer_printDef("a");
+                    framebuffer_insert_char('a');
                     append_reader('a');
                 }
                 break;
             case 31:
                 if(caps ^ shift){
-                    framebuffer_printDef("S");
+                    framebuffer_insert_char('S');
                     append_reader('S');
                 }
                 else{
-                    framebuffer_printDef("s");
+                    framebuffer_insert_char('s');
                     append_reader('s');
                 }
                 break;
             case 32:
                 if(caps ^ shift){
-                    framebuffer_printDef("D");
+                    framebuffer_insert_char('D');
                     append_reader('D');
                 }
                 else{
-                    framebuffer_printDef("d");
+                    framebuffer_insert_char('d');
                     append_reader('d');
                 }
                 break;
             case 33:
                 if(caps ^ shift){
-                    framebuffer_printDef("F");
+                    framebuffer_insert_char('F');
                     append_reader('F');
                 }
                 else{
-                    framebuffer_printDef("f");
+                    framebuffer_insert_char('f');
                     append_reader('f');
                 }
                 break;
             case 34:
                 if(caps ^ shift){
-                    framebuffer_printDef("G");
+                    framebuffer_insert_char('G');
                     append_reader('G');
                 }
                 else{
-                    framebuffer_printDef("g");
+                    framebuffer_insert_char('g');
                     append_reader('g');
                 }
                 break;
             case 35:
                 if(caps ^ shift){
-                    framebuffer_printDef("H");
+                    framebuffer_insert_char('H');
                     append_reader('H');
                 }
                 else{
-                    framebuffer_printDef("h");
+                    framebuffer_insert_char('h');
                     append_reader('h');
                 }
                 break;
             case 36:
                 if(caps ^ shift){
-                    framebuffer_printDef("J");
+                    framebuffer_insert_char('J');
                     append_reader('J');
                 }
                 else{
-                    framebuffer_printDef("j");
+                    framebuffer_insert_char('j');
                     append_reader('j');
                 }
                 break;
             case 37:
                 if(caps ^ shift){
-                    framebuffer_printDef("K");
+                    framebuffer_insert_char('K');
                     append_reader('K');
                 }
                 else{
-                    framebuffer_printDef("k");
+                    framebuffer_insert_char('k');
                     append_reader('k');
                 }
                 break;
             case 38:
                 if(caps ^ shift){
-                    framebuffer_printDef("L");
+                    framebuffer_insert_char('L');
                     append_reader('L');
                 }
                 else{
-                    framebuffer_printDef("l");
+                    framebuffer_insert_char('l');
                     append_reader('l');
                 }
                 break;
             case 39:
                 if(shift){
-                    framebuffer_printDef(":");
+                    framebuffer_insert_char(':');
                     append_reader(':');
                 } else{
-                    framebuffer_printDef(";");
+                    framebuffer_insert_char(';');
                     append_reader(';');
                 }
                 break;
             case 40:
                 if(shift){
-                    framebuffer_printDef("\"");
+                    framebuffer_insert_char('"');
                     append_reader('"');
                 } else{
-                    framebuffer_printDef("'");
+                    framebuffer_insert_char('\'');
                     append_reader('\'');
                 }
                 break;
 
             case 44:
                 if(caps ^ shift){
-                    framebuffer_printDef("Z");
+                    framebuffer_insert_char('Z');
                     append_reader('Z');
                 }
                 else{
-                    framebuffer_printDef("z");
+                    framebuffer_insert_char('z');
                     append_reader('z');
                 }
                 break;
             case 45:
                 if(caps ^ shift){
-                    framebuffer_printDef("X");
+                    framebuffer_insert_char('X');
                     append_reader('X');
                 }
                 else{
-                    framebuffer_printDef("x");
+                    framebuffer_insert_char('x');
                     append_reader('x');
                 }
                 break;
             case 46:
                 if(caps ^ shift){
-                    framebuffer_printDef("C");
+                    framebuffer_insert_char('C');
                     append_reader('C');
                 }
                 else{
-                    framebuffer_printDef("c");
+                    framebuffer_insert_char('c');
                     append_reader('c');
                 }
                 break;
             case 47:
                 if(caps ^ shift){
-                    framebuffer_printDef("V");
+                    framebuffer_insert_char('V');
                     append_reader('V');
                 }
                 else{
-                    framebuffer_printDef("v");
+                    framebuffer_insert_char('v');
                     append_reader('v');
                 }
                 break;
             case 48:
                 if(caps ^ shift){
-                    framebuffer_printDef("B");
+                    framebuffer_insert_char('B');
                     append_reader('B');
                 }
                 else{
-                    framebuffer_printDef("b");
+                    framebuffer_insert_char('b');
                     append_reader('b');
                 }
                 break;
             case 49:
                 if(caps ^ shift){
-                    framebuffer_printDef("N");
+                    framebuffer_insert_char('N');
                     append_reader('N');
                 }
                 else{
-                    framebuffer_printDef("n");
+                    framebuffer_insert_char('n');
                     append_reader('n');
                 }
                 break;
             case 50:
                 if(caps ^ shift){
-                    framebuffer_printDef("M");
+                    framebuffer_insert_char('M');
                     append_reader('M');
                 }
                 else{
-                    framebuffer_printDef("m");
+                    framebuffer_insert_char('m');
                     append_reader('m');
                 }
                 break;
             case 51:
                 if(shift){
-                    framebuffer_printDef("<");
+                    framebuffer_insert_char('<');
                     append_reader('<');
                 } else{
-                    framebuffer_printDef(",");
+                    framebuffer_insert_char(',');
                     append_reader(',');
                 }
                 break;
             case 52:
                 if(shift){
-                    framebuffer_printDef(">");
+                    framebuffer_insert_char('>');
                     append_reader('>');
                 } else{
-                    framebuffer_printDef(".");
+                    framebuffer_insert_char('.');
                     append_reader('.');
                 }
                 break;
             case 53:
                 if(shift){
-                    framebuffer_printDef("?");
+                    framebuffer_insert_char('?');
                     append_reader('?');
                 } else{
-                    framebuffer_printDef("/");
+                    framebuffer_insert_char('/');
                     append_reader('/');
                 }
                 break;
@@ -505,7 +508,7 @@ void keyboardDriver(uint8_t input){
                 newline_shell();
                 break;
             case 57:
-                framebuffer_printDef(" ");
+                framebuffer_insert_char(' ');
                 append_reader(' ');
                 break;
 

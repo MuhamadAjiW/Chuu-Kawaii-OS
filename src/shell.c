@@ -63,10 +63,12 @@ void newline_shell(){
 
 void append_reader(char in){
     if(!(in == '\n' && closed_sentence())){
-        shellReader[currentIdx] = in;
-        if(currentIdx == maxIdx){
-            maxIdx++;
+        for(int i = maxIdx; i > currentIdx; i--){
+            shellReader[i] = shellReader[i-1];
         }
+
+        shellReader[currentIdx] = in;
+        maxIdx++;
         currentIdx++;
     }
     else{

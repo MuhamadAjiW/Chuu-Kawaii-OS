@@ -45,6 +45,17 @@ int framebuffer_find_edge(int row){
     return col;
 }
 
+int framebuffer_find_edge_whole(int row, int col){
+    uint8_t counter = 0;
+    uint8_t* location;
+    location = (uint8_t*) MEMORY_FRAMEBUFFER + (row* 80 + col)*2;
+    while (*location != 0){
+        counter++;
+        location = (uint8_t*) MEMORY_FRAMEBUFFER + (row* 80 + col + counter)*2;
+    }
+    return counter;
+}
+
 bool framebuffer_move_cursor(int direction){
     uint16_t cursor = framebuffer_get_cursor();
     uint8_t row = cursor/80;
@@ -191,6 +202,41 @@ void framebuffer_printDef(char* string){
     framebuffer_set_cursor(row, col);
 }
 
+void framebuffer_insert_char(char in){
+    int edge = 5;
+    uint16_t cursor = framebuffer_get_cursor();
+    uint8_t row = cursor/80;
+    uint8_t col = cursor%80;
+
+        if(in != '\n'){
+            //edge = framebuffer_find_edge_whole(row, col);
+            memcpy_backwards(MEMORY_FRAMEBUFFER+((80*row+col+1)*2), MEMORY_FRAMEBUFFER+((80*row+col)*2), edge*2);
+            framebuffer_write(row, col, in, 0, 0xf);
+
+            col += 1;
+            if(col > 79){
+                if(row == 24){
+                    framebuffer_scroll();
+                }
+                else{
+                    row += 1;
+                }
+                col = 0;
+            }
+        }
+        else{
+            if(row == 24){
+                framebuffer_scroll();
+            }
+            else{
+                row += 1;
+            }
+            col = 0;
+        }
+        
+    framebuffer_set_cursor(row, col);
+}
+
 bool framebuffer_backspace(){
     uint16_t cursor = framebuffer_get_cursor();
     uint8_t row = cursor/80;
@@ -199,7 +245,7 @@ bool framebuffer_backspace(){
 
     if(!(row == limitRow && col == limitCol + 1)){
         if(col != 0 && col != 79){
-            memcpy(MEMORY_FRAMEBUFFER + (row* 80 + col-1)*2, MEMORY_FRAMEBUFFER + (row* 80 + col)*2, (MEMORY_FRAMEBUFFER + (row+1)*80*2) - (MEMORY_FRAMEBUFFER + (row* 80 + col)*2));
+            memcpy(MEMORY_FRAMEBUFFER+(row* 80 + col-1)*2, MEMORY_FRAMEBUFFER + (row* 80 + col)*2, ((row+1)*80*2) - ((row* 80 + col)*2));
             success = 1;
         }
         else if (col == 79){

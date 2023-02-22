@@ -26,6 +26,7 @@ void* memset(void *s, int c, size_t n);
  * @return Pointer dest
 */
 void* memcpy(void* restrict dest, const void* restrict src, size_t n);
+void* memcpy_backwards(void* restrict dest, const void* restrict src, size_t n);
 
 /**
  * C standard memcmp, check man memcmp or
