@@ -3,7 +3,7 @@
 
 #include "lib-header/stdtype.h"
 
-#define IDT_MAX_COUNT 64
+#define IDT_MAX_COUNT 256
 #define SELECTOR 0x08
 #define KERNEL_FLAGS 0x8e
 
@@ -28,8 +28,8 @@ struct IDTR{
 typedef struct IDTR IDTR;
 
 extern void load_idt(IDTR*);
-void init_idt();
-void set_idt_gate(uint8_t ,uint32_t);
-
+void initialize_idt();
+void set_idt_gate(uint8_t ,void*);
+void pic_remap();
 
 #endif

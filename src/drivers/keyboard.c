@@ -3,49 +3,114 @@
 #include "../lib-header/portio.h"
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/isr.h"
+#include "../lib-header/idt.h"
+#include "../lib-header/string.h"
 
-uint8_t caps = 0;
-uint8_t shift = 0;
+extern void* isr_stub_table[];
+
+static keyboardDriverState key ={
+    .currentIdx = 0,
+    .maxIdx = 0,
+    .shift = 0,
+    .caps = 0,
+    .keyboard_input_on = 0
+};
+
 char buffer[4];
 
 static void keyboard_callback(){
     uint8_t scanner = in(0x60);
-    keyboardDriver(scanner);
-
+    if(key.keyboard_input_on){
+        keyboardDriver(scanner);
+    }
 
     int_toString(scanner, buffer);
     //framebuffer_printDef(buffer);
 }
 
-void init_keyboard(){
+void activate_keyboard_interrupt(){
+    set_idt_gate(33, isr_stub_table[33]);
     register_interrupt_handler(33, keyboard_callback);
+}
+
+void keyboard_state_activate(){
+    key.keyboard_input_on = 1;
+}
+
+void keyboard_state_deactivate(){
+    key.keyboard_input_on = 0;
+}
+
+void clear_reader(){
+    key.shellReader[0] = 0;
+    key.currentIdx = 0;
+    key.maxIdx = 0;
+}
+
+void append_reader(char in){
+    if(key.maxIdx < 500){
+        if(!(in == '\n')){
+            for(int i = key.maxIdx; i > key.currentIdx; i--){
+                key.shellReader[i] = key.shellReader[i-1];
+            }
+
+            key.shellReader[key.currentIdx] = in;
+            key.maxIdx++;
+            key.currentIdx++;
+        }
+        else{
+            key.shellReader[key.currentIdx] = 0;
+            execute_reader();
+            clear_reader();
+        }
+    }
+    else{
+        framebuffer_printDef("\nBuffer overflowed, resetting buffer...\n");
+        clear_reader();
+    }
+}
+
+void move_reader(int direction){
+    key.currentIdx = key.currentIdx + direction;
+}
+
+void backspace_reader(){
+    for(int i = key.currentIdx-1; i < key.maxIdx-1; i++){
+        key.shellReader[i] = key.shellReader[i+1];
+    }
+    key.currentIdx--;
+    key.maxIdx--;
+}
+
+char* get_keyboard_buffer(){
+    return key.shellReader;
 }
 
 void keyboardDriver(uint8_t input){
         switch (input){
             case 58:
-                if(caps){
-                    caps = 0;
+                if(key.caps){
+                    key.caps = 0;
                 }
                 else{
-                    caps = 1;
+                    key.caps = 1;
                 }
                 break;
             case 42:
-                shift = 1;
+                key.shift = 1;
                 break;
             case 170:
-                shift = 0;
+                key.shift = 0;
                 break;
             case 54:
-                shift = 1;
+                key.shift = 1;
                 break;
             case 182:
-                shift = 0;
+                key.shift = 0;
                 break;
 
             case 2:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('!');
                     append_reader('!');
                 } else{
@@ -54,7 +119,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 3:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('@');
                     append_reader('@');
                 } else{
@@ -63,7 +128,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 4:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('#');
                     append_reader('#');
                 } else{
@@ -72,7 +137,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 5:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('$');
                     append_reader('$');
                 } else{
@@ -81,7 +146,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 6:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('%');
                     append_reader('%');
                 } else{
@@ -90,7 +155,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 7:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('^');
                     append_reader('^');
                 } else{
@@ -99,7 +164,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 8:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('&');
                     append_reader('&');
                 } else{
@@ -108,7 +173,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 9:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('*');
                     append_reader('*');
                 } else{
@@ -117,7 +182,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 10:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('(');
                     append_reader('(');
                 } else{
@@ -126,7 +191,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 11:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char(')');
                     append_reader(')');
                 } else{
@@ -135,7 +200,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 12:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('_');
                     append_reader('_');
                 } else{
@@ -144,7 +209,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 13:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('+');
                     append_reader('+');
                 } else{
@@ -169,7 +234,7 @@ void keyboardDriver(uint8_t input){
                 append_reader(' ');
                 break;
             case 16:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('Q');
                     append_reader('Q');
                 }
@@ -179,7 +244,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 17:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('W');
                     append_reader('W');
                 }
@@ -189,7 +254,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 18:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('E');
                     append_reader('E');
                 }
@@ -199,7 +264,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 19:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('R');
                     append_reader('R');
                 }
@@ -209,7 +274,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 20:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('T');
                     append_reader('T');
                 }
@@ -219,7 +284,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 21:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('Y');
                     append_reader('Y');
                 }
@@ -229,7 +294,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 22:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('U');
                     append_reader('U');
                 }
@@ -239,7 +304,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 23:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('I');
                     append_reader('I');
                 }
@@ -249,7 +314,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 24:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('O');
                     append_reader('O');
                 }
@@ -259,7 +324,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 25:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('P');
                     append_reader('P');
                 }
@@ -269,7 +334,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 26:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('{');
                     append_reader('{');
                 } else{
@@ -278,7 +343,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 27:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('}');
                     append_reader('}');
                 } else{
@@ -287,7 +352,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 43:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('|');
                     append_reader('|');
                 } else{
@@ -297,7 +362,7 @@ void keyboardDriver(uint8_t input){
                 break;
 
             case 30:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('A');
                     append_reader('A');
                 }
@@ -307,7 +372,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 31:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('S');
                     append_reader('S');
                 }
@@ -317,7 +382,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 32:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('D');
                     append_reader('D');
                 }
@@ -327,7 +392,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 33:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('F');
                     append_reader('F');
                 }
@@ -337,7 +402,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 34:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('G');
                     append_reader('G');
                 }
@@ -347,7 +412,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 35:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('H');
                     append_reader('H');
                 }
@@ -357,7 +422,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 36:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('J');
                     append_reader('J');
                 }
@@ -367,7 +432,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 37:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('K');
                     append_reader('K');
                 }
@@ -377,7 +442,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 38:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('L');
                     append_reader('L');
                 }
@@ -387,7 +452,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 39:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char(':');
                     append_reader(':');
                 } else{
@@ -396,7 +461,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 40:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('"');
                     append_reader('"');
                 } else{
@@ -406,7 +471,7 @@ void keyboardDriver(uint8_t input){
                 break;
 
             case 44:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('Z');
                     append_reader('Z');
                 }
@@ -416,7 +481,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 45:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('X');
                     append_reader('X');
                 }
@@ -426,7 +491,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 46:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('C');
                     append_reader('C');
                 }
@@ -436,7 +501,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 47:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('V');
                     append_reader('V');
                 }
@@ -446,7 +511,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 48:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('B');
                     append_reader('B');
                 }
@@ -456,7 +521,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 49:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('N');
                     append_reader('N');
                 }
@@ -466,7 +531,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 50:
-                if(caps ^ shift){
+                if(key.caps ^ key.shift){
                     framebuffer_insert_char('M');
                     append_reader('M');
                 }
@@ -476,7 +541,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 51:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('<');
                     append_reader('<');
                 } else{
@@ -485,7 +550,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 52:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('>');
                     append_reader('>');
                 } else{
@@ -494,7 +559,7 @@ void keyboardDriver(uint8_t input){
                 }
                 break;
             case 53:
-                if(shift){
+                if(key.shift){
                     framebuffer_insert_char('?');
                     append_reader('?');
                 } else{

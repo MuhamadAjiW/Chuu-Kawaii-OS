@@ -8,17 +8,22 @@
 #include "lib-header/isr.h"
 #include "lib-header/timer.h"
 #include "lib-header/keyboard.h"
+#include "lib-header/string.h"
 
 #include "lib-header/shell.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
-    init_idt();
+    pic_remap();
+    initialize_idt();
+    activate_keyboard_interrupt();
+    keyboard_state_activate();
 
     framebuffer_clear();
     __asm__ volatile ("sti");
     
-    //init_timer(20); // Harus > 18, kalo gak rada unpredictable
+    activate_timer_interrupt();
+    init_timer(20); // Harus > 18, kalo gak rada unpredictable
     init_shell();
     
     /*

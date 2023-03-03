@@ -3,7 +3,7 @@ global enter_protected_mode          ; go to protected mode
 extern kernel_setup                  ; kernel
 
 
-KERNEL_STACK_SIZE equ 102400                        ; size of stack in bytes
+KERNEL_STACK_SIZE equ 4096                          ; size of stack in bytes
 MAGIC_NUMBER      equ 0x1BADB002                    ; define the magic number constant
 FLAGS             equ (1<<16) | (1<<1) | (1<<0)     ; multiboot flags
 CHECKSUM          equ -(MAGIC_NUMBER + FLAGS)       ; calculate the checksum

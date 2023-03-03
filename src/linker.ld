@@ -8,22 +8,22 @@ SECTIONS {
        *(.bootHeader)
     }
 
-    .text ALIGN (4096) :   /* align at 4 KB */
+    .text ALIGN (0x1000) :   /* align at 4 KB */
     {
         *(.text)             /* all text sections from all files */
     }
 
-    .rodata ALIGN (4096) : /* align at 4 KB */
+    .rodata ALIGN (0x1000) : /* align at 4 KB */
     {
         *(.rodata*)          /* all read-only data sections from all files */
     }
 
-    .data ALIGN (4096) :   /* align at 4 KB */
+    .data ALIGN (0x1000) :   /* align at 4 KB */
     {
         *(.data)             /* all data sections from all files */
     }
 
-    .bss ALIGN (4096) :    /* align at 4 KB */
+    .bss ALIGN (0x1000) :    /* align at 4 KB */
     {
         *(COMMON)            /* all COMMON sections from all files */
         *(.bss)              /* all bss sections from all files */

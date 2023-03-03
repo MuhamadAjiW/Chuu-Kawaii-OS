@@ -3,6 +3,7 @@
 
 #include "lib-header/stdtype.h"
 
+void activate_timer_interrupt();
 void init_timer(uint32_t);
 
 #endif

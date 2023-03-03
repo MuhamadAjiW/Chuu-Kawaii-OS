@@ -1,8 +1,6 @@
 #ifndef _SHELL_H
 #define _SHELL_H
 
-char* shellReader;
-int currentIdx;
 
 void init_shell();
 void clear_reader();

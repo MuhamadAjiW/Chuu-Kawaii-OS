@@ -1,30 +1,31 @@
 #include "lib-header/keyboard.h"
 #include "lib-header/framebuffer.h"
 #include "lib-header/stdtype.h"
+#include "lib-header/string.h"
+#include "lib-header/shell.h"
 
-char shellReader[1000];
-int maxIdx = 0;
-int currentIdx = 0;
+
 
 void init_shell(){
-    init_keyboard();
-    framebuffer_printDef("    >> ");
-    framebuffer_set_cursor(0,7);
-    framebuffer_set_limit(0,6);
-}
-
-void clear_reader(){
-    shellReader[0] = 0;
-    currentIdx = 0;
-    maxIdx = 0;
+    clear_reader();
+    framebuffer_printDef("\n    >> ");
+    framebuffer_set_cursor(1,7);
+    framebuffer_set_limit(1,6);
 }
 
 void execute_reader(){
-    framebuffer_printDef("\nYou wrote: ");
-    framebuffer_printDef(shellReader);
-    framebuffer_printDef("\n");
+    if(strcmp(get_keyboard_buffer(), "clear") == 0){
+        framebuffer_clear();
+        clear_reader();
+    }
+    else{
+        framebuffer_printDef("\nYou wrote: ");
+        framebuffer_printDef(get_keyboard_buffer());
+        framebuffer_printDef("\n");
+    }
 }
 
+/*
 bool closed_sentence(){
     bool closed = 0;
 
@@ -41,6 +42,7 @@ bool closed_sentence(){
 
     return closed;
 }
+*/
 
 void newline_shell(){
     uint16_t cursor = framebuffer_get_cursor();
@@ -59,40 +61,5 @@ void newline_shell(){
         framebuffer_set_limit(row,6);
         framebuffer_set_cursor(row, 7);
     }
-}
-
-void append_reader(char in){
-    if(maxIdx < 500){
-        if(!(in == '\n' && closed_sentence())){
-            for(int i = maxIdx; i > currentIdx; i--){
-                shellReader[i] = shellReader[i-1];
-            }
-
-            shellReader[currentIdx] = in;
-            maxIdx++;
-            currentIdx++;
-        }
-        else{
-            shellReader[currentIdx] = 0;
-            execute_reader();
-            clear_reader();
-        }
-    }
-    else{
-        framebuffer_printDef("\nBuffer overflowed, resetting buffer...\n");
-        clear_reader();
-    }
-}
-
-void move_reader(int direction){
-    currentIdx = currentIdx + direction;
-}
-
-void backspace_reader(){
-    for(int i = currentIdx-1; i < maxIdx-1; i++){
-        shellReader[i] = shellReader[i+1];
-    }
-    currentIdx--;
-    maxIdx--;
 }
 
