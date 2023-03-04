@@ -7,7 +7,7 @@
 #define FAT_CLUSTER_NUMBER 1
 #define ROOT_CLUSTER_NUMBER 2
 
-#define SECTOR_SIZE 4096
+#define CLUSTER_SIZE 4096
 #define SECTOR_COUNT 64
 
 /*
@@ -72,7 +72,7 @@ typedef struct FAT32BootSector FAT32BootSector;
 
 
 struct ClusterBuffer{
-    uint8_t buf[SECTOR_SIZE];
+    uint8_t buf[CLUSTER_SIZE];
 }__attribute__((packed));
 typedef struct ClusterBuffer ClusterBuffer;
 
@@ -125,7 +125,7 @@ struct DirectoryEntry{
 typedef struct DirectoryEntry DirectoryEntry;
 
 struct DirectoryTable{
-    DirectoryEntry entry[SECTOR_SIZE/sizeof(DirectoryEntry)];
+    DirectoryEntry entry[CLUSTER_SIZE/sizeof(DirectoryEntry)];
 };
 typedef struct DirectoryTable DirectoryTable;
 
@@ -144,13 +144,8 @@ struct FAT32DriverRequest{
 typedef struct FAT32DriverRequest FAT32DriverRequest;
 
 void initialize_filesystem_fat32();
-bool is_empty_storage();
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
-
-void read(FAT32DriverRequest);
+void write(FAT32DriverRequest request);
+void init_directory_table(uint16_t cluster_number);
 DirectoryTable read_directory(uint32_t* reader);
-void write(FAT32DriverRequest);
-void del(FAT32DriverRequest);
-void init_directory_table(uint16_t);
-int cluster_to_lba(int);
-
+int cluster_to_lba(int clusters);

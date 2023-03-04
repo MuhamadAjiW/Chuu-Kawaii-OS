@@ -2,6 +2,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/disk.h"
+#include "../lib-header/framebuffer.h"
 /*
 static FAT32BootSector bootSector ={
     .boot_jump_instrution = {
@@ -50,12 +51,17 @@ static DirectoryEntry emptyEntry = {0};
 FAT32FileAllocationTable fat;
 DirectoryEntry* root_directory;
 
-uint32_t init = 0;
-uint32_t* entry;
-uint32_t* entry2;
-uint32_t* reader;
+char buffer[128]; 
 
 void initialize_filesystem_fat32(){
+    uint32_t* entry = 0;
+    uint32_t* entry2 = 0;
+
+    for(int i = 0; i < 4096; i++){
+        entry[i] = 0;
+        entry2[i] = 0;
+    }
+
     entry2[0] = 'f' | ('s' << 8) | ('_' << 16) | ('s' << 24);
     entry2[1] = 'i' | ('g' << 8) | ('n' << 16) | ('a' << 24);
     entry2[2] = 't' | ('u' << 8) | ('r' << 16) | ('e' << 24);
@@ -70,6 +76,11 @@ void initialize_filesystem_fat32(){
 }
 
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
+    uint32_t* reader = 0;
+    for(int i = 0; i < 4096; i++){
+        reader[i] = 0;
+    }
+
     DirectoryEntry add = {
         .filename = {*request.name},
         .extension = {*request.ext},
@@ -82,7 +93,7 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     }
     
     read_blocks(reader, cluster_to_lba(request.parent_cluster_number), 1);
-
+    
     int i;
     int limit = SECTOR_COUNT * 2;
     for(i = 0; i < limit; i += 2){
@@ -92,14 +103,19 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     }
     if(i < limit){
         memcpy((reader + i*32), &add, 4);
-
         write_blocks(cluster_to_lba(request.parent_cluster_number), 1, reader);
     }
 
     return;
 }
 
+
 void write(FAT32DriverRequest request){
+    uint32_t* reader = 0;
+    for(int i = 0; i < 4096; i++){
+        reader[i] = 0;
+    }
+
     read_blocks(reader, cluster_to_lba(1), 1);
     
     uint32_t size = request.buffer_size;
@@ -107,7 +123,7 @@ void write(FAT32DriverRequest request){
     int cachedindex = 0;
     
     bool large = 0;
-    while (size > 0){
+    do{
         uint16_t i = 3;
         
         for (i = 3; i < SECTOR_COUNT; i++){
@@ -116,25 +132,29 @@ void write(FAT32DriverRequest request){
             }
         }
         
-        write_blocks(cluster_to_lba(i), 1, (uint32_t*) &request.buf[index]);
-
-        index++;
+        if(size != 0){
+            write_blocks(cluster_to_lba(i), 1, (uint32_t*) &request.buf[index]);
+            index++;
+        }
 
         create_fat32(request, i);
+        read_blocks(reader, cluster_to_lba(1), 1);
 
         if(large){
             reader[cachedindex] = i;
         }
 
-        if(size < SECTOR_SIZE){
+        if(size < CLUSTER_SIZE){
             reader[i] = END_OF_FILE;
+            size = 0;
         }
         else{
-            size -= SECTOR_SIZE;
+            size -= CLUSTER_SIZE;
             large = 1;
             cachedindex = i;
         }
-    }
+    } while (size != 0);
+    
 
     write_blocks(cluster_to_lba(1), 1, reader);
     return;
@@ -153,7 +173,7 @@ void init_directory_table(uint16_t cluster_number){
 
 DirectoryTable read_directory(uint32_t* reader){
     DirectoryTable table;
-    memcpy(&table, reader, SECTOR_SIZE/8);
+    memcpy(&table, reader, CLUSTER_SIZE/8);
 
     return table;
 }
@@ -161,13 +181,10 @@ DirectoryTable read_directory(uint32_t* reader){
 
 /*
 bool is_empty_storage(DirectoryTable table){}
-void create_fat32(){}
 void read(){}
-void read_directory(){}
-void write(){}
 void del(){}
-void init_directory_table(){}
 */
+
 int cluster_to_lba(int clusters){
-    return SECTOR_SIZE * clusters;
+    return CLUSTER_SIZE * clusters;
 }

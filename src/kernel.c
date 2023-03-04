@@ -15,7 +15,7 @@
 #include "lib-header/shell.h"
 
 
-uint32_t* target;
+uint32_t* target = 0;
 uint32_t entry[512];
 char buffer[128]; 
 
@@ -30,26 +30,32 @@ void kernel_setup(void) {
     
     framebuffer_clear();
     
-    read_blocks(target, 0, 1);
-    for(int i = 0; i < 128; i++){
-        int_toString((target[i]) >> 24, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 16) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 8) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString((target[i]) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
+    for(int i = 0; i < 4096; i++){
+        target[i] = 0;
     }
 
     initialize_filesystem_fat32();
     
+    struct ClusterBuffer cbuf[5];
+    for (uint32_t i = 0; i < 5; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = i + 'a';
+
+    struct FAT32DriverRequest request = {
+        .buf                   = cbuf,
+        .name                  = "ikanaide",
+        .ext                   = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0,
+    } ;
+
+    write(request);  // Create folder "ikanaide"
+
     framebuffer_clear();
-    read_blocks(target, cluster_to_lba(2), 1);
+    for(int i = 0; i < 4096; i++){
+        target[i] = 0;
+    }
+    read_blocks(target, cluster_to_lba(1), 1);
     for(int i = 0; i < 128; i++){
         int_toString((target[i]) >> 24, buffer);
         framebuffer_printDef(buffer);

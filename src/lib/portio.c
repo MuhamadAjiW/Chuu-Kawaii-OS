@@ -12,6 +12,7 @@ void out(uint16_t port, uint8_t data) {
         : // <Empty output operand>
         : "a"(data), "d"(port)
     );
+    return;
 }
 
 void out2(uint16_t port, uint16_t data) {
@@ -20,6 +21,7 @@ void out2(uint16_t port, uint16_t data) {
         : // <Empty output operand>
         : "a"(data), "d"(port)
     );
+    return;
 }
 
 void out4(uint32_t port, uint32_t data) {
@@ -28,6 +30,7 @@ void out4(uint32_t port, uint32_t data) {
         : // <Empty output operand>
         : "a"(data), "d"(port)
     );
+    return;
 }
 
 uint8_t in(uint16_t port) {
