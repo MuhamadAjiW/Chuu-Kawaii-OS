@@ -1,15 +1,16 @@
 
 #include "../lib-header/stdtype.h"
 
+#define END_OF_FILE 0xfffffff8
+
 #define RESERVED_CLUSTER_NUMBER 0
 #define FAT_CLUSTER_NUMBER 1
 #define ROOT_CLUSTER_NUMBER 2
 
-#define BLOCK_SIZE 4096
-#define SECTOR_SIZE 512
-#define CLUSTER_SIZE 64
+#define SECTOR_SIZE 4096
+#define SECTOR_COUNT 64
 
-
+/*
 #define BYTE_PER_SECTOR 4096
 #define SECTORS_PER_CLUSTER 64
 #define RESERVED_SECTORS 32
@@ -33,8 +34,10 @@
 #define DRIVE_NUMBER 0x80
 #define RESERVED1 0
 #define BOOT_SIGNATURE 1
+*/
 
-struct FAT32FileAllocationTable{
+/*
+struct FAT32BootSector{
     uint8_t boot_jump_instrution[3];
     uint8_t oem_identifier[8];
     uint16_t bytes_per_Sector;
@@ -64,6 +67,19 @@ struct FAT32FileAllocationTable{
     uint8_t volume_label[11];
     uint8_t file_system_type[8];
 }__attribute__((packed));
+typedef struct FAT32BootSector FAT32BootSector;
+*/
+
+
+struct ClusterBuffer{
+    uint8_t buf[SECTOR_SIZE];
+}__attribute__((packed));
+typedef struct ClusterBuffer ClusterBuffer;
+
+struct FAT32FileAllocationTable{
+    uint32_t sector_next[SECTOR_COUNT];
+}__attribute__((packed));
+
 typedef struct FAT32FileAllocationTable FAT32FileAllocationTable;
 
 struct DirectoryEntry{
@@ -109,19 +125,14 @@ struct DirectoryEntry{
 typedef struct DirectoryEntry DirectoryEntry;
 
 struct DirectoryTable{
-    DirectoryEntry entry[CLUSTER_SIZE];
-}__attribute__((packed));
+    DirectoryEntry entry[SECTOR_SIZE/sizeof(DirectoryEntry)];
+};
 typedef struct DirectoryTable DirectoryTable;
 
 struct FAT32DriverState{
     uint8_t state;
 }__attribute__((packed));
 typedef struct FAT32DriverState FAT32DriverState;
-
-struct ClusterBuffer{
-    uint32_t buf[CLUSTER_SIZE];
-}__attribute__((packed));
-typedef struct ClusterBuffer ClusterBuffer;
 
 struct FAT32DriverRequest{
     ClusterBuffer* buf;
@@ -134,12 +145,12 @@ typedef struct FAT32DriverRequest FAT32DriverRequest;
 
 void initialize_filesystem_fat32();
 bool is_empty_storage();
-void create_fat32();
+void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
 
 void read(FAT32DriverRequest);
-void read_directory();
+DirectoryTable read_directory(uint32_t* reader);
 void write(FAT32DriverRequest);
 void del(FAT32DriverRequest);
-void init_directory_table();
-void cluster_to_lba();
+void init_directory_table(uint16_t);
+int cluster_to_lba(int);
 

@@ -27,53 +27,49 @@ void kernel_setup(void) {
 
     activate_keyboard_interrupt();
     activate_timer_interrupt(20); // Harus > 18, kalo gak rada unpredictable
+    
+    framebuffer_clear();
+    
+    read_blocks(target, 0, 1);
+    for(int i = 0; i < 128; i++){
+        int_toString((target[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+
+    initialize_filesystem_fat32();
+    
+    framebuffer_clear();
+    read_blocks(target, cluster_to_lba(2), 1);
+    for(int i = 0; i < 128; i++){
+        int_toString((target[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+    
 
     framebuffer_clear();
     keyboard_state_activate();
     
     init_shell();
-
-    /*
-    framebuffer_clear();
-    
-    read_blocks(target, 0x0, 1);
-    for(int i = 0; i < 128; i++){
-        int_toString((target[i]) >> 24, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 16) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 8) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString((target[i]) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-    }
-
-    for(int i = 0; i < 512; i++){
-        entry[i] = 0x01010101;
-    }
-    write_blocks(0x0, 1, entry);
-    
-    framebuffer_clear();
-    read_blocks(target, 0x0, 1);
-    for(int i = 0; i < 128; i++){
-        int_toString((target[i]) >> 24, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 16) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 8) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString((target[i]) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-    }
-    */
 
     while (TRUE);
 }
