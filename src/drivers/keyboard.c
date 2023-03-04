@@ -29,7 +29,6 @@ static void keyboard_callback(){
 }
 
 void activate_keyboard_interrupt(){
-    set_idt_gate(33, isr_stub_table[33]);
     register_interrupt_handler(33, keyboard_callback);
 }
 
@@ -42,7 +41,7 @@ void keyboard_state_deactivate(){
 }
 
 void clear_reader(){
-    key.shellReader[0] = 0;
+    key.keyboard_buffer[0] = 0;
     key.currentIdx = 0;
     key.maxIdx = 0;
 }
@@ -51,15 +50,15 @@ void append_reader(char in){
     if(key.maxIdx < 500){
         if(!(in == '\n')){
             for(int i = key.maxIdx; i > key.currentIdx; i--){
-                key.shellReader[i] = key.shellReader[i-1];
+                key.keyboard_buffer[i] = key.keyboard_buffer[i-1];
             }
 
-            key.shellReader[key.currentIdx] = in;
+            key.keyboard_buffer[key.currentIdx] = in;
             key.maxIdx++;
             key.currentIdx++;
         }
         else{
-            key.shellReader[key.currentIdx] = 0;
+            key.keyboard_buffer[key.currentIdx] = 0;
             execute_reader();
             clear_reader();
         }
@@ -76,14 +75,14 @@ void move_reader(int direction){
 
 void backspace_reader(){
     for(int i = key.currentIdx-1; i < key.maxIdx-1; i++){
-        key.shellReader[i] = key.shellReader[i+1];
+        key.keyboard_buffer[i] = key.keyboard_buffer[i+1];
     }
     key.currentIdx--;
     key.maxIdx--;
 }
 
 char* get_keyboard_buffer(){
-    return key.shellReader;
+    return key.keyboard_buffer;
 }
 
 void keyboardDriver(uint8_t input){

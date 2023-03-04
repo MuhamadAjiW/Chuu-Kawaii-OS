@@ -55,6 +55,19 @@ interrupt_handler_i 31
 interrupt_handler_i 32
 interrupt_handler_i 33
 interrupt_handler_i 34
+interrupt_handler_i 35
+interrupt_handler_i 36
+interrupt_handler_i 37
+interrupt_handler_i 38
+interrupt_handler_i 39
+interrupt_handler_i 40
+interrupt_handler_i 41
+interrupt_handler_i 42
+interrupt_handler_i 43
+interrupt_handler_i 44
+interrupt_handler_i 45
+interrupt_handler_i 46
+interrupt_handler_i 47
 
 call_generic_handler:
     pusha
@@ -81,7 +94,7 @@ call_generic_handler:
 
 isr_stub_table:
 %assign i 0
-%rep 35
+%rep 48
     dd isr_stub_%+i
 %assign i i+1
 %endrep

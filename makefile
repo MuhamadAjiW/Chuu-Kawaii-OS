@@ -2,6 +2,7 @@
 ASM           = nasm
 LIN           = ld
 CC            = gcc
+QEMU_IMG      = qemu-img
 
 
 # Directory
@@ -30,7 +31,7 @@ clean:
 kernel:
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel_loader.s -o $(OUTPUT_FOLDER)/kernel_loader.o
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/cpu/interrupt.s -o $(OUTPUT_FOLDER)/interrupt.o
-# TODO: Compile C file with CFLAGS
+	
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernel.c -o $(OUTPUT_FOLDER)/kernel.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/lib/portio.c -o $(OUTPUT_FOLDER)/portio.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/lib/stdmem.c -o $(OUTPUT_FOLDER)/stdmem.o
@@ -40,9 +41,9 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cpu/timer.c -o $(OUTPUT_FOLDER)/timer.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/keyboard.c -o $(OUTPUT_FOLDER)/keyboard.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/framebuffer.c -o $(OUTPUT_FOLDER)/framebuffer.o
-	
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/disk.c -o $(OUTPUT_FOLDER)/disk.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shell.c -o $(OUTPUT_FOLDER)/shell.o
-	
 
 	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
@@ -65,5 +66,7 @@ iso: kernel
 			-o OS2023.iso              						\
 			.
 	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./bin
-	
+
+	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 200m
+
 	@rm -r $(OUTPUT_FOLDER)/iso/

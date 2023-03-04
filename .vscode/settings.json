@@ -8,6 +8,8 @@
         "keyboard.h": "c",
         "shell.h": "c",
         "stdtype.h": "c",
-        "kernel_loader.h": "c"
+        "kernel_loader.h": "c",
+        "fat32.h": "c",
+        "disk.h": "c"
     },
 }

@@ -28,6 +28,8 @@ void int_toString(int x, char str[]){
         str[j] = str[k];
         str[k] = temp;
     }
+
+    return;
 }
 
 int strlen(char str[]){

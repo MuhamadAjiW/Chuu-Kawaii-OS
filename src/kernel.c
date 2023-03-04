@@ -9,41 +9,71 @@
 #include "lib-header/timer.h"
 #include "lib-header/keyboard.h"
 #include "lib-header/string.h"
+#include "lib-header/fat32.h"
+#include "lib-header/disk.h"
 
 #include "lib-header/shell.h"
 
+
+uint32_t* target;
+uint32_t entry[512];
+char buffer[128]; 
+
 void kernel_setup(void) {
+    
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
+
     activate_keyboard_interrupt();
-    keyboard_state_activate();
+    activate_timer_interrupt(20); // Harus > 18, kalo gak rada unpredictable
 
     framebuffer_clear();
-    __asm__ volatile ("sti");
+    keyboard_state_activate();
     
-    activate_timer_interrupt();
-    init_timer(20); // Harus > 18, kalo gak rada unpredictable
     init_shell();
-    
+
     /*
-    char buffer[3];
-    buffer[1] = '\n';
-    buffer[2] = 0;
+    framebuffer_clear();
+    
+    read_blocks(target, 0x0, 1);
     for(int i = 0; i < 128; i++){
-        buffer[0] = i;
+        int_toString((target[i]) >> 24, buffer);
         framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+
+    for(int i = 0; i < 512; i++){
+        entry[i] = 0x01010101;
+    }
+    write_blocks(0x0, 1, entry);
+    
+    framebuffer_clear();
+    read_blocks(target, 0x0, 1);
+    for(int i = 0; i < 128; i++){
+        int_toString((target[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
     }
     */
 
-    /*
-    framebuffer_write(3, 8,  'H', 0, 0xF);
-    framebuffer_write(3, 9,  'a', 0, 0xF);
-    framebuffer_write(3, 10, 'i', 0, 0xF);
-    framebuffer_write(3, 11, '!', 0, 0xF);
-    */
-    //framebuffer_set_cursor(3, 10);
-    //framebuffer_print("print test\n yes", 0, 0xf);
-    
     while (TRUE);
 }

@@ -1,11 +1,8 @@
 #include "../lib-header/timer.h"
 #include "../lib-header/isr.h"
-#include "../lib-header/idt.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/string.h"
-
-extern void* isr_stub_table[];
 
 uint32_t tick = 0;
 char buffer[256];
@@ -18,13 +15,11 @@ static void timer_callback(){
     
     //framebuffer_printDef(buffer);
     //framebuffer_printDef("\n");    
+
+    return;
 }
 
-void activate_timer_interrupt(){
-    set_idt_gate(32, isr_stub_table[32]);
-}
-
-void init_timer(uint32_t freq){
+void activate_timer_interrupt(uint32_t freq){
     register_interrupt_handler(32, timer_callback);
 
     uint32_t x = 1193182 / freq;
@@ -34,4 +29,13 @@ void init_timer(uint32_t freq){
     out(0x43, 0x36);
     out(0x40, low);
     out(0x40, high);
+
+    return;
+}
+
+void sleep(uint32_t duration){
+    uint32_t cachedTime = tick;
+    while (cachedTime + duration > tick){}
+
+    return;
 }

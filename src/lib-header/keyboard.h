@@ -4,7 +4,7 @@
 #include "lib-header/stdtype.h"
 
 struct keyboard{
-    char shellReader[1000];
+    char keyboard_buffer[1000];
     uint16_t maxIdx;
     uint16_t currentIdx;
     uint8_t caps;

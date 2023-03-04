@@ -28,11 +28,13 @@ void initialize_idt(){
     memset(&idt, 0, sizeof(InterruptDescriptorTable));
 
     //isr
-    for(uint8_t i = 0; i < 32; i++){
+    for(uint8_t i = 0; i < 48; i++){
         set_idt_gate(i, isr_stub_table[i]);
     }
 
     load_idt(&idtr);
+    
+    __asm__ volatile ("sti");
 }
 
 void pic_remap(){
@@ -98,11 +100,18 @@ void main_interrupt_handler(registers r){
         framebuffer_printDef("\nexception: ");
         framebuffer_printDef(exception_msg[r.int_no]);
         framebuffer_printDef("\n");
-        __asm__ volatile(
-            "hlt"
-        );
+        __asm__ volatile("hlt");
     }
     else{
+        /*
+        framebuffer_printDef("received interrupt: 0x");
+        char s[3];
+        int_toString(r.int_no, s);
+        framebuffer_printDef(s);
+        framebuffer_printDef("\n");
+        */
+        
+
         if (r.int_no >=40){
             out(0xa0, 0x20);
         }

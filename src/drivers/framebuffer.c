@@ -10,6 +10,8 @@ int limitRow = 0;
 void framebuffer_set_limit(uint8_t r, uint8_t c){
     limitCol = c;
     limitRow = r;
+
+    return;
 }
 
 void framebuffer_set_cursor(uint8_t r, uint8_t c) {
@@ -20,6 +22,8 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
     out(CURSOR_PORT_DATA, (uint8_t) position);
     out(CURSOR_PORT_CMD, 0x0e);
     out(CURSOR_PORT_DATA, (uint8_t) (position >> 8));
+
+    return;
 }
 
 uint16_t framebuffer_get_cursor(){
@@ -106,6 +110,8 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg)
 
     memset(location, c, 1);
     memset(location+1, color, 1);
+
+    return;
 }
 
 void framebuffer_clear(void) {
@@ -115,6 +121,8 @@ void framebuffer_clear(void) {
         }
     }
     framebuffer_set_cursor(0, 0);
+
+    return;
 }
 
 void framebuffer_scroll(){
@@ -124,6 +132,8 @@ void framebuffer_scroll(){
     for(int col2 = 0; col2 < 80; col2++){
         framebuffer_write(24, col2, 0, 0x0, 0xf);
     }
+
+    return;
 }
 
 
@@ -162,6 +172,8 @@ void framebuffer_print(char* string, uint8_t fg, uint8_t bg){
         i++;
     }
     framebuffer_set_cursor(row, col);
+
+    return;
 }
 
 void framebuffer_printDef(char* string){
@@ -200,6 +212,8 @@ void framebuffer_printDef(char* string){
         i++;
     }
     framebuffer_set_cursor(row, col);
+
+    return;
 }
 
 void framebuffer_insert_char(char in){
@@ -235,6 +249,8 @@ void framebuffer_insert_char(char in){
         }
         
     framebuffer_set_cursor(row, col);
+
+    return;
 }
 
 bool framebuffer_backspace(){

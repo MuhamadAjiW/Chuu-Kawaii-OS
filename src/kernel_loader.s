@@ -1,5 +1,6 @@
 global loader                        ; the entry symbol for ELF
 global enter_protected_mode          ; go to protected mode
+global KERNEL_STACK_SIZE
 extern kernel_setup                  ; kernel
 
 
