@@ -10,6 +10,7 @@
         "stdtype.h": "c",
         "kernel_loader.h": "c",
         "fat32.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "memory_manager.h": "c"
     },
 }

@@ -3,6 +3,7 @@
 #include "../lib-header/stdmem.h"
 #include "../lib-header/disk.h"
 #include "../lib-header/framebuffer.h"
+#include "../lib-header/memory_manager.h"
 /*
 static FAT32BootSector bootSector ={
     .boot_jump_instrution = {
@@ -393,15 +394,15 @@ bool is_empty_storage(DirectoryTable table){
 }
 */
 
-extern ClusterBuffer* read_memory;
 ClusterBuffer* read(FAT32DriverRequest request){
+    ClusterBuffer* read_memory = 0;
     DirectoryEntry self = get_self_info(request);
-    ClusterBuffer nullBuffer[10] = {0};
 
     if(request.buffer_size < self.size){
-        memcpy(read_memory, nullBuffer, request.buffer_size);
+        return 0;
     }
     else{
+        read_memory = (ClusterBuffer*) malloc(sizeof(ClusterBuffer) * (CLUSTER_SIZE + request.buffer_size - 1 )/ CLUSTER_SIZE);
         ClusterBuffer readBuffer[(CLUSTER_SIZE + request.buffer_size - 1 )/ CLUSTER_SIZE];
         bool reading = 1;
         uint16_t index = 0;

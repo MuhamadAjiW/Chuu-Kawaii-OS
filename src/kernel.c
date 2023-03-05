@@ -11,6 +11,7 @@
 #include "lib-header/string.h"
 #include "lib-header/fat32.h"
 #include "lib-header/disk.h"
+#include "lib-header/memory_manager.h"
 
 #include "lib-header/shell.h"
 
