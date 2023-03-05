@@ -127,7 +127,7 @@ typedef struct DirectoryEntry DirectoryEntry;
 
 struct DirectoryTable{
     DirectoryEntry entry[CLUSTER_SIZE/sizeof(DirectoryEntry)];
-};
+}__attribute__((packed));
 typedef struct DirectoryTable DirectoryTable;
 
 struct FAT32DriverState{
@@ -156,3 +156,4 @@ void delete(FAT32DriverRequest);
 void deleteFolder(uint16_t cluster_number);
 bool is_empty_storage(DirectoryTable table);
 void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count);
+ClusterBuffer* read(FAT32DriverRequest request);

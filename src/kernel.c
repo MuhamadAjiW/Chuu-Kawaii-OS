@@ -18,9 +18,54 @@
 uint32_t target[128] = {0};
 uint32_t entry[512];
 char buffer[128]; 
+ClusterBuffer read_memory[10];
 
 void kernel_setup(void) {
+    enter_protected_mode(&_gdt_gdtr);
+    pic_remap();
+    initialize_idt();
+    activate_keyboard_interrupt();
+    framebuffer_clear();
+    framebuffer_set_cursor(0, 0);
+    initialize_filesystem_fat32();
+    keyboard_state_activate();
+
+    struct ClusterBuffer cbuf[5];
+    for (uint32_t i = 0; i < 5; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = i + 'a';
+
+    struct FAT32DriverRequest request = {
+        .buf                   = cbuf,
+        .name                  = "ikanaide",
+        .ext                   = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0,
+    } ;
+
+    write(request);  // Create folder "ikanaide"
+    memcpy(request.name, "kano1   ", 8);
+    write(request);  // Create folder "kano1"
+    memcpy(request.name, "ikanaide", 8);
+    delete(request); // Delete first folder, thus creating hole in FS
+
+    memcpy(request.name, "daijoubu", 8);
+    request.buffer_size = 5*CLUSTER_SIZE;
+    write(request);  // Create fragmented file "daijoubu"
+
+    struct ClusterBuffer readcbuf;
+    read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
+    // If read properly, readcbuf should filled with 'a'
+
+    request.buffer_size = CLUSTER_SIZE;
+    read(request);   // Failed read due not enough buffer size
+    request.buffer_size = 5*CLUSTER_SIZE;
+    read(request);   // Success read on file "daijoubu"
+
+    init_shell();
     
+    while (TRUE);
+    /*
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
@@ -100,7 +145,7 @@ void kernel_setup(void) {
 
 
     framebuffer_clear();
-    read_blocks(target, cluster_to_lba(1), 1);
+    read_blocks(target, cluster_to_lba(2), 1);
     for(int i = 0; i < 128; i++){
         int_toString((target[i]) >> 24, buffer);
         framebuffer_printDef(buffer);
@@ -117,12 +162,19 @@ void kernel_setup(void) {
     }
 
 
-    //struct ClusterBuffer readcbuf;
-    //read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
+    struct ClusterBuffer readcbuf;
+    read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
     // If read properly, readcbuf should filled with 'a'
 
-    //request.buffer_size = CLUSTER_SIZE;
-    //read(request);   // Failed read due not enough buffer size
+    framebuffer_clear();
+    for(int i = 0; i < 128; i++){
+        int_toString((cbuf->buf[i]), buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+
+    request.buffer_size = CLUSTER_SIZE;
+    read(request);   // Failed read due not enough buffer size
     //request.buffer_size = 5*CLUSTER_SIZE;
     //read(request);   // Success read on file "daijoubu"
 
@@ -130,6 +182,7 @@ void kernel_setup(void) {
     framebuffer_clear();
     keyboard_state_activate();
     init_shell();
-
+    
     while (TRUE);
+    */
 }

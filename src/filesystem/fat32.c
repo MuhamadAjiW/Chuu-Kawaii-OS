@@ -237,7 +237,9 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
     for(int i = 1; i < 64; i++){
         table.entry[i] = emptyEntry;
     }
-    write_blocks(cluster_to_lba(cluster_number), 1, (uint32_t*) &table);
+    
+    void* writer = (void*) &table;
+    write_blocks(cluster_to_lba(cluster_number), 1, writer);
 
     return;
 }
@@ -369,17 +371,18 @@ DirectoryTable read_directory(uint32_t* reader){
     return table;
 }
 
-/*
+
 void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
-    read_blocks(target, cluster_to_lba(cluster), sector_count);
+    void* reader = (void*) &target;
+    read_blocks(reader, cluster_to_lba(cluster), sector_count);
 };
-
-void write_clusters((uint32_t*) ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
-    write_blocks(cluster_to_lba(cluster), sector_count, (uint32_t*) target);
-};
-*/
 
 /*
+void write_clusters((uint32_t*) ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
+    void* writer = (void*) &target;
+    write_blocks(cluster_to_lba(cluster), sector_count, (uint32_t*) writer);
+};
+
 bool is_empty_storage(DirectoryTable table){
     for(int i = 1; i < SECTOR_COUNT){
         if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
@@ -390,10 +393,43 @@ bool is_empty_storage(DirectoryTable table){
 }
 */
 
+extern ClusterBuffer* read_memory;
+ClusterBuffer* read(FAT32DriverRequest request){
+    DirectoryEntry self = get_self_info(request);
+    ClusterBuffer nullBuffer[10] = {0};
 
-/*
-void read(){}
-*/
+    if(request.buffer_size < self.size){
+        memcpy(read_memory, nullBuffer, request.buffer_size);
+    }
+    else{
+        ClusterBuffer readBuffer[(CLUSTER_SIZE + request.buffer_size - 1 )/ CLUSTER_SIZE];
+        bool reading = 1;
+        uint16_t index = 0;
+
+        uint32_t reader[CLUSTER_SIZE/4] = {0};
+        read_blocks(reader, cluster_to_lba(FAT_CLUSTER_NUMBER), 1);
+
+        uint16_t current_cluster = self.cluster_number;
+        uint32_t marker = reader[current_cluster];
+    
+        while (reading){
+            read_clusters(&readBuffer[index], current_cluster, 1);
+            if(marker == END_OF_FILE){
+                reading = 0;
+            }
+            else{
+                current_cluster = marker;
+                marker = reader[current_cluster];
+                index++;
+            }
+        }
+
+        memcpy(read_memory, readBuffer, request.buffer_size);
+    }
+
+    return read_memory;
+}
+
 
 int cluster_to_lba(int clusters){
     return CLUSTER_SIZE * clusters;
