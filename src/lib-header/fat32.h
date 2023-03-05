@@ -1,4 +1,7 @@
 
+#ifndef _FAT32_H
+#define _FAT32_H
+
 #include "../lib-header/stdtype.h"
 
 #define END_OF_FILE 0xfffffff8
@@ -157,3 +160,6 @@ void deleteFolder(uint16_t cluster_number);
 bool is_empty_storage(DirectoryTable table);
 void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count);
 ClusterBuffer* read(FAT32DriverRequest request);
+
+
+#endif
