@@ -3,6 +3,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/string.h"
+#include "../lib-header/fat32.h"
 //#include "../lib-header/disk.h"
 
 void read_blocks(uint32_t target_address, uint32_t lba, uint8_t sector_count){
@@ -20,9 +21,9 @@ void read_blocks(uint32_t target_address, uint32_t lba, uint8_t sector_count){
 	for (uint16_t j = 0; j < sector_count; j++){
 	    while(in(0x1F7) & 0x80){}
 	    while(!(in(0x1F7) & 0x40)){}
-		for(uint16_t i = 0; i < 4096; i++)
+		for(uint16_t i = 0; i < CLUSTER_SIZE/(8*2); i++){
 			target[i] = in2(0x1F0);
-		target+=256;
+		}
 	}
 
 	return;
@@ -40,8 +41,7 @@ void write_blocks(uint32_t lba, uint8_t sector_count, uint32_t* entry){
 	for (int j = 0; j < sector_count; j++){
 	    while(in(0x1F7) & 0x80){}
 	    while(!(in(0x1F7) & 0x40)){}
-		for(int i = 0; i < 4096; i++)
-		{
+		for(int i = 0; i < CLUSTER_SIZE/(8*4); i++){
 			out4(0x1F0, entry[i]);
 		}
 	}

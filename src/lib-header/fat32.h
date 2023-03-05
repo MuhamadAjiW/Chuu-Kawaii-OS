@@ -7,7 +7,7 @@
 #define FAT_CLUSTER_NUMBER 1
 #define ROOT_CLUSTER_NUMBER 2
 
-#define CLUSTER_SIZE 4096
+#define CLUSTER_SIZE 16384
 #define SECTOR_COUNT 64
 
 /*
@@ -115,6 +115,7 @@ struct DirectoryEntry{
     uint16_t modification_time_seconds : 5;
     uint16_t modification_time_minutes : 6;
     uint16_t modification_time_hours : 5;
+
     uint16_t modification_time_day : 5;
     uint16_t modification_time_month : 4;
     uint16_t modifcation_time_year : 7;
@@ -146,6 +147,9 @@ typedef struct FAT32DriverRequest FAT32DriverRequest;
 void initialize_filesystem_fat32();
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
 void write(FAT32DriverRequest request);
-void init_directory_table(uint16_t cluster_number);
+void init_directory_table(uint16_t cluster_number, uint8_t parent_cluster_number);
+DirectoryEntry get_parent_info(uint8_t parent_cluster_number, uint8_t cluster_number);
 DirectoryTable read_directory(uint32_t* reader);
 int cluster_to_lba(int clusters);
+void del(FAT32DriverRequest);
+
