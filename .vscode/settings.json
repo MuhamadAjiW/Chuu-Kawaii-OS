@@ -11,6 +11,7 @@
         "kernel_loader.h": "c",
         "fat32.h": "c",
         "disk.h": "c",
-        "memory_manager.h": "c"
+        "memory_manager.h": "c",
+        "parser.h": "c"
     },
 }

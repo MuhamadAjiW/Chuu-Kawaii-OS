@@ -161,6 +161,6 @@ void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_coun
 void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_count);
 ClusterBuffer* read(FAT32DriverRequest request);
 void write(FAT32DriverRequest request);
-
+void close(ClusterBuffer* pointer);
 
 #endif

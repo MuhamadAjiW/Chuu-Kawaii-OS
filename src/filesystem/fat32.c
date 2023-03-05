@@ -2,7 +2,6 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/disk.h"
-#include "../lib-header/framebuffer.h"
 #include "../lib-header/memory_manager.h"
 /*
 static FAT32BootSector bootSector ={
@@ -47,8 +46,8 @@ static FAT32BootSector bootSector ={
 };
 */
 
-static DirectoryEntry emptyEntry = {0};
-static char buffer[CLUSTER_SIZE/4]; //debug purposes
+DirectoryEntry emptyEntry = {0};
+//static char buffer[CLUSTER_SIZE/4]; //debug purposes
 
 FAT32FileAllocationTable fat;
 DirectoryEntry* root_directory;
@@ -199,8 +198,8 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
 
     if (parent_cluster_number == ROOT_CLUSTER_NUMBER){
         DirectoryEntry parent = {
-            .filename = {'r', 'o', 'o', 't'},
-            .extension = {0},
+            .filename = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '},
+            .extension = {' ', ' ', ' '},
             .read_only = 0,
             .hidden = 0,
             .system = 0,
@@ -375,24 +374,14 @@ void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_coun
 
 void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_count){
     uint32_t writer[128] = {0};
-    uint32_t reader[128] = {0};
-
     memcpy(writer, entry, 512);
     write_blocks(cluster_to_lba(cluster), sector_count, writer);
-    read_blocks(reader, cluster_to_lba(cluster), sector_count);
-
     memcpy(writer, &entry->buf[512], 512);
     write_blocks(cluster_to_lba(cluster) + 512, sector_count, writer);
-    read_blocks(reader, cluster_to_lba(cluster) + 512, sector_count);
-
     memcpy(writer, &entry->buf[1024], 512);
     write_blocks(cluster_to_lba(cluster) + 1024, sector_count, writer);
-    read_blocks(reader, cluster_to_lba(cluster) + 1024, sector_count);
-
     memcpy(writer, &entry->buf[1536], 512);
     write_blocks(cluster_to_lba(cluster) + 1536, sector_count, writer);
-    read_blocks(reader, cluster_to_lba(cluster) + 1536, sector_count);
-
 };
 /*
 bool is_empty_storage(DirectoryTable table){
@@ -425,13 +414,6 @@ ClusterBuffer* read(FAT32DriverRequest request){
         while (reading){
             read_clusters(output+index, current_cluster, 1); 
 
-            framebuffer_clear();
-            for(int i = 0; i < 128; i++){
-                int_toString((output[index].buf[i]), buffer);
-                framebuffer_printDef(buffer);
-                framebuffer_printDef(" ");
-            }
-
             if(marker == END_OF_FILE){
                 reading = 0;
             }
@@ -444,6 +426,10 @@ ClusterBuffer* read(FAT32DriverRequest request){
     }
 
     return output;
+}
+
+void close(ClusterBuffer* pointer){
+    free(pointer);
 }
 
 int cluster_to_lba(int clusters){

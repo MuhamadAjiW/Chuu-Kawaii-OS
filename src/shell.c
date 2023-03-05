@@ -3,8 +3,15 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/string.h"
 #include "lib-header/shell.h"
+#include "lib-header/fat32.h"
+#include "lib-header/disk.h"
+#include "lib-header/parser.h"
+#include "lib-header/stdmem.h"
 
+char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};
+uint16_t currentCluster = 2;
 
+extern DirectoryEntry emptyEntry;
 
 void init_shell(){
     clear_reader();
@@ -14,15 +21,76 @@ void init_shell(){
 }
 
 void execute_reader(){
-    if(strcmp(get_keyboard_buffer(), "clear") == 0){
-        framebuffer_clear();
-        clear_reader();
+    init_parser();
+    splitWords();
+
+    if(get_word_count() == 1){
+        if(strcmp(get_parsed()[0], "clear") == 0){
+            framebuffer_clear();
+            clear_reader();
+        }
+        else if(strcmp(get_parsed()[0], "dir") == 0){
+            ClusterBuffer cluster_reader;
+            DirectoryTable table;
+            read_clusters(&cluster_reader, currentCluster, 1);
+
+            void* runner = (void*) &cluster_reader;
+            table = read_directory(runner);
+            
+            int counter = 1;
+            char char_buffer[9];
+            
+            framebuffer_printDef("\n");
+            framebuffer_printDef("\n    Parent folder: ");
+
+            for(int j = 0; j < 8; j++){
+                char_buffer[j] = table.entry[0].filename[j];
+            }
+            char_buffer[8] = 0;
+            framebuffer_printDef(char_buffer);
+
+            framebuffer_printDef("\n    No    Name     Ext");
+            for(int i = 1; i < 64; i++){
+                if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
+
+                    framebuffer_printDef("\n    ");
+                    int_toString(counter, char_buffer);
+                    framebuffer_printDef(char_buffer);
+                    framebuffer_printDef(". ");
+
+                    for(int j = 0; j < 8; j++){
+                        char_buffer[j] = table.entry[i].filename[j];
+                    }
+                    char_buffer[8] = 0;
+
+                    framebuffer_printDef(char_buffer);
+
+                    for(int j = 0; j < 3; j++){
+                        char_buffer[j] = table.entry[i].extension[j];
+                    }
+                    char_buffer[3] = 0;
+                    framebuffer_printDef("    ");
+                    framebuffer_printDef(char_buffer);
+
+                    counter++;
+                }
+            }
+            framebuffer_printDef("\n");
+
+
+        }
+        else{
+            framebuffer_printDef("\nYou wrote: ");
+            framebuffer_printDef(get_keyboard_buffer());
+            framebuffer_printDef("\n");
+        }
     }
     else{
         framebuffer_printDef("\nYou wrote: ");
         framebuffer_printDef(get_keyboard_buffer());
         framebuffer_printDef("\n");
     }
+    clearParser();
 }
 
 /*

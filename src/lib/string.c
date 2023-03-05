@@ -62,3 +62,13 @@ int strcmp(char str1[], char str2[]){
 
     return 0;
 }
+
+void strcpy(char dest[], char src[]){
+    int counter = 0;
+    while(src[counter] != 0){
+        dest[counter] = src[counter];
+        counter++;
+    }
+    dest[counter] = 0;
+    return;
+}
