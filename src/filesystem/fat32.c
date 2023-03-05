@@ -47,16 +47,16 @@ static FAT32BootSector bootSector ={
 */
 
 static DirectoryEntry emptyEntry = {0};
-//static char buffer[CLUSTER_SIZE/(8*4)]; //debug purposes
+static char buffer[CLUSTER_SIZE/4]; //debug purposes
 
 FAT32FileAllocationTable fat;
 DirectoryEntry* root_directory;
 
 void initialize_filesystem_fat32(){
-    uint32_t entry[CLUSTER_SIZE/(8*4)];
-    uint32_t entry2[CLUSTER_SIZE/(8*4)];
+    uint32_t entry[CLUSTER_SIZE/4];
+    uint32_t entry2[CLUSTER_SIZE/4];
 
-    for(int i = 0; i < CLUSTER_SIZE/(8*4); i++){
+    for(int i = 0; i < CLUSTER_SIZE/4; i++){
         entry[i] = 0;
         entry2[i] = 0;
     }
@@ -76,8 +76,8 @@ void initialize_filesystem_fat32(){
 }
 
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
-    uint32_t reader[CLUSTER_SIZE/(8*4)] = {0};
-    for(int i = 0; i < CLUSTER_SIZE/(8*4); i++){
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    for(int i = 0; i < CLUSTER_SIZE/4; i++){
         reader[i] = 0;
     }
 
@@ -139,7 +139,7 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
 
 
 void write(FAT32DriverRequest request){
-    uint32_t reader[CLUSTER_SIZE/(8*4)] = {0};
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
 
     read_blocks(reader, cluster_to_lba(1), 1);
     
@@ -189,7 +189,7 @@ void write(FAT32DriverRequest request){
 }
 
 
-void init_directory_table(uint16_t cluster_number, uint8_t parent_cluster_number){
+void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number){
     DirectoryTable table;
     //TODO: add parent entry in index 0
 
@@ -229,7 +229,7 @@ void init_directory_table(uint16_t cluster_number, uint8_t parent_cluster_number
         table.entry[0] = parent;
     }
     else{
-        DirectoryEntry parent = get_parent_info(parent_cluster_number, cluster_number);
+        DirectoryEntry parent = get_parent_info(parent_cluster_number);
         table.entry[0] = parent;
     }
 
@@ -242,16 +242,100 @@ void init_directory_table(uint16_t cluster_number, uint8_t parent_cluster_number
     return;
 }
 
-DirectoryEntry get_parent_info(uint8_t parent_cluster_number, uint8_t cluster_number){
+void delete(FAT32DriverRequest request){
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    uint32_t empty_cluster[CLUSTER_SIZE/4] = {0};
+    DirectoryEntry self = get_self_info(request);
+    uint32_t marker = 0;
+    uint16_t current_cluster = 0;
+    uint8_t deleting = 0;
+
+    if(self.directory == 1){
+        deleteFolder(self.cluster_number);
+    }
+
+    for(int i = 0; i < CLUSTER_SIZE/4; i++){
+        reader[i] = 0;
+    }
+    read_blocks(reader, cluster_to_lba(FAT_CLUSTER_NUMBER), 1);
+
+    marker = reader[current_cluster];
+    current_cluster = self.cluster_number;
+    deleting = 1;
+    
+    while (deleting){
+        reader[current_cluster] = 0;
+        if(marker == END_OF_FILE){
+            write_blocks(cluster_to_lba(current_cluster), 1, empty_cluster);
+            deleting = 0;
+        }
+        else{
+            current_cluster = marker;
+            marker = reader[current_cluster];
+        }
+    }
+    write_blocks(cluster_to_lba(FAT_CLUSTER_NUMBER), 1, reader);        
+
+    DirectoryTable parent_table;
+    for(int i = 0; i < CLUSTER_SIZE/4; i++){
+        reader[i] = 0;
+    }
+    read_blocks(reader, cluster_to_lba(request.parent_cluster_number), 1);
+    parent_table = read_directory(reader);
+
+    for(int i = 0; i < 64; i++){
+        if(memcmp(&parent_table.entry[i].filename, &request.name, 8) == 0 && memcmp(&parent_table.entry[i].extension, &request.ext, 3) == 0){
+            parent_table.entry[i] = emptyEntry;
+            break;
+        }
+    }
+}
+
+void deleteFolder(uint16_t cluster_number){
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    DirectoryTable table;
+    FAT32DriverRequest request;
+    read_blocks(reader, cluster_to_lba(cluster_number), 1);
+    table = read_directory(reader);
+    for(int i = 0; i < 64; i++){
+        if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
+            memcpy(&request.name, &table.entry[i].filename, 8);
+            memcpy(&request.ext, &table.entry[i].extension, 3);
+            request.parent_cluster_number = cluster_number;
+
+            delete(request);
+        }
+    }
+}
+
+DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
     DirectoryEntry info;
     DirectoryTable table;
 
-    uint32_t reader[CLUSTER_SIZE/(8*4)] = {0};
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_blocks(reader, cluster_to_lba(parent_cluster_number), 1);
     table = read_directory(reader);
+    read_blocks(reader, cluster_to_lba(table.entry[0].cluster_number), 1);
+    table = read_directory(reader);
+
+    framebuffer_clear();
+    for(int i = 0; i < 128; i++){
+        int_toString((reader[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((reader[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((reader[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((reader[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
 
     for(int i = 0; i < 64; i++){
-        if(table.entry[i].cluster_number == cluster_number){
+        if(table.entry[i].cluster_number == parent_cluster_number){
             info = table.entry[i];
             break;
         }
@@ -260,23 +344,55 @@ DirectoryEntry get_parent_info(uint8_t parent_cluster_number, uint8_t cluster_nu
     return info;
 }
 
+DirectoryEntry get_self_info(FAT32DriverRequest request){
+    DirectoryEntry info;
+    DirectoryTable table;
+
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    read_blocks(reader, cluster_to_lba(request.parent_cluster_number), 1);
+    table = read_directory(reader);
+
+    for(int i = 0; i < 64; i++){
+        if(memcmp(&table.entry[i].filename, &request.name, 8) == 0 && memcmp(&table.entry[i].extension, &request.ext, 3) == 0){
+            info = table.entry[i];
+            break;
+        }
+    }
+
+    return info;
+}
+
+
 DirectoryTable read_directory(uint32_t* reader){
     DirectoryTable table;
-    memcpy(&table, reader, CLUSTER_SIZE/8);
-
+    memcpy(&table, reader, CLUSTER_SIZE);
     return table;
 }
 
 /*
-void del(FAT32DriverRequest request){
-    
-}
+void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
+    read_blocks(target, cluster_to_lba(cluster), sector_count);
+};
+
+void write_clusters((uint32_t*) ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
+    write_blocks(cluster_to_lba(cluster), sector_count, (uint32_t*) target);
+};
 */
 
 /*
-bool is_empty_storage(DirectoryTable table){}
+bool is_empty_storage(DirectoryTable table){
+    for(int i = 1; i < SECTOR_COUNT){
+        if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
+            return false;
+        }
+    }
+    return true;
+}
+*/
+
+
+/*
 void read(){}
-void del(){}
 */
 
 int cluster_to_lba(int clusters){

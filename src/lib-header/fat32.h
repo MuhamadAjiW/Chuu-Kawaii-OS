@@ -7,7 +7,7 @@
 #define FAT_CLUSTER_NUMBER 1
 #define ROOT_CLUSTER_NUMBER 2
 
-#define CLUSTER_SIZE 16384
+#define CLUSTER_SIZE 2048
 #define SECTOR_COUNT 64
 
 /*
@@ -139,7 +139,7 @@ struct FAT32DriverRequest{
     ClusterBuffer* buf;
     char name[8];
     char ext[3];
-    uint8_t parent_cluster_number;
+    uint16_t parent_cluster_number;
     uint32_t buffer_size;
 }__attribute__((packed));
 typedef struct FAT32DriverRequest FAT32DriverRequest;
@@ -147,9 +147,12 @@ typedef struct FAT32DriverRequest FAT32DriverRequest;
 void initialize_filesystem_fat32();
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
 void write(FAT32DriverRequest request);
-void init_directory_table(uint16_t cluster_number, uint8_t parent_cluster_number);
-DirectoryEntry get_parent_info(uint8_t parent_cluster_number, uint8_t cluster_number);
+void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number);
+DirectoryEntry get_parent_info(uint16_t parent_cluster_number);
+DirectoryEntry get_self_info(FAT32DriverRequest request);
 DirectoryTable read_directory(uint32_t* reader);
 int cluster_to_lba(int clusters);
-void del(FAT32DriverRequest);
-
+void delete(FAT32DriverRequest);
+void deleteFolder(uint16_t cluster_number);
+bool is_empty_storage(DirectoryTable table);
+void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count);

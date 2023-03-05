@@ -30,32 +30,11 @@ void kernel_setup(void) {
     
     framebuffer_clear();
     
-    for(int i = 0; i < 4096; i++){
+    for(int i = 0; i < 128; i++){
         target[i] = 0;
     }
 
     initialize_filesystem_fat32();
-
-
-    framebuffer_clear();
-    for(int i = 0; i < 128; i++){
-        target[i] = 0;
-    }
-    read_blocks(target, cluster_to_lba(2), 1);
-    for(int i = 0; i < 128; i++){
-        int_toString((target[i]) >> 24, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 16) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((target[i]) >> 8) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString((target[i]) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-    }
     
     struct ClusterBuffer cbuf[5];
     for (uint32_t i = 0; i < 5; i++)
@@ -72,19 +51,11 @@ void kernel_setup(void) {
 
     write(request);  // Create folder "ikanaide"
     memcpy(request.name, "kano1   ", 8);
+    request.parent_cluster_number = 3;
     write(request);  // Create folder "kano1"
-    
-    memcpy(request.name, "daijoubu", 8);
-    request.buffer_size = 5*CLUSTER_SIZE;
-    write(request);
-
-
 
     framebuffer_clear();
-    for(int i = 0; i < 128; i++){
-        target[i] = 0;
-    }
-    read_blocks(target, cluster_to_lba(3), 1);
+    read_blocks(target, cluster_to_lba(1), 1);
     for(int i = 0; i < 128; i++){
         int_toString((target[i]) >> 24, buffer);
         framebuffer_printDef(buffer);
@@ -99,7 +70,62 @@ void kernel_setup(void) {
         framebuffer_printDef(buffer);
         framebuffer_printDef(" ");
     }
+
+    memcpy(request.name, "ikanaide", 8);
+    request.parent_cluster_number = 2;
+    delete(request); // Delete first folder, thus creating hole in FS
     
+    framebuffer_clear();
+    read_blocks(target, cluster_to_lba(1), 1);
+    for(int i = 0; i < 128; i++){
+        int_toString((target[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+
+
+    memcpy(request.name, "daijoubu", 8);
+    request.buffer_size = 5*CLUSTER_SIZE;
+    write(request);
+
+
+
+    framebuffer_clear();
+    read_blocks(target, cluster_to_lba(1), 1);
+    for(int i = 0; i < 128; i++){
+        int_toString((target[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+
+
+    //struct ClusterBuffer readcbuf;
+    //read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
+    // If read properly, readcbuf should filled with 'a'
+
+    //request.buffer_size = CLUSTER_SIZE;
+    //read(request);   // Failed read due not enough buffer size
+    //request.buffer_size = 5*CLUSTER_SIZE;
+    //read(request);   // Success read on file "daijoubu"
+
 
     framebuffer_clear();
     keyboard_state_activate();
