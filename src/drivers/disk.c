@@ -21,7 +21,7 @@ void read_blocks(uint32_t target_address, uint32_t lba, uint8_t sector_count){
 	for (uint16_t j = 0; j < sector_count; j++){
 	    while(in(0x1F7) & 0x80){}
 	    while(!(in(0x1F7) & 0x40)){}
-		for(uint16_t i = 0; i < CLUSTER_SIZE/2; i++){
+		for(uint16_t i = 0; i < 256; i++){
 			target[i] = in2(0x1F0);
 		}
 	}
@@ -41,7 +41,7 @@ void write_blocks(uint32_t lba, uint8_t sector_count, uint32_t* entry){
 	for (int j = 0; j < sector_count; j++){
 	    while(in(0x1F7) & 0x80){}
 	    while(!(in(0x1F7) & 0x40)){}
-		for(int i = 0; i < CLUSTER_SIZE/4; i++){
+		for(int i = 0; i < 128; i++){
 			out4(0x1F0, entry[i]);
 		}
 	}

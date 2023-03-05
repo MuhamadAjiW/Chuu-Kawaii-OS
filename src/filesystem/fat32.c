@@ -65,13 +65,13 @@ void initialize_filesystem_fat32(){
     entry2[0] = 'f' | ('s' << 8) | ('_' << 16) | ('s' << 24);
     entry2[1] = 'i' | ('g' << 8) | ('n' << 16) | ('a' << 24);
     entry2[2] = 't' | ('u' << 8) | ('r' << 16) | ('e' << 24);
-    write_blocks(cluster_to_lba(0), 1, entry2);
+    write_clusters((void*)entry2, 0, 1);
     init_directory_table(2, ROOT_CLUSTER_NUMBER);
 
     for (int i = 0; i < 3; i++){
         entry[i] = END_OF_FILE;
     }
-    write_blocks(cluster_to_lba(1), 1, entry);
+    write_clusters((void*)entry, 1, 1);
 
     return;
 }
@@ -133,7 +133,8 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     }
     if(i < SECTOR_COUNT){
         memcpy((reader + i*8), &add, 32);
-        write_blocks(cluster_to_lba(request.parent_cluster_number), 1, reader);
+        void* writer = (void*) reader;
+        write_clusters(writer, request.parent_cluster_number, 1);
     }
     return;
 }
@@ -165,7 +166,8 @@ void write(FAT32DriverRequest request){
         }
         
         if(size != 0){
-            write_blocks(cluster_to_lba(i), 1, (uint32_t*) &request.buf[index]);
+            void* writer = (void*) &request.buf[index];
+            write_clusters(writer, i, 1);
             index++;
         }
 
@@ -184,8 +186,9 @@ void write(FAT32DriverRequest request){
         }
     };
     
-
-    write_blocks(cluster_to_lba(1), 1, reader);
+    
+    void* writer = (void*) &reader;
+    write_clusters(writer, 1, 1);
     return;
 }
 
@@ -240,7 +243,7 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
     }
     
     void* writer = (void*) &table;
-    write_blocks(cluster_to_lba(cluster_number), 1, writer);
+    write_clusters(writer, cluster_number, 1);
 
     return;
 }
@@ -252,14 +255,12 @@ void delete(FAT32DriverRequest request){
     uint32_t marker = 0;
     uint16_t current_cluster = 0;
     uint8_t deleting = 0;
+    void* writer;
 
     if(self.directory == 1){
         deleteFolder(self.cluster_number);
     }
 
-    for(int i = 0; i < CLUSTER_SIZE/4; i++){
-        reader[i] = 0;
-    }
     read_blocks(reader, cluster_to_lba(FAT_CLUSTER_NUMBER), 1);
 
     marker = reader[current_cluster];
@@ -269,7 +270,8 @@ void delete(FAT32DriverRequest request){
     while (deleting){
         reader[current_cluster] = 0;
         if(marker == END_OF_FILE){
-            write_blocks(cluster_to_lba(current_cluster), 1, empty_cluster);
+            writer = (void*) empty_cluster;
+            write_clusters(writer, current_cluster, 1);
             deleting = 0;
         }
         else{
@@ -277,7 +279,8 @@ void delete(FAT32DriverRequest request){
             marker = reader[current_cluster];
         }
     }
-    write_blocks(cluster_to_lba(FAT_CLUSTER_NUMBER), 1, reader);        
+    writer = (void*) reader;
+    write_clusters(writer, FAT_CLUSTER_NUMBER, 1);    
 
     DirectoryTable parent_table;
     for(int i = 0; i < CLUSTER_SIZE/4; i++){
@@ -321,22 +324,6 @@ DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
     read_blocks(reader, cluster_to_lba(table.entry[0].cluster_number), 1);
     table = read_directory(reader);
 
-    framebuffer_clear();
-    for(int i = 0; i < 128; i++){
-        int_toString((reader[i]) >> 24, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((reader[i]) >> 16) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString(((reader[i]) >> 8) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-        int_toString((reader[i]) & 0xff, buffer);
-        framebuffer_printDef(buffer);
-        framebuffer_printDef(" ");
-    }
-
     for(int i = 0; i < 64; i++){
         if(table.entry[i].cluster_number == parent_cluster_number){
             info = table.entry[i];
@@ -374,16 +361,40 @@ DirectoryTable read_directory(uint32_t* reader){
 
 
 void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
-    void* reader = (void*) &target;
+    uint32_t reader[128] = {0};
     read_blocks(reader, cluster_to_lba(cluster), sector_count);
+    memcpy(target, &reader, 512);
+    read_blocks(reader, cluster_to_lba(cluster) + 512, sector_count);
+    memcpy(&target->buf[512], &reader, 512);
+    read_blocks(reader, cluster_to_lba(cluster) + 1024, sector_count);
+    memcpy(&target->buf[1024], &reader, 512);
+    read_blocks(reader, cluster_to_lba(cluster) + 1536, sector_count);
+    memcpy(&target->buf[1536], &reader, 512);
 };
 
+
+void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_count){
+    uint32_t writer[128] = {0};
+    uint32_t reader[128] = {0};
+
+    memcpy(writer, entry, 512);
+    write_blocks(cluster_to_lba(cluster), sector_count, writer);
+    read_blocks(reader, cluster_to_lba(cluster), sector_count);
+
+    memcpy(writer, &entry->buf[512], 512);
+    write_blocks(cluster_to_lba(cluster) + 512, sector_count, writer);
+    read_blocks(reader, cluster_to_lba(cluster) + 512, sector_count);
+
+    memcpy(writer, &entry->buf[1024], 512);
+    write_blocks(cluster_to_lba(cluster) + 1024, sector_count, writer);
+    read_blocks(reader, cluster_to_lba(cluster) + 1024, sector_count);
+
+    memcpy(writer, &entry->buf[1536], 512);
+    write_blocks(cluster_to_lba(cluster) + 1536, sector_count, writer);
+    read_blocks(reader, cluster_to_lba(cluster) + 1536, sector_count);
+
+};
 /*
-void write_clusters((uint32_t*) ClusterBuffer* target, uint16_t cluster, uint16_t sector_count){
-    void* writer = (void*) &target;
-    write_blocks(cluster_to_lba(cluster), sector_count, (uint32_t*) writer);
-};
-
 bool is_empty_storage(DirectoryTable table){
     for(int i = 1; i < SECTOR_COUNT){
         if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
@@ -395,15 +406,13 @@ bool is_empty_storage(DirectoryTable table){
 */
 
 ClusterBuffer* read(FAT32DriverRequest request){
-    ClusterBuffer* read_memory = 0;
+    ClusterBuffer* output = 0;
     DirectoryEntry self = get_self_info(request);
 
     if(request.buffer_size < self.size){
         return 0;
     }
     else{
-        read_memory = (ClusterBuffer*) malloc(sizeof(ClusterBuffer) * (CLUSTER_SIZE + request.buffer_size - 1 )/ CLUSTER_SIZE);
-        ClusterBuffer readBuffer[(CLUSTER_SIZE + request.buffer_size - 1 )/ CLUSTER_SIZE];
         bool reading = 1;
         uint16_t index = 0;
 
@@ -412,9 +421,17 @@ ClusterBuffer* read(FAT32DriverRequest request){
 
         uint16_t current_cluster = self.cluster_number;
         uint32_t marker = reader[current_cluster];
-    
+        output = (ClusterBuffer*) malloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
         while (reading){
-            read_clusters(&readBuffer[index], current_cluster, 1);
+            read_clusters(output+index, current_cluster, 1); 
+
+            framebuffer_clear();
+            for(int i = 0; i < 128; i++){
+                int_toString((output[index].buf[i]), buffer);
+                framebuffer_printDef(buffer);
+                framebuffer_printDef(" ");
+            }
+
             if(marker == END_OF_FILE){
                 reading = 0;
             }
@@ -424,13 +441,10 @@ ClusterBuffer* read(FAT32DriverRequest request){
                 index++;
             }
         }
-
-        memcpy(read_memory, readBuffer, request.buffer_size);
     }
 
-    return read_memory;
+    return output;
 }
-
 
 int cluster_to_lba(int clusters){
     return CLUSTER_SIZE * clusters;

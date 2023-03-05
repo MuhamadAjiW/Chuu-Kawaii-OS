@@ -149,7 +149,6 @@ typedef struct FAT32DriverRequest FAT32DriverRequest;
 
 void initialize_filesystem_fat32();
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
-void write(FAT32DriverRequest request);
 void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number);
 DirectoryEntry get_parent_info(uint16_t parent_cluster_number);
 DirectoryEntry get_self_info(FAT32DriverRequest request);
@@ -159,7 +158,9 @@ void delete(FAT32DriverRequest);
 void deleteFolder(uint16_t cluster_number);
 bool is_empty_storage(DirectoryTable table);
 void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count);
+void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_count);
 ClusterBuffer* read(FAT32DriverRequest request);
+void write(FAT32DriverRequest request);
 
 
 #endif

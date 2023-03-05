@@ -19,12 +19,13 @@
 uint32_t target[128] = {0};
 uint32_t entry[512];
 char buffer[128]; 
-ClusterBuffer read_memory[10];
+
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
+    initialize_memory();
     activate_keyboard_interrupt();
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
@@ -54,14 +55,50 @@ void kernel_setup(void) {
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"
 
+    framebuffer_clear();
+    read_blocks(target, cluster_to_lba(8), 1);
+    for(int i = 0; i < 128; i++){
+        int_toString((target[i]) >> 24, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 16) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString(((target[i]) >> 8) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+        int_toString((target[i]) & 0xff, buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+
     struct ClusterBuffer readcbuf;
+    
     read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
     // If read properly, readcbuf should filled with 'a'
+
+    framebuffer_clear();
+    for(int i = 0; i < 128; i++){
+        int_toString((readcbuf.buf[i]), buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
 
     request.buffer_size = CLUSTER_SIZE;
     read(request);   // Failed read due not enough buffer size
     request.buffer_size = 5*CLUSTER_SIZE;
-    read(request);   // Success read on file "daijoubu"
+    ClusterBuffer* reader = read(request);   // Success read on file "daijoubu"
+
+
+    framebuffer_clear();
+    for(int i = 0; i < 128; i++){
+        int_toString((reader->buf[i]), buffer);
+        framebuffer_printDef(buffer);
+        framebuffer_printDef(" ");
+    }
+    
+
+    free(request);
 
     init_shell();
     
