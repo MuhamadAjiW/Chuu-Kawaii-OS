@@ -29,6 +29,25 @@ void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
+
+    initialize_vga();
+    graphics_clear();
+    for(int i = 0; i < 26; i++){
+        graphics_write(5 + i, 5, 'A' + i, DEFAULT_COLOR_FG);
+    }
+
+    for(int i = 0; i < 26; i++){
+        graphics_write(5 + i, 6, 'a' + i, DEFAULT_COLOR_FG);
+    }
+
+    graphics_cursor_on();
+    graphics_set_cursor(5,5);
+
+    while (TRUE);
+    /**
+    enter_protected_mode(&_gdt_gdtr);
+    pic_remap();
+    initialize_idt();
     initialize_memory();
     activate_keyboard_interrupt();
     framebuffer_clear();
@@ -72,6 +91,7 @@ void kernel_setup(void) {
     init_shell();
     
     while (TRUE);
+    */
 
 
     /*
@@ -80,7 +100,7 @@ void kernel_setup(void) {
     initialize_idt();
 
     activate_keyboard_interrupt();
-    activate_timer_interrupt(20); // Harus > 18, kalo gak rada unpredictable
+    activate_timer_interrupt(DEFAULT_FREQUENCY); // Harus > 18, kalo gak rada unpredictable
     
     framebuffer_clear();
     

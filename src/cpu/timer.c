@@ -34,8 +34,14 @@ void activate_timer_interrupt(uint32_t freq){
 }
 
 void sleep(uint32_t duration){
+    register_interrupt_handler(32, timer_callback);
+
     uint32_t cachedTime = tick;
     while (cachedTime + duration > tick){}
 
     return;
+}
+
+uint32_t get_tick(){
+    return tick;
 }

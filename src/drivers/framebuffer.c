@@ -126,7 +126,6 @@ void framebuffer_clear(void) {
 }
 
 void framebuffer_scroll(){
-
     memcpy(MEMORY_FRAMEBUFFER, MEMORY_FRAMEBUFFER + 2*80, 2*25*80);
 
     for(int col2 = 0; col2 < 80; col2++){
@@ -276,11 +275,4 @@ bool framebuffer_backspace(){
     framebuffer_move_cursor(-1);
 
     return success;
-}
-
-
-
-
-void clear_video_memory(){
-    memset(MEMORY_FRAMEBUFFER, 0, 0x10000);
 }

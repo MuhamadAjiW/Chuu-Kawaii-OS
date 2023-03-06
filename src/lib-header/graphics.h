@@ -1,6 +1,9 @@
 #ifndef _GRAPHICS_H
 #define _GRAPHICS_H
 
+#include "../lib-header/stdtype.h"
+
+/* VGA Port Macros */
 #define MISC_OUT_REG 0x3c2
 #define FEAT_CONT_REG 0x3ca
 
@@ -23,6 +26,50 @@
 
 #define INPUT_STATUS_1 0x3da
 
+/* Graphics Attributes */
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
+
+
+#define BLOCK_WIDTH 5
+#define BLOCK_HEIGHT 8
+
+#define BUFFER_HEIGHT 25
+#define BUFFER_WIDTH 64
+
+
+#define DEFAULT_COLOR_BG 47
+#define DEFAULT_COLOR_FG 63
+#define CURSOR_COLOR 61
+
+#define MEMORY_GRAPHICS (uint8_t *) 0xA0000
+
+struct cursor_t{
+    uint8_t x;
+    uint8_t y;
+    uint8_t status;
+    uint8_t cursor_show;
+    uint8_t cached_bg[8];
+};
+typedef struct cursor_t cursor_t;
+
 void initialize_vga();
+
+void graphics_clear();
+void graphics_draw(uint16_t x, uint16_t y, uint8_t color);
+void graphics_draw_block(uint8_t x, uint8_t y, uint8_t color);
+
+void graphics_cursor_on();
+void graphics_cursor_off();
+void graphics_show_cursor();
+void graphics_hide_cursor();
+
+uint8_t get_cursor_status();
+
+void graphics_set_cursor(uint8_t x, uint8_t y);
+uint8_t graphics_find_edge(uint8_t y);
+bool graphics_move_cursor(int8_t direction);
+
+void graphics_write(uint8_t x, uint8_t y, char c, uint8_t color);
 
 #endif
