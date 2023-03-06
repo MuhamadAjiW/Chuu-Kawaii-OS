@@ -6,11 +6,11 @@ extern kernel_setup                  ; kernel
 
 KERNEL_STACK_SIZE equ 2097152                       ; size of stack in bytes
 MAGIC_NUMBER      equ 0x1BADB002                    ; define the magic number constant
-FLAGS             equ (1<<16) | (1<<1) | (1<<0)     ; multiboot flags
+FLAGS             equ 0                             ; multiboot flags
 CHECKSUM          equ -(MAGIC_NUMBER + FLAGS)       ; calculate the checksum
                                                     ; (magic number + checksum + flags should equal 0)
 
-SECTION .bootHeader
+section .boot
 ALIGN 4
 boot:
     dd MAGIC_NUMBER

@@ -49,14 +49,14 @@ void execute_reader(){
             char_buffer[8] = 0;
             framebuffer_printDef(char_buffer);
 
-            framebuffer_printDef("\n    No    Name     Ext");
+            framebuffer_printDef("\n    No  Name        Ext    Size");
             for(int i = 1; i < 64; i++){
                 if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
 
                     framebuffer_printDef("\n    ");
                     int_toString(counter, char_buffer);
                     framebuffer_printDef(char_buffer);
-                    framebuffer_printDef(". ");
+                    framebuffer_printDef(".  ");
 
                     for(int j = 0; j < 8; j++){
                         char_buffer[j] = table.entry[i].filename[j];
@@ -71,13 +71,15 @@ void execute_reader(){
                     char_buffer[3] = 0;
                     framebuffer_printDef("    ");
                     framebuffer_printDef(char_buffer);
+                    
+                    framebuffer_printDef("    ");
+                    int_toString(table.entry[i].size, char_buffer);
+                    framebuffer_printDef(char_buffer);
 
                     counter++;
                 }
             }
             framebuffer_printDef("\n");
-
-
         }
         else{
             framebuffer_printDef("\nYou wrote: ");

@@ -13,6 +13,7 @@
 #include "lib-header/disk.h"
 #include "lib-header/memory_manager.h"
 #include "lib-header/parser.h"
+#include "lib-header/graphics.h"
 
 #include "lib-header/shell.h"
 

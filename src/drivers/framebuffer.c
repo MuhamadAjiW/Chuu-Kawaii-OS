@@ -277,3 +277,10 @@ bool framebuffer_backspace(){
 
     return success;
 }
+
+
+
+
+void clear_video_memory(){
+    memset(MEMORY_FRAMEBUFFER, 0, 0x10000);
+}

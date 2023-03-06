@@ -45,6 +45,7 @@ void framebuffer_clear(void);
 
 
 //extras
+void clear_video_memory();
 void framebuffer_set_limit(uint8_t r, uint8_t c);
 void framebuffer_print(char* string, uint8_t fg, uint8_t bg);
 void framebuffer_printDef(char* string);
