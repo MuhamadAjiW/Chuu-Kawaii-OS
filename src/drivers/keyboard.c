@@ -55,7 +55,7 @@ void append_reader(char in){
             key.currentIdx++;
         }
         else{
-            key.keyboard_buffer[key.currentIdx] = 0;
+            key.keyboard_buffer[key.maxIdx] = 0;
             execute_reader();
             clear_reader();
         }

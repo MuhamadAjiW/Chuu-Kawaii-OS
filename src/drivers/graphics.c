@@ -359,6 +359,7 @@ void graphics_write_char(char c){
     else{
         if(cursor.y == rowLimit -1){
             graphics_scroll();
+            graphics_set_cursor(0, rowLimit - 1);
         }
         else{
             graphics_set_cursor(0, cursor.y+1);
@@ -412,6 +413,7 @@ void graphics_print(char* string){
         else{
             if(cursor.y == rowLimit -1){
                 graphics_scroll();
+                graphics_set_cursor(0, rowLimit - 1);
             }
             else{
                 graphics_set_cursor(0, cursor.y+1);
@@ -430,7 +432,7 @@ bool graphics_backspace(){
     if(!(cursor.y == blocked_y && cursor.x == blocked_x)){
         uint16_t end = colLimit*rowLimit;
         uint16_t loc = cursor.y*colLimit + cursor.x;
-        for(int i = loc; i < end; i++){
+        for(int i = loc-1; i < end; i++){
             screenMap[0][i] = screenMap[0][i + 1];
         }
         screenMap[0][end-1] = 0;
@@ -441,7 +443,8 @@ bool graphics_backspace(){
     }
 
     if(success){
-       graphics_move_cursor(-1);
+        graphics_move_cursor(-1);
+        refresh_screen_buffer();
     }
     
 
