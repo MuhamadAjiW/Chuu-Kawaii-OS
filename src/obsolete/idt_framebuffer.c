@@ -2,8 +2,8 @@
 #include "../lib-header/isr.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/stdmem.h"
+#include "../lib-header/framebuffer.h"
 #include "../lib-header/string.h"
-#include "../lib-header/graphics.h"
 
 extern void* isr_stub_table[];
 
@@ -93,16 +93,25 @@ char *exception_msg[] = {
 
 void main_interrupt_handler(registers r){
     if(r.int_no < 32){
-        graphics_print("received interrupt: 0x");
+        framebuffer_printDef("received interrupt: 0x");
         char s[3];
         int_toString(r.int_no, s);
-        graphics_print(s);
-        graphics_print("\nexception: ");
-        graphics_print(exception_msg[r.int_no]);
-        graphics_print("\n");
+        framebuffer_printDef(s);
+        framebuffer_printDef("\nexception: ");
+        framebuffer_printDef(exception_msg[r.int_no]);
+        framebuffer_printDef("\n");
         __asm__ volatile("hlt");
     }
     else{
+        /*
+        framebuffer_printDef("received interrupt: 0x");
+        char s[3];
+        int_toString(r.int_no, s);
+        framebuffer_printDef(s);
+        framebuffer_printDef("\n");
+        */
+        
+
         if (r.int_no >=40){
             out(0xa0, 0x20);
         }

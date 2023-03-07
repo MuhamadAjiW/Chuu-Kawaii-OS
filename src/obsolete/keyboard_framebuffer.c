@@ -1,10 +1,10 @@
 #include "../lib-header/keyboard.h"
 #include "../lib-header/shell.h"
 #include "../lib-header/portio.h"
+#include "../lib-header/framebuffer.h"
 #include "../lib-header/isr.h"
 #include "../lib-header/idt.h"
 #include "../lib-header/string.h"
-#include "../lib-header/graphics.h"
 
 extern void* isr_stub_table[];
 
@@ -21,8 +21,11 @@ char buffer[4];
 static void keyboard_callback(){
     uint8_t scanner = in(0x60);
     if(key.keyboard_input_on){
-        keyboard_driver_graphics(scanner);
+        keyboardDriver(scanner);
     }
+
+    int_toString(scanner, buffer);
+    //framebuffer_printDef(buffer);
 }
 
 void activate_keyboard_interrupt(){
@@ -61,7 +64,7 @@ void append_reader(char in){
         }
     }
     else{
-        graphics_print("\nBuffer overflowed, resetting buffer...\n");
+        framebuffer_printDef("\nBuffer overflowed, resetting buffer...\n");
         clear_reader();
     }
 }
@@ -82,7 +85,7 @@ char* get_keyboard_buffer(){
     return key.keyboard_buffer;
 }
 
-void keyboard_driver_graphics(uint8_t input){
+void keyboardDriver(uint8_t input){
         switch (input){
             case 58:
                 if(key.caps){
@@ -107,123 +110,123 @@ void keyboard_driver_graphics(uint8_t input){
 
             case 2:
                 if(key.shift){
-                    graphics_write_char('!');
+                    framebuffer_insert_char('!');
                     append_reader('!');
                 } else{
-                    graphics_write_char('1');
+                    framebuffer_insert_char('1');
                     append_reader('1');
                 }
                 break;
             case 3:
                 if(key.shift){
-                    graphics_write_char('@');
+                    framebuffer_insert_char('@');
                     append_reader('@');
                 } else{
-                    graphics_write_char('2');
+                    framebuffer_insert_char('2');
                     append_reader('2');
                 }
                 break;
             case 4:
                 if(key.shift){
-                    graphics_write_char('#');
+                    framebuffer_insert_char('#');
                     append_reader('#');
                 } else{
-                    graphics_write_char('3');
+                    framebuffer_insert_char('3');
                     append_reader('3');
                 }
                 break;
             case 5:
                 if(key.shift){
-                    graphics_write_char('$');
+                    framebuffer_insert_char('$');
                     append_reader('$');
                 } else{
-                    graphics_write_char('4');
+                    framebuffer_insert_char('4');
                     append_reader('4');
                 }
                 break;
             case 6:
                 if(key.shift){
-                    graphics_write_char('%');
+                    framebuffer_insert_char('%');
                     append_reader('%');
                 } else{
-                    graphics_write_char('5');
+                    framebuffer_insert_char('5');
                     append_reader('5');
                 }
                 break;
             case 7:
                 if(key.shift){
-                    graphics_write_char('^');
+                    framebuffer_insert_char('^');
                     append_reader('^');
                 } else{
-                    graphics_write_char('6');
+                    framebuffer_insert_char('6');
                     append_reader('6');
                 }
                 break;
             case 8:
                 if(key.shift){
-                    graphics_write_char('&');
+                    framebuffer_insert_char('&');
                     append_reader('&');
                 } else{
-                    graphics_write_char('7');
+                    framebuffer_insert_char('7');
                     append_reader('7');
                 }
                 break;
             case 9:
                 if(key.shift){
-                    graphics_write_char('*');
+                    framebuffer_insert_char('*');
                     append_reader('*');
                 } else{
-                    graphics_write_char('8');
+                    framebuffer_insert_char('8');
                     append_reader('8');
                 }
                 break;
             case 10:
                 if(key.shift){
-                    graphics_write_char('(');
+                    framebuffer_insert_char('(');
                     append_reader('(');
                 } else{
-                    graphics_write_char('9');
+                    framebuffer_insert_char('9');
                     append_reader('9');
                 }
                 break;
             case 11:
                 if(key.shift){
-                    graphics_write_char(')');
+                    framebuffer_insert_char(')');
                     append_reader(')');
                 } else{
-                    graphics_write_char('0');
+                    framebuffer_insert_char('0');
                     append_reader('0');
                 }
                 break;
             case 12:
                 if(key.shift){
-                    graphics_write_char('_');
+                    framebuffer_insert_char('_');
                     append_reader('_');
                 } else{
-                    graphics_write_char('-');
+                    framebuffer_insert_char('-');
                     append_reader('-');
                 }
                 break;
             case 13:
                 if(key.shift){
-                    graphics_write_char('+');
+                    framebuffer_insert_char('+');
                     append_reader('+');
                 } else{
-                    graphics_write_char('=');
+                    framebuffer_insert_char('=');
                     append_reader('=');
                 }
                 break;
             case 14:
-                if (graphics_backspace()){
+                if (framebuffer_backspace()){
                     backspace_reader();
                 }
                 break;
 
             case 15:
-                graphics_write_char(' ');
-                graphics_write_char(' ');
-                graphics_write_char(' ');
-                graphics_write_char(' ');
+                framebuffer_insert_char(' ');
+                framebuffer_insert_char(' ');
+                framebuffer_insert_char(' ');
+                framebuffer_insert_char(' ');
                 append_reader(' ');
                 append_reader(' ');
                 append_reader(' ');
@@ -231,335 +234,335 @@ void keyboard_driver_graphics(uint8_t input){
                 break;
             case 16:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('Q');
+                    framebuffer_insert_char('Q');
                     append_reader('Q');
                 }
                 else{
-                    graphics_write_char('q');
+                    framebuffer_insert_char('q');
                     append_reader('q');
                 }
                 break;
             case 17:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('W');
+                    framebuffer_insert_char('W');
                     append_reader('W');
                 }
                 else{
-                    graphics_write_char('w');
+                    framebuffer_insert_char('w');
                     append_reader('w');
                 }
                 break;
             case 18:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('E');
+                    framebuffer_insert_char('E');
                     append_reader('E');
                 }
                 else{
-                    graphics_write_char('e');
+                    framebuffer_insert_char('e');
                     append_reader('e');
                 }
                 break;
             case 19:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('R');
+                    framebuffer_insert_char('R');
                     append_reader('R');
                 }
                 else{
-                    graphics_write_char('r');
+                    framebuffer_insert_char('r');
                     append_reader('r');
                 }
                 break;
             case 20:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('T');
+                    framebuffer_insert_char('T');
                     append_reader('T');
                 }
                 else{
-                    graphics_write_char('t');
+                    framebuffer_insert_char('t');
                     append_reader('t');
                 }
                 break;
             case 21:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('Y');
+                    framebuffer_insert_char('Y');
                     append_reader('Y');
                 }
                 else{
-                    graphics_write_char('y');
+                    framebuffer_insert_char('y');
                     append_reader('y');
                 }
                 break;
             case 22:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('U');
+                    framebuffer_insert_char('U');
                     append_reader('U');
                 }
                 else{
-                    graphics_write_char('u');
+                    framebuffer_insert_char('u');
                     append_reader('u');
                 }
                 break;
             case 23:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('I');
+                    framebuffer_insert_char('I');
                     append_reader('I');
                 }
                 else{
-                    graphics_write_char('i');
+                    framebuffer_insert_char('i');
                     append_reader('i');
                 }
                 break;
             case 24:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('O');
+                    framebuffer_insert_char('O');
                     append_reader('O');
                 }
                 else{
-                    graphics_write_char('o');
+                    framebuffer_insert_char('o');
                     append_reader('o');
                 }
                 break;
             case 25:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('P');
+                    framebuffer_insert_char('P');
                     append_reader('P');
                 }
                 else{
-                    graphics_write_char('p');
+                    framebuffer_insert_char('p');
                     append_reader('p');
                 }
                 break;
             case 26:
                 if(key.shift){
-                    graphics_write_char('{');
+                    framebuffer_insert_char('{');
                     append_reader('{');
                 } else{
-                    graphics_write_char('[');
+                    framebuffer_insert_char('[');
                     append_reader('[');
                 }
                 break;
             case 27:
                 if(key.shift){
-                    graphics_write_char('}');
+                    framebuffer_insert_char('}');
                     append_reader('}');
                 } else{
-                    graphics_write_char(']');
+                    framebuffer_insert_char(']');
                     append_reader(']');
                 }
                 break;
             case 43:
                 if(key.shift){
-                    graphics_write_char('|');
+                    framebuffer_insert_char('|');
                     append_reader('|');
                 } else{
-                    graphics_write_char('\\');
+                    framebuffer_insert_char('\\');
                     append_reader('\\');
                 }
                 break;
 
             case 30:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('A');
+                    framebuffer_insert_char('A');
                     append_reader('A');
                 }
                 else{
-                    graphics_write_char('a');
+                    framebuffer_insert_char('a');
                     append_reader('a');
                 }
                 break;
             case 31:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('S');
+                    framebuffer_insert_char('S');
                     append_reader('S');
                 }
                 else{
-                    graphics_write_char('s');
+                    framebuffer_insert_char('s');
                     append_reader('s');
                 }
                 break;
             case 32:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('D');
+                    framebuffer_insert_char('D');
                     append_reader('D');
                 }
                 else{
-                    graphics_write_char('d');
+                    framebuffer_insert_char('d');
                     append_reader('d');
                 }
                 break;
             case 33:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('F');
+                    framebuffer_insert_char('F');
                     append_reader('F');
                 }
                 else{
-                    graphics_write_char('f');
+                    framebuffer_insert_char('f');
                     append_reader('f');
                 }
                 break;
             case 34:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('G');
+                    framebuffer_insert_char('G');
                     append_reader('G');
                 }
                 else{
-                    graphics_write_char('g');
+                    framebuffer_insert_char('g');
                     append_reader('g');
                 }
                 break;
             case 35:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('H');
+                    framebuffer_insert_char('H');
                     append_reader('H');
                 }
                 else{
-                    graphics_write_char('h');
+                    framebuffer_insert_char('h');
                     append_reader('h');
                 }
                 break;
             case 36:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('J');
+                    framebuffer_insert_char('J');
                     append_reader('J');
                 }
                 else{
-                    graphics_write_char('j');
+                    framebuffer_insert_char('j');
                     append_reader('j');
                 }
                 break;
             case 37:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('K');
+                    framebuffer_insert_char('K');
                     append_reader('K');
                 }
                 else{
-                    graphics_write_char('k');
+                    framebuffer_insert_char('k');
                     append_reader('k');
                 }
                 break;
             case 38:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('L');
+                    framebuffer_insert_char('L');
                     append_reader('L');
                 }
                 else{
-                    graphics_write_char('l');
+                    framebuffer_insert_char('l');
                     append_reader('l');
                 }
                 break;
             case 39:
                 if(key.shift){
-                    graphics_write_char(':');
+                    framebuffer_insert_char(':');
                     append_reader(':');
                 } else{
-                    graphics_write_char(';');
+                    framebuffer_insert_char(';');
                     append_reader(';');
                 }
                 break;
             case 40:
                 if(key.shift){
-                    graphics_write_char('"');
+                    framebuffer_insert_char('"');
                     append_reader('"');
                 } else{
-                    graphics_write_char('\'');
+                    framebuffer_insert_char('\'');
                     append_reader('\'');
                 }
                 break;
 
             case 44:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('Z');
+                    framebuffer_insert_char('Z');
                     append_reader('Z');
                 }
                 else{
-                    graphics_write_char('z');
+                    framebuffer_insert_char('z');
                     append_reader('z');
                 }
                 break;
             case 45:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('X');
+                    framebuffer_insert_char('X');
                     append_reader('X');
                 }
                 else{
-                    graphics_write_char('x');
+                    framebuffer_insert_char('x');
                     append_reader('x');
                 }
                 break;
             case 46:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('C');
+                    framebuffer_insert_char('C');
                     append_reader('C');
                 }
                 else{
-                    graphics_write_char('c');
+                    framebuffer_insert_char('c');
                     append_reader('c');
                 }
                 break;
             case 47:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('V');
+                    framebuffer_insert_char('V');
                     append_reader('V');
                 }
                 else{
-                    graphics_write_char('v');
+                    framebuffer_insert_char('v');
                     append_reader('v');
                 }
                 break;
             case 48:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('B');
+                    framebuffer_insert_char('B');
                     append_reader('B');
                 }
                 else{
-                    graphics_write_char('b');
+                    framebuffer_insert_char('b');
                     append_reader('b');
                 }
                 break;
             case 49:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('N');
+                    framebuffer_insert_char('N');
                     append_reader('N');
                 }
                 else{
-                    graphics_write_char('n');
+                    framebuffer_insert_char('n');
                     append_reader('n');
                 }
                 break;
             case 50:
                 if(key.caps ^ key.shift){
-                    graphics_write_char('M');
+                    framebuffer_insert_char('M');
                     append_reader('M');
                 }
                 else{
-                    graphics_write_char('m');
+                    framebuffer_insert_char('m');
                     append_reader('m');
                 }
                 break;
             case 51:
                 if(key.shift){
-                    graphics_write_char('<');
+                    framebuffer_insert_char('<');
                     append_reader('<');
                 } else{
-                    graphics_write_char(',');
+                    framebuffer_insert_char(',');
                     append_reader(',');
                 }
                 break;
             case 52:
                 if(key.shift){
-                    graphics_write_char('>');
+                    framebuffer_insert_char('>');
                     append_reader('>');
                 } else{
-                    graphics_write_char('.');
+                    framebuffer_insert_char('.');
                     append_reader('.');
                 }
                 break;
             case 53:
                 if(key.shift){
-                    graphics_write_char('?');
+                    framebuffer_insert_char('?');
                     append_reader('?');
                 } else{
-                    graphics_write_char('/');
+                    framebuffer_insert_char('/');
                     append_reader('/');
                 }
                 break;
@@ -569,17 +572,17 @@ void keyboard_driver_graphics(uint8_t input){
                 newline_shell();
                 break;
             case 57:
-                graphics_write_char(' ');
+                framebuffer_insert_char(' ');
                 append_reader(' ');
                 break;
 
             case 75:
-                if (graphics_move_cursor(-1)){
+                if (framebuffer_move_cursor(-1)){
                     move_reader(-1);
                 };
                 break;
             case 77:
-                if (graphics_move_cursor(1)){
+                if (framebuffer_move_cursor(1)){
                     move_reader(1);
                 };
                 break;

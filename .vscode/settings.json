@@ -12,6 +12,8 @@
         "fat32.h": "c",
         "disk.h": "c",
         "memory_manager.h": "c",
-        "parser.h": "c"
+        "parser.h": "c",
+        "stdmem.h": "c",
+        "string.h": "c"
     },
 }

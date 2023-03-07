@@ -23,7 +23,6 @@ void append_reader(char in);
 void move_reader(int direction);
 void backspace_reader();
 char* get_keyboard_buffer();
-void keyboard_driver(uint8_t);
-void keyboard_driver_graphics(uint8_t input);
+void keyboardDriver(uint8_t);
 
 #endif

@@ -40,7 +40,6 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cpu/idt.c -o $(OUTPUT_FOLDER)/idt.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cpu/timer.c -o $(OUTPUT_FOLDER)/timer.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/keyboard.c -o $(OUTPUT_FOLDER)/keyboard.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/framebuffer.c -o $(OUTPUT_FOLDER)/framebuffer.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/disk.c -o $(OUTPUT_FOLDER)/disk.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/parser.c -o $(OUTPUT_FOLDER)/parser.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/graphics.c -o $(OUTPUT_FOLDER)/graphics.o

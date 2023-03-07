@@ -1,5 +1,6 @@
 #include "../lib-header/graphics.h"
 #include "../lib-header/stdmem.h"
+#include "../lib-header/string.h"
 #include "../lib-header/stdtype.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/timer.h"
@@ -151,6 +152,16 @@ void graphics_clear(){
     return;
 }
 
+void graphics_clear_buffer(){
+    for(int i = 0; i < rowLimit; i++){
+        for(int j = 0; j < colLimit; j++){
+            screenMap[i][j] = 0;
+        }
+    }
+    memset(MEMORY_GRAPHICS, DEFAULT_COLOR_BG, 0x10000);
+    return;
+}
+
 void graphics_draw(uint16_t x, uint16_t y, uint8_t color){
     memset(MEMORY_GRAPHICS + (320 * y) + x, color, 1);
     return;
@@ -201,6 +212,7 @@ static void cursor_callback(){
 void graphics_cursor_on(){
     activate_timer_interrupt(DEFAULT_FREQUENCY);
     register_interrupt_handler(32, cursor_callback);
+    graphics_show_cursor();
     cursor.status = 1;
     return;
 }
@@ -217,6 +229,7 @@ void graphics_cursor_off(){
 
 void graphics_show_cursor(){
     cursor_blocker = 1;
+    cursor.cursor_show = 1;
     cursor_counter = 0;
     uint16_t xOffset = BLOCK_WIDTH*cursor.x;
     for(uint8_t j = 0; j < BLOCK_HEIGHT-1; j++){
@@ -229,6 +242,7 @@ void graphics_show_cursor(){
 
 void graphics_hide_cursor(){
     cursor_blocker = 1;
+    cursor.cursor_show = 0;
     cursor_counter = 0;
     for(uint8_t j = 0; j < BLOCK_HEIGHT-1; j++){
         graphics_draw((BLOCK_WIDTH*cursor.x), (BLOCK_HEIGHT*cursor.y) + j, cursor.cached_bg[j]);
@@ -240,11 +254,23 @@ void graphics_hide_cursor(){
 uint8_t graphics_get_cursor_status(){
     return cursor.status;
 }
+uint8_t get_cursor_x(){
+    return cursor.x;
+}
+uint8_t get_cursor_y(){
+    return cursor.y;
+}
+
+void graphics_set_limit(uint8_t x, uint8_t y){
+    blocked_x = x;
+    blocked_y = y;
+}
 
 void graphics_set_cursor(uint8_t x, uint8_t y){
     cursor_blocker2 = 1;
-    graphics_show_cursor();
-    graphics_hide_cursor();
+    if(cursor.cursor_show){
+        graphics_hide_cursor();
+    }
 
     cursor.x = x;
     cursor.y = y;
@@ -257,7 +283,7 @@ void graphics_set_cursor(uint8_t x, uint8_t y){
 
 uint8_t graphics_find_edge(uint8_t y){
     uint8_t counter = 0;
-    while (screenMap[y][counter] != 0 && counter < rowLimit){
+    while (screenMap[y][counter] != 0 && counter < colLimit){
         counter++;
     }
     return counter;
@@ -267,20 +293,20 @@ bool graphics_move_cursor(int8_t direction){
     bool success = 0;
     switch (direction){
         case (1):
-            if((cursor.x == 63 && screenMap[cursor.y][cursor.x + 1] != 0) && cursor.y != 24){
+            if((cursor.x == 63 && screenMap[cursor.y][cursor.x] != 0) && cursor.y != 24){
                 graphics_set_cursor(0, cursor.y + 1);
                 success = 1;
             }
             else{
-                if(screenMap[cursor.y][cursor.x + 1] != 0){
+                if(screenMap[cursor.y][cursor.x] != 0){
                     graphics_set_cursor(cursor.x + 1,cursor.y);
                     success = 1;
                 }
             }
             break;
         case (-1):
-            if(!(cursor.y == blocked_y && cursor.x == blocked_x + 1)){
-                if(cursor.x != 0){
+            if(!(cursor.y == blocked_y && cursor.x == blocked_x)){
+                if(cursor.x != 0 ){
                     graphics_set_cursor(cursor.x - 1, cursor.y);
                     success = 1;
                 }
@@ -300,7 +326,7 @@ bool graphics_move_cursor(int8_t direction){
     return success;
 }
 
-void graphics_write(uint8_t x, uint8_t y, char c, uint8_t color){
+void graphics_write_char_c(uint8_t x, uint8_t y, char c, uint8_t color){
     uint8_t index = (uint8_t) c;
     uint16_t blockStartX = x*BLOCK_WIDTH;
     uint16_t blockStartY = y*BLOCK_HEIGHT;
@@ -308,7 +334,116 @@ void graphics_write(uint8_t x, uint8_t y, char c, uint8_t color){
     for(int i = 1; i < lookup[index][0]; i++){
         graphics_draw(blockStartX + (lookup[index][i] >> 4), blockStartY + (lookup[index][i] & 0x0f), color);
     }
-    screenMap[x][y] = c;
 
     return;
+}
+
+void graphics_write_char(char c){
+
+    if(c != '\n'){
+        if(cursor.x == colLimit && cursor.y == rowLimit-1){
+            graphics_scroll();
+            graphics_set_cursor(0, rowLimit - 1);
+        }
+
+        uint16_t end = colLimit*rowLimit;
+        uint16_t loc = cursor.y*colLimit + cursor.x;
+        for(int i = end-1; i >= loc; i--){
+            screenMap[0][i] = screenMap[0][i - 1];
+        }
+
+        screenMap[cursor.y][cursor.x] = c;
+        graphics_move_cursor(1);
+        refresh_screen_buffer();
+    }
+    else{
+        if(cursor.y == rowLimit -1){
+            graphics_scroll();
+        }
+        else{
+            graphics_set_cursor(0, cursor.y+1);
+        }
+    }
+
+
+    return;
+}
+
+void refresh_screen_buffer(){
+    cursor_blocker2 = 1;
+    graphics_clear();
+    for(int i = 0; i < rowLimit; i++){
+        for(int j = 0; j < colLimit; j++){
+            if(screenMap[i][j] != 0){
+                graphics_write_char_c(j, i, screenMap[i][j], DEFAULT_COLOR_FG);
+            }
+        }
+    }
+    graphics_show_cursor();
+    cursor_blocker2 = 0;
+}
+
+void graphics_scroll(){
+    for(int i = 0; i < rowLimit-1; i++){
+        memcpy(screenMap[i], screenMap[i+1], colLimit);
+    }
+    memset(screenMap[rowLimit-1], 0, colLimit);
+}
+
+void graphics_print(char* string){
+    //kurang sangkil, masih bisa diimprove
+    int i = 0;
+    while (string[i] != 0){
+        if(string[i] != '\n'){
+            if(cursor.x == colLimit && cursor.y == rowLimit-1){
+                graphics_scroll();
+                graphics_set_cursor(0, rowLimit - 1);
+            }
+
+            uint16_t end = colLimit*rowLimit;
+            uint16_t loc = cursor.y*colLimit + cursor.x;
+            for(int i = end-1; i >= loc; i--){
+                screenMap[0][i] = screenMap[0][i - 1];
+            }
+
+            screenMap[cursor.y][cursor.x] = string[i];
+            graphics_move_cursor(1);
+        }
+        else{
+            if(cursor.y == rowLimit -1){
+                graphics_scroll();
+            }
+            else{
+                graphics_set_cursor(0, cursor.y+1);
+            }
+        }
+        i++;
+    }
+    refresh_screen_buffer();
+
+    return;
+}
+
+bool graphics_backspace(){
+    bool success = 0;
+
+    if(!(cursor.y == blocked_y && cursor.x == blocked_x)){
+        uint16_t end = colLimit*rowLimit;
+        uint16_t loc = cursor.y*colLimit + cursor.x;
+        for(int i = loc; i < end; i++){
+            screenMap[0][i] = screenMap[0][i + 1];
+        }
+        screenMap[0][end-1] = 0;
+        success = 1;
+    }
+    else{
+        success = 0;
+    }
+
+    if(success){
+       graphics_move_cursor(-1);
+    }
+    
+
+    return success;
 }

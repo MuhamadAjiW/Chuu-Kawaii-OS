@@ -1,7 +1,6 @@
 #include "../lib-header/timer.h"
 #include "../lib-header/isr.h"
 #include "../lib-header/portio.h"
-#include "../lib-header/framebuffer.h"
 #include "../lib-header/string.h"
 
 uint32_t tick = 0;

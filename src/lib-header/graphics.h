@@ -56,6 +56,7 @@ typedef struct cursor_t cursor_t;
 void initialize_vga();
 
 void graphics_clear();
+void graphics_clear_buffer();
 void graphics_draw(uint16_t x, uint16_t y, uint8_t color);
 void graphics_draw_block(uint8_t x, uint8_t y, uint8_t color);
 
@@ -65,11 +66,19 @@ void graphics_show_cursor();
 void graphics_hide_cursor();
 
 uint8_t get_cursor_status();
+uint8_t get_cursor_x();
+uint8_t get_cursor_y();
+void graphics_set_limit(uint8_t, uint8_t);
 
 void graphics_set_cursor(uint8_t x, uint8_t y);
 uint8_t graphics_find_edge(uint8_t y);
 bool graphics_move_cursor(int8_t direction);
 
-void graphics_write(uint8_t x, uint8_t y, char c, uint8_t color);
+void graphics_write_char_c(uint8_t x, uint8_t y, char c, uint8_t color);
+void graphics_write_char(char c);
+void refresh_screen_buffer();
+void graphics_scroll();
+void graphics_print(char* string);
+bool graphics_backspace();
 
 #endif
