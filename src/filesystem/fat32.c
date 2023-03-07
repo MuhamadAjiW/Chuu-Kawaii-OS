@@ -2,7 +2,10 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/disk.h"
+#include "../lib-header/cmos.h"
 #include "../lib-header/memory_manager.h"
+#include "../lib-header/graphics.h"
+#include "../lib-header/string.h"
 /*
 static FAT32BootSector bootSector ={
     .boot_jump_instrution = {
@@ -46,8 +49,29 @@ static FAT32BootSector bootSector ={
 };
 */
 
+static cmos_reader cmos = {0};
 DirectoryEntry emptyEntry = {0};
-//static char buffer[CLUSTER_SIZE/4]; //debug purposes
+
+/*
+static char buffer[CLUSTER_SIZE/4]; //debug purposes
+graphics_clear_buffer();
+uint32_t reader2[CLUSTER_SIZE/4] = {0};
+read_clusters((void*)reader2, request.parent_cluster_number, 1);
+for(int i = 0; i < 128; i++){
+    int_toString((reader2[i]) >> 24, buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
+    int_toString(((reader2[i]) >> 16) & 0xff, buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
+    int_toString(((reader2[i]) >> 8) & 0xff, buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
+    int_toString((reader2[i]) & 0xff, buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
+}
+*/
 
 FAT32FileAllocationTable fat;
 DirectoryEntry* root_directory;
@@ -65,30 +89,15 @@ void initialize_filesystem_fat32(){
     entry2[1] = 'i' | ('g' << 8) | ('n' << 16) | ('a' << 24);
     entry2[2] = 't' | ('u' << 8) | ('r' << 16) | ('e' << 24);
     write_clusters((void*)entry2, 0, 1);
-    init_directory_table(2, ROOT_CLUSTER_NUMBER);
-
-    for (int i = 0; i < 3; i++){
-        entry[i] = END_OF_FILE;
-    }
-    write_clusters((void*)entry, 1, 1);
-
-    return;
-}
-
-void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    for(int i = 0; i < CLUSTER_SIZE/4; i++){
-        reader[i] = 0;
-    }
-
-    DirectoryEntry add = {
-        .filename = {0},
-        .extension = {0},
+    DirectoryTable table;
+    DirectoryEntry parent = {
+        .filename = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '},
+        .extension = {' ', ' ', ' '},
         .read_only = 0,
         .hidden = 0,
         .system = 0,
         .volume_id = 0,
-        .directory = 0,
+        .directory = 1,
         .archive = 0,
         .resbit1 = 0,
         .resbit2 = 0,
@@ -110,9 +119,62 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
         .modification_time_day = 0,
         .modification_time_month = 0,
         .modifcation_time_year = 0,
+        .cluster_number = ROOT_CLUSTER_NUMBER,
+        .size = 32
+    };
+    table.entry[0] = parent;
+    for(int i = 1; i < 64; i++){
+        table.entry[i] = emptyEntry;
+    }
+    void* writer = (void*) &table;
+    write_clusters(writer, 2, 1);
+
+    for (int i = 0; i < 3; i++){
+        entry[i] = END_OF_FILE;
+    }
+    write_clusters((void*)entry, 1, 1);
+
+    return;
+}
+
+void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    cmos = get_cmos_data();
+    DirectoryEntry add = {
+        .filename = {0},
+        .extension = {0},
+        .read_only = 0,
+        .hidden = 0,
+        .system = 0,
+        .volume_id = 0,
+        .directory = 0,
+        .archive = 0,
+        .resbit1 = 0,
+        .resbit2 = 0,
+        .reserved = 0,
+        .creation_time_low = 0,
+        .creation_time_seconds = cmos.second,
+        .creation_time_minutes = cmos.minute,
+        .creation_time_hours = cmos.hour,
+        .creation_time_day = cmos.day,
+        .creation_time_month = cmos.month,
+        .creation_time_year = cmos.year,
+        .accessed_time_day = cmos.day,
+        .accessed_time_month = cmos.month,
+        .accessed_time_year = cmos.year,
+        .high_bits = 0,
+        .modification_time_seconds = cmos.second,
+        .modification_time_minutes = cmos.minute,
+        .modification_time_hours = cmos.hour,
+        .modification_time_day = cmos.day,
+        .modification_time_month = cmos.month,
+        .modifcation_time_year = cmos.year,
         .cluster_number = cluster_number,
         .size = request.buffer_size
     };
+    if(request.buffer_size == 0){
+        add.size = 32;
+    }
 
     if (request.buffer_size == 0){
         add.directory = 1;
@@ -121,7 +183,7 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     memcpy(add.filename, request.name, 8);
     memcpy(add.extension, request.ext, 8);
 
-    read_blocks(reader, cluster_to_lba(request.parent_cluster_number), 1);
+    read_clusters((void*)reader, request.parent_cluster_number, 1);
     
     DirectoryTable table = read_directory(reader);
     int i;
@@ -139,10 +201,126 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
 }
 
 
-void write(FAT32DriverRequest request){
+void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
+    
+    if(request.parent_cluster_number == 2){
+        read_clusters((void*)reader, 2, 1);
+        DirectoryTable table = read_directory(reader);
+        table.entry[0].modification_time_seconds = cmos.second;
+        table.entry[0].modification_time_minutes = cmos.minute;
+        table.entry[0].modification_time_hours = cmos.hour;
+        table.entry[0].modification_time_day = cmos.day;
+        table.entry[0].modification_time_month = cmos.month;
+        table.entry[0].modifcation_time_year = cmos.year;
+        if(request.buffer_size == 0){
+            table.entry[0].size += 32;
+        }
+        else{
+            table.entry[0].size += request.buffer_size;
+        }
 
-    read_blocks(reader, cluster_to_lba(1), 1);
+        for(int i = 0; i < 64; i++){
+            if (table.entry[i].cluster_number == self_cluster){
+                table.entry[i].modification_time_seconds = cmos.second;
+                table.entry[i].modification_time_minutes = cmos.minute;
+                table.entry[i].modification_time_hours = cmos.hour;
+                table.entry[i].modification_time_day = cmos.day;
+                table.entry[i].modification_time_month = cmos.month;
+                table.entry[i].modifcation_time_year = cmos.year;
+                
+                if(request.buffer_size == 0){
+                    table.entry[i].size += 32;
+                }
+                else{
+                    table.entry[i].size += request.buffer_size;
+                }
+            }
+        }
+        void* writer = (void*) &table;
+        write_clusters(writer, 2, 1);
+    }
+    else{
+        read_clusters((void*)reader, request.parent_cluster_number, 1);
+        DirectoryTable table = read_directory(reader);
+        table.entry[0].modification_time_seconds = cmos.second;
+        table.entry[0].modification_time_minutes = cmos.minute;
+        table.entry[0].modification_time_hours = cmos.hour;
+        table.entry[0].modification_time_day = cmos.day;
+        table.entry[0].modification_time_month = cmos.month;
+        table.entry[0].modifcation_time_year = cmos.year;
+        if(request.buffer_size == 0){
+            table.entry[0].size += 32;
+        }
+        else{
+            table.entry[0].size += request.buffer_size;
+        }
+
+        if (self_cluster != 0 && self_cluster != 2){
+            for(int i = 0; i < 64; i++){
+                if (table.entry[i].cluster_number == self_cluster){
+                    table.entry[i].modification_time_seconds = cmos.second;
+                    table.entry[i].modification_time_minutes = cmos.minute;
+                    table.entry[i].modification_time_hours = cmos.hour;
+                    table.entry[i].modification_time_day = cmos.day;
+                    table.entry[i].modification_time_month = cmos.month;
+                    table.entry[i].modifcation_time_year = cmos.year;
+                    
+                    if(request.buffer_size == 0){
+                        table.entry[0].size += 32;
+                    }
+                    else{
+                        table.entry[0].size += request.buffer_size;
+                    }
+                }
+            }
+        }
+
+        void* writer = (void*) &table;
+        write_clusters(writer, request.parent_cluster_number, 1);
+
+        FAT32DriverRequest next_request = {
+            .buffer_size = request.buffer_size,
+            .parent_cluster_number = table.entry[0].cluster_number
+        };
+
+        write_size_recurse(next_request, request.parent_cluster_number);
+    }
+}
+
+void write_size(FAT32DriverRequest request){
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    
+    if(request.parent_cluster_number == 2){
+        read_clusters((void*)reader, 2, 1);
+        DirectoryTable table = read_directory(reader);
+        cmos = get_cmos_data();
+        table.entry[0].modification_time_seconds = cmos.second;
+        table.entry[0].modification_time_minutes = cmos.minute;
+        table.entry[0].modification_time_hours = cmos.hour;
+        table.entry[0].modification_time_day = cmos.day;
+        table.entry[0].modification_time_month = cmos.month;
+        table.entry[0].modifcation_time_year = cmos.year;
+        if(request.buffer_size == 0){
+            table.entry[0].size += 32;
+        }
+        else{
+            table.entry[0].size += request.buffer_size;
+        }
+        void* writer = (void*) &table;
+        write_clusters(writer, 2, 1);
+    }
+    else{
+        cmos = get_cmos_data();
+        write_size_recurse(request, 0);
+    }
+}
+
+void write(FAT32DriverRequest request){
+    write_size(request);
+
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    read_clusters((void*)reader, 1, 1);
     
     uint32_t size = request.buffer_size;
     int index = 0;
@@ -152,6 +330,7 @@ void write(FAT32DriverRequest request){
     bool running = 1;
     bool created = 0;
     uint16_t i = 3;
+
     while (running){
         for (i = 3; i < SECTOR_COUNT; i++){
             if(reader[i] == 0 && i != cachedindex){
@@ -194,42 +373,12 @@ void write(FAT32DriverRequest request){
 
 void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number){
     DirectoryTable table;
-    //TODO: add parent entry in index 0
 
     if (parent_cluster_number == ROOT_CLUSTER_NUMBER){
-        DirectoryEntry parent = {
-            .filename = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '},
-            .extension = {' ', ' ', ' '},
-            .read_only = 0,
-            .hidden = 0,
-            .system = 0,
-            .volume_id = 0,
-            .directory = 1,
-            .archive = 0,
-            .resbit1 = 0,
-            .resbit2 = 0,
-            .reserved = 0,
-            .creation_time_low = 0,
-            .creation_time_seconds = 0,
-            .creation_time_minutes = 0,
-            .creation_time_hours = 0,
-            .creation_time_day = 0,
-            .creation_time_month = 0,
-            .creation_time_year = 0,
-            .accessed_time_day = 0,
-            .accessed_time_month = 0,
-            .accessed_time_year = 0,
-            .high_bits = 0,
-            .modification_time_seconds = 0,
-            .modification_time_minutes = 0,
-            .modification_time_hours = 0,
-            .modification_time_day = 0,
-            .modification_time_month = 0,
-            .modifcation_time_year = 0,
-            .cluster_number = ROOT_CLUSTER_NUMBER,
-            .size = 0
-        };
-        table.entry[0] = parent;
+        uint32_t reader[CLUSTER_SIZE/4] = {0};
+        read_clusters((void*)reader, ROOT_CLUSTER_NUMBER, 1);
+        DirectoryTable root_table = read_directory(reader);
+        table.entry[0] = root_table.entry[0];
     }
     else{
         DirectoryEntry parent = get_parent_info(parent_cluster_number);
@@ -243,6 +392,7 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
     
     void* writer = (void*) &table;
     write_clusters(writer, cluster_number, 1);
+
 
     return;
 }
@@ -260,7 +410,7 @@ void delete(FAT32DriverRequest request){
         deleteFolder(self.cluster_number);
     }
 
-    read_blocks(reader, cluster_to_lba(FAT_CLUSTER_NUMBER), 1);
+    read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
     marker = reader[current_cluster];
     current_cluster = self.cluster_number;
@@ -285,7 +435,7 @@ void delete(FAT32DriverRequest request){
     for(int i = 0; i < CLUSTER_SIZE/4; i++){
         reader[i] = 0;
     }
-    read_blocks(reader, cluster_to_lba(request.parent_cluster_number), 1);
+    read_clusters((void*)reader, request.parent_cluster_number, 1);
     parent_table = read_directory(reader);
 
     for(int i = 0; i < 64; i++){
@@ -300,7 +450,7 @@ void deleteFolder(uint16_t cluster_number){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable table;
     FAT32DriverRequest request;
-    read_blocks(reader, cluster_to_lba(cluster_number), 1);
+    read_clusters((void*)reader, cluster_number, 1);
     table = read_directory(reader);
     for(int i = 0; i < 64; i++){
         if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
@@ -318,9 +468,9 @@ DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
     DirectoryTable table;
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
-    read_blocks(reader, cluster_to_lba(parent_cluster_number), 1);
+    read_clusters((void*)reader, parent_cluster_number, 1);
     table = read_directory(reader);
-    read_blocks(reader, cluster_to_lba(table.entry[0].cluster_number), 1);
+    read_clusters((void*)reader, table.entry[0].cluster_number, 1);
     table = read_directory(reader);
 
     for(int i = 0; i < 64; i++){
@@ -338,7 +488,7 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
     DirectoryTable table;
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
-    read_blocks(reader, cluster_to_lba(request.parent_cluster_number), 1);
+    read_clusters((void*)reader, request.parent_cluster_number, 1);
     table = read_directory(reader);
 
     for(int i = 0; i < 64; i++){
@@ -406,7 +556,7 @@ ClusterBuffer* read(FAT32DriverRequest request){
         uint16_t index = 0;
 
         uint32_t reader[CLUSTER_SIZE/4] = {0};
-        read_blocks(reader, cluster_to_lba(FAT_CLUSTER_NUMBER), 1);
+        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
         uint16_t current_cluster = self.cluster_number;
         uint32_t marker = reader[current_cluster];

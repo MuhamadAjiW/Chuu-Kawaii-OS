@@ -159,6 +159,7 @@ void graphics_clear_buffer(){
         }
     }
     memset(MEMORY_GRAPHICS, DEFAULT_COLOR_BG, 0x10000);
+    graphics_set_cursor(0, 0);
     return;
 }
 

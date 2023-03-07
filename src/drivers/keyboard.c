@@ -74,8 +74,12 @@ void backspace_reader(){
     for(int i = key.currentIdx-1; i < key.maxIdx-1; i++){
         key.keyboard_buffer[i] = key.keyboard_buffer[i+1];
     }
-    key.currentIdx--;
-    key.maxIdx--;
+    if(key.currentIdx > 0){
+        key.currentIdx--;
+    }
+    if(key.maxIdx > 0){
+        key.maxIdx--;
+    }
 }
 
 char* get_keyboard_buffer(){

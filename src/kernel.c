@@ -13,17 +13,16 @@
 #include "lib-header/memory_manager.h"
 #include "lib-header/parser.h"
 #include "lib-header/graphics.h"
+#include "lib-header/cmos.h"
 
 #include "lib-header/shell.h"
 
-/*
+
 //debug purposes
-uint32_t target[128] = {0};
+uint32_t target[CLUSTER_SIZE/4] = {0};
 uint32_t entry[512];
 char buffer[128]; 
-
-*/
-
+DirectoryTable table;
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
@@ -31,7 +30,7 @@ void kernel_setup(void) {
     initialize_memory();
     initialize_vga();
     activate_keyboard_interrupt();
-    graphics_clear();
+    graphics_clear_buffer();
     graphics_cursor_on();
     initialize_filesystem_fat32();
     keyboard_state_activate();
@@ -50,13 +49,35 @@ void kernel_setup(void) {
     } ;
 
     write(request);  // Create folder "ikanaide"
+    request.parent_cluster_number = 3;
     memcpy(request.name, "kano1   ", 8);
     write(request);  // Create folder "kano1"
-    memcpy(request.name, "ikanaide", 8);
-    delete(request); // Delete first folder, thus creating hole in FS
+    //memcpy(request.name, "ikanaide", 8);
+    //delete(request); // Delete first folder, thus creating hole in FS
+    graphics_clear_buffer();
+    read_clusters((void*)target, 2, 1);
+    table = read_directory(target);
+    int_toString((table.entry[0].size), buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
+
     memcpy(request.name, "daijoubu", 8);
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"
+
+    graphics_clear_buffer();
+    read_clusters((void*)target, 2, 1);
+    table = read_directory(target);
+    int_toString((table.entry[1].size), buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
+
+
+    graphics_clear_buffer();
+    table = read_directory(target);
+    int_toString((table.entry[0].size), buffer);
+    graphics_print(buffer);
+    graphics_print(" ");
 
     struct ClusterBuffer readcbuf;
     
@@ -70,6 +91,34 @@ void kernel_setup(void) {
     close(reader);
 
     init_shell();
+
+    /**
+    read_rtc();
+    tester = get_cmos_data();
+    graphics_print("\n");
+    int_toString(tester.century, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    int_toString(tester.year, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    int_toString(tester.month, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    int_toString(tester.day, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    int_toString(tester.hour, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    int_toString(tester.minute, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    int_toString(tester.second, buffer);
+    graphics_print(buffer);
+    graphics_print("\n");
+    */
+    
     
     while (TRUE);
 }

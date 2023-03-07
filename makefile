@@ -43,6 +43,7 @@ kernel:
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/disk.c -o $(OUTPUT_FOLDER)/disk.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/parser.c -o $(OUTPUT_FOLDER)/parser.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/graphics.c -o $(OUTPUT_FOLDER)/graphics.o
+	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/cmos.c -o $(OUTPUT_FOLDER)/cmos.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/memory/memory_manager.c -o $(OUTPUT_FOLDER)/memory_manager.o
 	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shell.c -o $(OUTPUT_FOLDER)/shell.o
