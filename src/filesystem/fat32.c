@@ -203,6 +203,7 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
 
 void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
+    void* writer;
     
     if(request.parent_cluster_number == 2){
         read_clusters((void*)reader, 2, 1);
@@ -237,7 +238,7 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
                 }
             }
         }
-        void* writer = (void*) &table;
+        writer = (void*) &table;
         write_clusters(writer, 2, 1);
     }
     else{
@@ -256,8 +257,8 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
             table.entry[0].size += request.buffer_size;
         }
 
-        if (self_cluster != 0 && self_cluster != 2){
-            for(int i = 0; i < 64; i++){
+        if (self_cluster != 0){
+            for(int i = 1; i < 64; i++){
                 if (table.entry[i].cluster_number == self_cluster){
                     table.entry[i].modification_time_seconds = cmos.second;
                     table.entry[i].modification_time_minutes = cmos.minute;
@@ -273,16 +274,60 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
                         table.entry[0].size += request.buffer_size;
                     }
                 }
+                else{
+                    read_clusters((void*)reader, table.entry[i].cluster_number, 1);
+                    DirectoryTable table2 = read_directory(reader);
+                    if(request.buffer_size == 0){
+                        table2.entry[0].size += 32;
+                    }
+                    else{
+                        table2.entry[0].size += request.buffer_size;
+                    }
+                    writer = (void*) &table2;
+                    write_clusters(writer, table.entry[i].cluster_number, 1);
+                }
             }
         }
 
-        void* writer = (void*) &table;
+        writer = (void*) &table;
         write_clusters(writer, request.parent_cluster_number, 1);
 
         FAT32DriverRequest next_request = {
             .buffer_size = request.buffer_size,
             .parent_cluster_number = table.entry[0].cluster_number
         };
+
+        if(self_cluster != 0){
+            for(int i = 1; i < 64; i++){
+                if (table.entry[i].cluster_number == self_cluster){
+                    table.entry[i].modification_time_seconds = cmos.second;
+                    table.entry[i].modification_time_minutes = cmos.minute;
+                    table.entry[i].modification_time_hours = cmos.hour;
+                    table.entry[i].modification_time_day = cmos.day;
+                    table.entry[i].modification_time_month = cmos.month;
+                    table.entry[i].modifcation_time_year = cmos.year;
+                    
+                    if(request.buffer_size == 0){
+                        table.entry[0].size += 32;
+                    }
+                    else{
+                        table.entry[0].size += request.buffer_size;
+                    }
+                }
+                else{
+                    read_clusters((void*)reader, table.entry[i].cluster_number, 1);
+                    DirectoryTable table2 = read_directory(reader);
+                    if(request.buffer_size == 0){
+                        table2.entry[0].size += 32;
+                    }
+                    else{
+                        table2.entry[0].size += request.buffer_size;
+                    }
+                    writer = (void*) &table2;
+                    write_clusters(writer, table.entry[i].cluster_number, 1);
+                }
+            }
+        }
 
         write_size_recurse(next_request, request.parent_cluster_number);
     }
