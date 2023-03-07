@@ -30,18 +30,26 @@ void kernel_setup(void) {
     pic_remap();
     initialize_idt();
 
+
     initialize_vga();
     graphics_clear();
-    for(int i = 0; i < 26; i++){
+    
+    for(int i = 0; i < 32; i++){
+        graphics_write(5 + i, 4, '!' + i, DEFAULT_COLOR_FG);
+    }
+
+
+    for(int i = 0; i < 32; i++){
         graphics_write(5 + i, 5, 'A' + i, DEFAULT_COLOR_FG);
     }
 
-    for(int i = 0; i < 26; i++){
+    for(int i = 0; i < 30; i++){
         graphics_write(5 + i, 6, 'a' + i, DEFAULT_COLOR_FG);
     }
 
     graphics_cursor_on();
     graphics_set_cursor(5,5);
+    
 
     while (TRUE);
     /**

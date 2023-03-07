@@ -38,9 +38,9 @@
 #define BUFFER_WIDTH 64
 
 
-#define DEFAULT_COLOR_BG 47
-#define DEFAULT_COLOR_FG 63
-#define CURSOR_COLOR 61
+#define DEFAULT_COLOR_BG 84
+#define DEFAULT_COLOR_FG 15
+#define CURSOR_COLOR 13
 
 #define MEMORY_GRAPHICS (uint8_t *) 0xA0000
 
