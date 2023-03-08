@@ -7,6 +7,7 @@
 #include "lib-header/parser.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/portio.h"
+#include "lib-header/cmos.h"
 #include "lib-header/graphics.h"
 
 extern int SYSTEM_RUNNING;
@@ -33,12 +34,12 @@ void execute_reader(){
             clear_reader();
         }
         else if(strcmp(get_parsed()[0], "dir") == 0){
-            ClusterBuffer cluster_reader;
+            //TODO: Refactor
+            uint32_t reader[CLUSTER_SIZE/4] = {0};
             DirectoryTable table;
-            read_clusters(&cluster_reader, currentCluster, 1);
+            read_clusters((void*)reader, currentCluster, 1);
 
-            void* runner = (void*) &cluster_reader;
-            table = read_directory(runner);
+            table = read_directory(reader);
             
             int counter = 1;
             char char_buffer[9];
@@ -52,14 +53,17 @@ void execute_reader(){
             char_buffer[8] = 0;
             graphics_print(char_buffer);
 
-            graphics_print("\n    No  Name        Ext    Size");
+            graphics_print("\n    No   Name        Ext    Size      Creation time");
             for(int i = 1; i < 64; i++){
                 if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
 
                     graphics_print("\n    ");
                     int_toString(counter, char_buffer);
                     graphics_print(char_buffer);
-                    graphics_print(".  ");
+                    graphics_print(".");
+                    for(int i = strlen(char_buffer); i < 4; i++){
+                        graphics_print(" ");
+                    }
 
                     for(int j = 0; j < 8; j++){
                         char_buffer[j] = table.entry[i].filename[j];
@@ -79,9 +83,105 @@ void execute_reader(){
                     int_toString(table.entry[i].size, char_buffer);
                     graphics_print(char_buffer);
 
+                    for(int i = strlen(char_buffer); i < 10; i++){
+                        graphics_print(" ");
+                    }
+
+                    int_toString(table.entry[i].creation_time_hours, char_buffer);
+                    graphics_print(char_buffer);
+                    graphics_print(":");
+                    int_toString(table.entry[i].creation_time_minutes, char_buffer);
+                    graphics_print(char_buffer);
+                    graphics_print(":");
+                    int_toString(table.entry[i].creation_time_seconds, char_buffer);
+                    graphics_print(char_buffer);
+
+                    graphics_print("  ");
+                    int_toString(table.entry[i].creation_time_day, char_buffer);
+                    graphics_print(char_buffer);
+                    graphics_print("/");
+                    int_toString(table.entry[i].creation_time_month, char_buffer);
+                    graphics_print(char_buffer);
+                    graphics_print("/");
+                    int_toString((table.entry[i].creation_time_year) + get_cmos_data().century * 100, char_buffer);
+                    graphics_print(char_buffer);
+
                     counter++;
                 }
             }
+
+            uint32_t current_cluster = currentCluster;
+            read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
+            current_cluster = reader[current_cluster];
+            if(current_cluster != END_OF_FILE){
+                while (current_cluster != END_OF_FILE){
+                    read_clusters((void*)reader, current_cluster, 1);
+                    table = read_directory(reader);
+                    
+                    for(int i = 0; i < 64; i++){
+                        if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
+
+                            graphics_print("\n    ");
+                            int_toString(counter, char_buffer);
+                            graphics_print(char_buffer);
+                            graphics_print(".");
+                            for(int i = strlen(char_buffer); i < 4; i++){
+                                graphics_print(" ");
+                            }
+
+                            for(int j = 0; j < 8; j++){
+                                char_buffer[j] = table.entry[i].filename[j];
+                            }
+                            char_buffer[8] = 0;
+
+                            graphics_print(char_buffer);
+
+                            for(int j = 0; j < 3; j++){
+                                char_buffer[j] = table.entry[i].extension[j];
+                            }
+                            char_buffer[3] = 0;
+                            graphics_print("    ");
+                            graphics_print(char_buffer);
+                            
+                            graphics_print("    ");
+                            int_toString(table.entry[i].size, char_buffer);
+                            graphics_print(char_buffer);
+
+
+                            for(int i = strlen(char_buffer); i < 10; i++){
+                                graphics_print(" ");
+                            }
+
+                            int_toString(table.entry[i].creation_time_hours, char_buffer);
+                            graphics_print(char_buffer);
+                            graphics_print(":");
+                            int_toString(table.entry[i].creation_time_minutes, char_buffer);
+                            graphics_print(char_buffer);
+                            graphics_print(":");
+                            int_toString(table.entry[i].creation_time_seconds, char_buffer);
+                            graphics_print(char_buffer);
+
+                            graphics_print("  ");
+                            int_toString(table.entry[i].creation_time_day, char_buffer);
+                            graphics_print(char_buffer);
+                            graphics_print("/");
+                            int_toString(table.entry[i].creation_time_month, char_buffer);
+                            graphics_print(char_buffer);
+                            graphics_print("/");
+                            int_toString((table.entry[i].creation_time_year) + get_cmos_data().century * 100, char_buffer);
+                            graphics_print(char_buffer);
+
+                            counter++;
+                        }
+                    }
+
+                    read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
+                    current_cluster = reader[current_cluster];
+                }
+            }
+
+            
+            
             graphics_print("\n");
         }
         else{

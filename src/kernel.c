@@ -23,6 +23,8 @@ uint32_t target[CLUSTER_SIZE/4] = {0};
 uint32_t entry[512];
 char buffer[128]; 
 DirectoryTable table;
+//cmos_reader tester;
+
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
@@ -53,11 +55,33 @@ void kernel_setup(void) {
     write(request);  // Create folder "kano1"
     memcpy(request.name, "ikanaide", 8);
     delete(request); // Delete first folder, thus creating hole in FS
-    request.parent_cluster_number = 4;
+
+    
+    //testing untuk extendable folder
+    for(int i = 10; i < 80; i++){
+        int_toString(i, buffer);
+        buffer[2] = ' ';
+        buffer[3] = ' ';
+        buffer[4] = ' ';
+        buffer[5] = ' ';
+        buffer[6] = ' ';
+        buffer[7] = ' ';
+        memcpy(request.name, buffer, 8);
+        write(request);
+    }
+    
+    
+    memcpy(request.name, "kano2   ", 8);
+    write(request);
+    delete(request);
+
     memcpy(request.name, "daijoubu", 8);
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"
 
+
+
+    
     struct ClusterBuffer readcbuf;
     
     read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
@@ -68,8 +92,9 @@ void kernel_setup(void) {
     request.buffer_size = 5*CLUSTER_SIZE;
     ClusterBuffer* reader = read(request);   // Success read on file "daijoubu"
     close(reader);
+    
 
-    init_shell();
+    
 
     /**
     read_rtc();
@@ -98,6 +123,6 @@ void kernel_setup(void) {
     graphics_print("\n");
     */
     
-    
+    init_shell();
     while (TRUE);
 }

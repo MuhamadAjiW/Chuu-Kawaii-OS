@@ -204,7 +204,7 @@ ClusterBuffer* read(FAT32DriverRequest request);
 void write(FAT32DriverRequest request);
 void close(ClusterBuffer* pointer);
 
-void expand_folder(int cluster_number);
+uint32_t expand_folder(int cluster_number);
 void update_file_time(DirectoryEntry *entry);
 void update_file_size(DirectoryEntry* entry, uint32_t size, char category);
 

@@ -6,6 +6,8 @@
 #define CMOS_ADDR 0x70
 #define CMOS_DATA 0x71
 
+#define TIMEZONE 7
+
 struct cmos_reader{
     uint8_t century;
     uint8_t second;

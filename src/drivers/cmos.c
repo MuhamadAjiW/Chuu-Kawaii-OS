@@ -39,13 +39,11 @@ void read_rtc(){
     while (update_in_progress()){}; //nunggu clear
     cmos_data.second = get_reg(0x00);
     cmos_data.minute = get_reg(0x02);
-    cmos_data.hour = get_reg(0x04);
+    cmos_data.hour = (get_reg(0x04) + TIMEZONE) % 24;
     cmos_data.day = get_reg(0x07);
     cmos_data.month = get_reg(0x08);
     cmos_data.year = get_reg(0x09);
     cmos_data.century = get_reg(0x32);
-
-    cmos_data.year += cmos_data.century * 100;
 }
 
 cmos_reader get_cmos_data(){
