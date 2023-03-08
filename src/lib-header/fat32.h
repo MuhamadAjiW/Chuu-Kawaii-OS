@@ -72,7 +72,48 @@ struct FAT32BootSector{
 }__attribute__((packed));
 typedef struct FAT32BootSector FAT32BootSector;
 */
-
+/*
+static FAT32BootSector bootSector ={
+    .boot_jump_instrution = {
+        0xeb, 0x00, 0x90
+    },
+    .oem_identifier = {
+        'M', 'S', 'W', 'I', 'N', '4', '.', '1'
+    },
+    .bytes_per_Sector = BYTE_PER_SECTOR,
+    .sectors_per_cluster = SECTORS_PER_CLUSTER,
+    .reserved_sectors = RESERVED_SECTORS,
+    .fat_count = FAT_COUNT,
+    .directory_entry_count = DIRECTORY_ENTRY_COUNT,
+    .total_sectors = TOTAL_SECTORS,
+    .media_descriptor_type = MEDIA_DESCRIPTOR_TYPE,
+    .sectors_per_fat = SECTORS_PER_FAT,
+    .sectors_per_track = SECTORS_PER_TRACK,
+    .heads = HEADS,
+    .hidden_sectors = HIDDEN_SECTORS,
+    .large_sector_count = LARGE_SECTOR_COUNT,
+    
+    .sectors_per_fat_32 = SECTORS_PER_FAT_32,
+    .external_flags = EXTERNAL_FLAGS,
+    .file_system_version = VERSION,
+    .root_cluster = ROOT_CLUSTER,
+    .file_system_info = FS_INFO,
+    .bk_boot_sector = BK_BOOT_SECTOR,
+    .reserved = {
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    },
+    .drive_number = DRIVE_NUMBER,
+    .reserved1 = RESERVED1,
+    .boot_signature = BOOT_SIGNATURE,
+    .volume_id = 0,
+    .volume_label = {
+        'N', 'O', ' ', 'N', 'A', 'M', 'E', ' ', ' ', ' ', ' '
+    },
+    .file_system_type = {
+        'F', 'A', 'T', '3', '2', ' ', ' ', ' '
+    }
+};
+*/
 
 struct ClusterBuffer{
     uint8_t buf[CLUSTER_SIZE];
@@ -80,7 +121,7 @@ struct ClusterBuffer{
 typedef struct ClusterBuffer ClusterBuffer;
 
 struct FAT32FileAllocationTable{
-    uint32_t sector_next[SECTOR_COUNT];
+    uint32_t sector_next[CLUSTER_SIZE/4];
 }__attribute__((packed));
 
 typedef struct FAT32FileAllocationTable FAT32FileAllocationTable;
@@ -162,5 +203,8 @@ void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_coun
 ClusterBuffer* read(FAT32DriverRequest request);
 void write(FAT32DriverRequest request);
 void close(ClusterBuffer* pointer);
+
+void expand_folder(int cluster_number);
+void update_file_time(DirectoryEntry *entry);
 
 #endif
