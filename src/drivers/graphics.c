@@ -12,55 +12,55 @@ void initialize_vga(){
     //https://wiki.osdev.org/VGA_Hardware#Memory_Layout_in_256-color_graphics_modes
     //http://www.osdever.net/FreeVGA/home.htm
 
-    out(0x3c2, 0x63);
-    out2(0x3d4, (uint16_t) ( (0x0e << 8) + 0x11));
+    out(MISC_OUT_REG, 0x63);
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x0e << 8) + 0x11));
 
-    out2(0x3d4, (uint16_t) ( (0x5f << 8) + 0x0));
-    out2(0x3d4, (uint16_t) ( (0x4f << 8) + 0x1));
-    out2(0x3d4, (uint16_t) ( (0x50 << 8) + 0x2));
-    out2(0x3d4, (uint16_t) ( (0x82 << 8) + 0x3));
-    out2(0x3d4, (uint16_t) ( (0x54 << 8) + 0x4));
-    out2(0x3d4, (uint16_t) ( (0x80 << 8) + 0x5));
-    out2(0x3d4, (uint16_t) ( (0xbf << 8) + 0x6));
-    out2(0x3d4, (uint16_t) ( (0x1f << 8) + 0x7));
-    out2(0x3d4, (uint16_t) ( (0x00 << 8) + 0x8));
-    out2(0x3d4, (uint16_t) ( (0x41 << 8) + 0x9));
-    out2(0x3d4, (uint16_t) ( (0x9c << 8) + 0x10));
-    out2(0x3d4, (uint16_t) ( (0x8e << 8) + 0x11));
-    out2(0x3d4, (uint16_t) ( (0x8f << 8) + 0x12));
-    out2(0x3d4, (uint16_t) ( (0x28 << 8) + 0x13));
-    out2(0x3d4, (uint16_t) ( (0x40 << 8) + 0x14));
-    out2(0x3d4, (uint16_t) ( (0x96 << 8) + 0x15));
-    out2(0x3d4, (uint16_t) ( (0xb9 << 8) + 0x16));
-    out2(0x3d4, (uint16_t) ( (0xa3 << 8) + 0x17));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x5f << 8) + 0x0));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x4f << 8) + 0x1));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x50 << 8) + 0x2));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x82 << 8) + 0x3));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x54 << 8) + 0x4));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x80 << 8) + 0x5));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0xbf << 8) + 0x6));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x1f << 8) + 0x7));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x00 << 8) + 0x8));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x41 << 8) + 0x9));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x9c << 8) + 0x10));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x8e << 8) + 0x11));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x8f << 8) + 0x12));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x28 << 8) + 0x13));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x40 << 8) + 0x14));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0x96 << 8) + 0x15));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0xb9 << 8) + 0x16));
+    out2(CRT_ADDR_REG, (uint16_t) ( (0xa3 << 8) + 0x17));
 
-    out2(0x3c4, (uint16_t) ( (0x01 << 8) + 0x01));
-    out2(0x3c4, (uint16_t) ( (0x0f << 8) + 0x02));
-    out2(0x3c4, (uint16_t) ( (0x00 << 8) + 0x03));
-    out2(0x3c4, (uint16_t) ( (0x0e << 8) + 0x04));
+    out2(MEM_MODE_REG, (uint16_t) ( (0x01 << 8) + 0x01));
+    out2(MEM_MODE_REG, (uint16_t) ( (0x0f << 8) + 0x02));
+    out2(MEM_MODE_REG, (uint16_t) ( (0x00 << 8) + 0x03));
+    out2(MEM_MODE_REG, (uint16_t) ( (0x0e << 8) + 0x04));
 
-    out2(0x3ce, (uint16_t) ( (0x40 << 8) + 0x05));
-    out2(0x3ce, (uint16_t) ( (0x05 << 8) + 0x06));
+    out2(GRAP_ADDR_REG, (uint16_t) ( (0x40 << 8) + 0x05));
+    out2(GRAP_ADDR_REG, (uint16_t) ( (0x05 << 8) + 0x06));
 
-    in(0x3da);
-    out(0x3c0,0x10);
-    out2(0x3c0,0x41);
+    in(INPUT_STATUS_1);
+    out(ATTR_ADDR_REG,0x10);
+    out2(ATTR_ADDR_REG,0x41);
 
-    in(0x3da);
-    out(0x3c0,0x11);
-    out2(0x3c0,0x00);
+    in(INPUT_STATUS_1);
+    out(ATTR_ADDR_REG,0x11);
+    out2(ATTR_ADDR_REG,0x00);
 
-    in(0x3da);
-    out(0x3c0,0x12);
-    out2(0x3c0,0x0f);
+    in(INPUT_STATUS_1);
+    out(ATTR_ADDR_REG,0x12);
+    out2(ATTR_ADDR_REG,0x0f);
     
-    in(0x3da);
-    out(0x3c0,0x13);
-    out2(0x3c0,0x00);
+    in(INPUT_STATUS_1);
+    out(ATTR_ADDR_REG,0x13);
+    out2(ATTR_ADDR_REG,0x00);
 
-    in(0x3da);
-    out(0x3c0,0x14);
-    out2(0x3c0,0x00);
+    in(INPUT_STATUS_1);
+    out(ATTR_ADDR_REG,0x14);
+    out2(ATTR_ADDR_REG,0x00);
 
     //palette
     //array source: https://github.com/canidlogic/vgapal
@@ -131,14 +131,14 @@ void initialize_vga(){
         0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0
     };
 
-    out(0x03c8, 0);
+    out(DAC_WRITE_REG, 0);
     for(int i = 0; i < 768; i += 3){
-        out(0x03c9, (uint8_t) paletteArray[i]);
-        out(0x03c9, (uint8_t) paletteArray[i + 1]);
-        out(0x03c9, (uint8_t) paletteArray[i + 2]);
+        out(DAC_DATA_REG, (uint8_t) paletteArray[i]);
+        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 1]);
+        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 2]);
     }
 
-    out(0x3c0, 0x20);
+    out(ATTR_ADDR_REG, 0x20);
     return;
 }
 
