@@ -168,67 +168,17 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
         read_clusters((void*)reader, 2, 1);                     //nambah size root
         DirectoryTable table = read_directory(reader); 
         update_file_time(&table.entry[0]);
-        
-        if(request.buffer_size == 0){
-            if(category == '+'){
-                table.entry[0].size += 32;
-
-            }
-            else if (category == '-'){
-                table.entry[0].size -= 32;
-            }
-        }
-        else{
-            if(category == '+'){
-                table.entry[0].size += request.buffer_size;
-
-            }
-            else if(category == '-'){
-                table.entry[0].size -= request.buffer_size;
-
-            }
-        }
+        update_file_size(&table.entry[0], request.buffer_size, category);
 
         for(int i = 1; i < 64; i++){
             if (table.entry[i].cluster_number == self_cluster){                         //nambah size subfolder
                 update_file_time(&table.entry[i]);
-                
-                if(request.buffer_size == 0){
-                    if(category == '+'){
-                        table.entry[i].size += 32;
-                    }
-                    else if(category == '-'){
-                        table.entry[i].size -= 32;
-                    }
-                }
-                else{
-                    if(category == '+'){
-                        table.entry[i].size += request.buffer_size;
-                    }
-                    else if(category == '-'){
-                        table.entry[i].size -= request.buffer_size;
-                    }
-                }
+                update_file_size(&table.entry[i], request.buffer_size, category);
             }
             else if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
                 read_clusters((void*)reader, table.entry[i].cluster_number, 1);
                 DirectoryTable table2 = read_directory(reader);
-                if(request.buffer_size == 0){
-                    if(category == '+'){
-                        table2.entry[0].size += 32;
-                    }
-                    else if(category == '-'){
-                        table2.entry[0].size -= 32;
-                    }
-                }
-                else{
-                    if(category == '+'){
-                        table2.entry[0].size += request.buffer_size;
-                    }
-                    else if (category == '-'){
-                        table2.entry[0].size -= request.buffer_size;
-                    }
-                }
+                update_file_size(&table2.entry[0], request.buffer_size, category);
                 writer = (void*) &table2;
                 write_clusters(writer, table.entry[i].cluster_number, 1);
             }
@@ -252,43 +202,12 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
             for(int i = 1; i < 64; i++){
                 if (table.entry[i].cluster_number == self_cluster){                         //nambah size subfolder
                     update_file_time(&table.entry[i]);
-                    
-                    if(request.buffer_size == 0){
-                        if(category == '+'){
-                            table.entry[i].size += 32;
-                        }
-                        else if(category == '-'){
-                            table.entry[i].size -= 32;
-                        }
-                    }
-                    else{
-                        if(category == '+'){
-                            table.entry[i].size += request.buffer_size;
-                        }
-                        else if(category == '-'){
-                            table.entry[i].size -= 32;
-                        }
-                    }
+                    update_file_size(&table.entry[i], request.buffer_size, category);
                 }
                 else if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
                     read_clusters((void*)reader, table.entry[i].cluster_number, 1);
                     DirectoryTable table2 = read_directory(reader);
-                    if(request.buffer_size == 0){
-                        if(category == '+'){
-                            table2.entry[0].size += 32;
-                        }
-                        else if(category == '-'){
-                            table2.entry[0].size -= 32;
-                        }
-                    }
-                    else{
-                        if(category == '+'){
-                            table2.entry[0].size += request.buffer_size;
-                        }
-                        else if (category == '-'){
-                            table2.entry[0].size -= request.buffer_size;
-                        }
-                    }
+                    update_file_size(&table2.entry[0], request.buffer_size, category);
                     writer = (void*) &table2;
                     write_clusters(writer, table.entry[i].cluster_number, 1);
                 }
@@ -299,22 +218,7 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
                 if (table.entry[i].cluster_number != self_cluster && (memcmp(&table.entry[i], &emptyEntry, 32) != 0)){  //sinkronisasi size semua subfolder
                     read_clusters((void*)reader, table.entry[i].cluster_number, 1);
                     DirectoryTable table2 = read_directory(reader);
-                    if(request.buffer_size == 0){
-                        if(category == '+'){
-                            table2.entry[0].size += 32;
-                        }
-                        else if(category == '-'){
-                            table2.entry[0].size -= 32;
-                        }
-                    }
-                    else{
-                        if(category == '+'){
-                            table2.entry[0].size += request.buffer_size;
-                        }
-                        else if (category == '-'){
-                            table2.entry[0].size -= request.buffer_size;
-                        }
-                    }
+                    update_file_size(&table2.entry[0], request.buffer_size, category);
                     writer = (void*) &table2;
                     write_clusters(writer, table.entry[i].cluster_number, 1);
                 }
@@ -341,44 +245,13 @@ void update_size(FAT32DriverRequest request, char category){
         DirectoryTable table = read_directory(reader);
         cmos = get_cmos_data();
         update_file_time(&table.entry[0]);
-        if(request.buffer_size == 0){
-            if(category == '+'){
-                table.entry[0].size += 32;
-
-            }
-            else if (category == '-'){
-                table.entry[0].size -= 32;
-            }
-        }
-        else{
-            if(category == '+'){
-                table.entry[0].size += request.buffer_size;
-            }
-            else if (category == '-'){
-                table.entry[0].size -= request.buffer_size;
-            }
-        }
+        update_file_size(&table.entry[0], request.buffer_size, category);
 
         for(int i = 1; i < 64; i++){
             if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){  //sinkronisasi size semua subfolder
                 read_clusters((void*)reader, table.entry[i].cluster_number, 1);
                 DirectoryTable table2 = read_directory(reader);
-                if(request.buffer_size == 0){
-                    if(category == '+'){
-                        table2.entry[0].size += 32;
-                    }
-                    else if(category == '-'){
-                        table2.entry[0].size -= 32;
-                    }
-                }
-                else{
-                    if(category == '+'){
-                        table2.entry[0].size += request.buffer_size;
-                    }
-                    else if (category == '-'){
-                        table2.entry[0].size -= request.buffer_size;
-                    }
-                }
+                update_file_size(&table2.entry[0], request.buffer_size, category);
                 void* writer = (void*) &table2;
                 write_clusters(writer, table.entry[i].cluster_number, 1);
             }
@@ -701,4 +574,27 @@ void update_file_time(DirectoryEntry* entry){
     entry->modification_time_day = cmos.day;
     entry->modification_time_month = cmos.month;
     entry->modifcation_time_year = cmos.year;
+}
+
+void update_file_size(DirectoryEntry* entry, uint32_t size, char category){
+    if(size == 0){
+        if(category == '+'){
+            entry->size += 32;
+
+        }
+        else if (category == '-'){
+            entry->size -= 32;
+        }
+    }
+    else{
+        if(category == '+'){
+            entry->size += size;
+
+        }
+        else if(category == '-'){
+            entry->size -= size;
+
+        }
+    }
+
 }
