@@ -49,35 +49,14 @@ void kernel_setup(void) {
     } ;
 
     write(request);  // Create folder "ikanaide"
-    request.parent_cluster_number = 3;
     memcpy(request.name, "kano1   ", 8);
     write(request);  // Create folder "kano1"
-    //memcpy(request.name, "ikanaide", 8);
-    //delete(request); // Delete first folder, thus creating hole in FS
-    graphics_clear_buffer();
-    read_clusters((void*)target, 2, 1);
-    table = read_directory(target);
-    int_toString((table.entry[0].size), buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
-
+    memcpy(request.name, "ikanaide", 8);
+    delete(request); // Delete first folder, thus creating hole in FS
+    request.parent_cluster_number = 4;
     memcpy(request.name, "daijoubu", 8);
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"
-
-    graphics_clear_buffer();
-    read_clusters((void*)target, 2, 1);
-    table = read_directory(target);
-    int_toString((table.entry[1].size), buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
-
-
-    graphics_clear_buffer();
-    table = read_directory(target);
-    int_toString((table.entry[0].size), buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
 
     struct ClusterBuffer readcbuf;
     

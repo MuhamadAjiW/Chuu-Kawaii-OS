@@ -6,7 +6,10 @@
 #include "lib-header/disk.h"
 #include "lib-header/parser.h"
 #include "lib-header/stdmem.h"
+#include "lib-header/portio.h"
 #include "lib-header/graphics.h"
+
+extern int SYSTEM_RUNNING;
 
 char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};
 uint16_t currentCluster = 2;

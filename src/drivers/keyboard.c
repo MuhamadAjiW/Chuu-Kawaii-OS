@@ -63,6 +63,7 @@ void append_reader(char in){
     else{
         graphics_print("\nBuffer overflowed, resetting buffer...\n");
         clear_reader();
+        newline_shell();
     }
 }
 

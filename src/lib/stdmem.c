@@ -50,15 +50,3 @@ void *memmove(void *dest, const void *src, size_t n) {
 
     return dest;
 }
-
-/*
-//extras
-//uint32_t kernel_limit = 0x00101000;
-uint32_t free_memory = 0x00110000;
-
-uint32_t kmalloc(){
-    free_memory = free_memory + 0x1000;
-    return free_memory - 0x1000;
-}
-
-*/

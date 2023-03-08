@@ -201,28 +201,43 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
 }
 
 
-void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
+void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char category){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     void* writer;
     
+    //cek kalo root, endprocess, pasti bukan rekursi pertama
     if(request.parent_cluster_number == 2){
-        read_clusters((void*)reader, 2, 1);
-        DirectoryTable table = read_directory(reader);
+        read_clusters((void*)reader, 2, 1);                     //nambah size root
+        DirectoryTable table = read_directory(reader); 
         table.entry[0].modification_time_seconds = cmos.second;
         table.entry[0].modification_time_minutes = cmos.minute;
         table.entry[0].modification_time_hours = cmos.hour;
         table.entry[0].modification_time_day = cmos.day;
         table.entry[0].modification_time_month = cmos.month;
         table.entry[0].modifcation_time_year = cmos.year;
+        
         if(request.buffer_size == 0){
-            table.entry[0].size += 32;
+            if(category == '+'){
+                table.entry[0].size += 32;
+
+            }
+            else if (category == '-'){
+                table.entry[0].size -= 32;
+            }
         }
         else{
-            table.entry[0].size += request.buffer_size;
+            if(category == '+'){
+                table.entry[0].size += request.buffer_size;
+
+            }
+            else if(category == '-'){
+                table.entry[0].size -= request.buffer_size;
+
+            }
         }
 
-        for(int i = 0; i < 64; i++){
-            if (table.entry[i].cluster_number == self_cluster){
+        for(int i = 1; i < 64; i++){
+            if (table.entry[i].cluster_number == self_cluster){                         //nambah size subfolder
                 table.entry[i].modification_time_seconds = cmos.second;
                 table.entry[i].modification_time_minutes = cmos.minute;
                 table.entry[i].modification_time_hours = cmos.hour;
@@ -231,18 +246,51 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
                 table.entry[i].modifcation_time_year = cmos.year;
                 
                 if(request.buffer_size == 0){
-                    table.entry[i].size += 32;
+                    if(category == '+'){
+                        table.entry[i].size += 32;
+                    }
+                    else if(category == '-'){
+                        table.entry[i].size -= 32;
+                    }
                 }
                 else{
-                    table.entry[i].size += request.buffer_size;
+                    if(category == '+'){
+                        table.entry[i].size += request.buffer_size;
+                    }
+                    else if(category == '-'){
+                        table.entry[i].size -= request.buffer_size;
+                    }
                 }
+            }
+            else if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
+                read_clusters((void*)reader, table.entry[i].cluster_number, 1);
+                DirectoryTable table2 = read_directory(reader);
+                if(request.buffer_size == 0){
+                    if(category == '+'){
+                        table2.entry[0].size += 32;
+                    }
+                    else if(category == '-'){
+                        table2.entry[0].size -= 32;
+                    }
+                }
+                else{
+                    if(category == '+'){
+                        table2.entry[0].size += request.buffer_size;
+                    }
+                    else if (category == '-'){
+                        table2.entry[0].size -= request.buffer_size;
+                    }
+                }
+                writer = (void*) &table2;
+                write_clusters(writer, table.entry[i].cluster_number, 1);
             }
         }
         writer = (void*) &table;
         write_clusters(writer, 2, 1);
     }
+    //kalo bukan root, rekursi pertama
     else{
-        read_clusters((void*)reader, request.parent_cluster_number, 1);
+        read_clusters((void*)reader, request.parent_cluster_number, 1); //nambah size diri sendiri
         DirectoryTable table = read_directory(reader);
         table.entry[0].modification_time_seconds = cmos.second;
         table.entry[0].modification_time_minutes = cmos.minute;
@@ -257,9 +305,9 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
             table.entry[0].size += request.buffer_size;
         }
 
-        if (self_cluster != 0){
+        if (self_cluster != 0){                                               //bukan rekursi pertama karena rekursi pertama harusnya belum merujuk folder
             for(int i = 1; i < 64; i++){
-                if (table.entry[i].cluster_number == self_cluster){
+                if (table.entry[i].cluster_number == self_cluster){                         //nambah size subfolder
                     table.entry[i].modification_time_seconds = cmos.second;
                     table.entry[i].modification_time_minutes = cmos.minute;
                     table.entry[i].modification_time_hours = cmos.hour;
@@ -268,20 +316,66 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
                     table.entry[i].modifcation_time_year = cmos.year;
                     
                     if(request.buffer_size == 0){
-                        table.entry[0].size += 32;
+                        if(category == '+'){
+                            table.entry[i].size += 32;
+                        }
+                        else if(category == '-'){
+                            table.entry[i].size -= 32;
+                        }
                     }
                     else{
-                        table.entry[0].size += request.buffer_size;
+                        if(category == '+'){
+                            table.entry[i].size += request.buffer_size;
+                        }
+                        else if(category == '-'){
+                            table.entry[i].size -= 32;
+                        }
                     }
                 }
-                else{
+                else if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
                     read_clusters((void*)reader, table.entry[i].cluster_number, 1);
                     DirectoryTable table2 = read_directory(reader);
                     if(request.buffer_size == 0){
-                        table2.entry[0].size += 32;
+                        if(category == '+'){
+                            table2.entry[0].size += 32;
+                        }
+                        else if(category == '-'){
+                            table2.entry[0].size -= 32;
+                        }
                     }
                     else{
-                        table2.entry[0].size += request.buffer_size;
+                        if(category == '+'){
+                            table2.entry[0].size += request.buffer_size;
+                        }
+                        else if (category == '-'){
+                            table2.entry[0].size -= request.buffer_size;
+                        }
+                    }
+                    writer = (void*) &table2;
+                    write_clusters(writer, table.entry[i].cluster_number, 1);
+                }
+            }
+        }
+        else{
+            for(int i = 1; i < 64; i++){
+                if (table.entry[i].cluster_number != self_cluster && (memcmp(&table.entry[i], &emptyEntry, 32) != 0)){  //sinkronisasi size semua subfolder
+                    read_clusters((void*)reader, table.entry[i].cluster_number, 1);
+                    DirectoryTable table2 = read_directory(reader);
+                    if(request.buffer_size == 0){
+                        if(category == '+'){
+                            table2.entry[0].size += 32;
+                        }
+                        else if(category == '-'){
+                            table2.entry[0].size -= 32;
+                        }
+                    }
+                    else{
+                        if(category == '+'){
+                            table2.entry[0].size += request.buffer_size;
+                        }
+                        else if (category == '-'){
+                            table2.entry[0].size -= request.buffer_size;
+                        }
                     }
                     writer = (void*) &table2;
                     write_clusters(writer, table.entry[i].cluster_number, 1);
@@ -297,43 +391,11 @@ void write_size_recurse(FAT32DriverRequest request, uint16_t self_cluster){
             .parent_cluster_number = table.entry[0].cluster_number
         };
 
-        if(self_cluster != 0){
-            for(int i = 1; i < 64; i++){
-                if (table.entry[i].cluster_number == self_cluster){
-                    table.entry[i].modification_time_seconds = cmos.second;
-                    table.entry[i].modification_time_minutes = cmos.minute;
-                    table.entry[i].modification_time_hours = cmos.hour;
-                    table.entry[i].modification_time_day = cmos.day;
-                    table.entry[i].modification_time_month = cmos.month;
-                    table.entry[i].modifcation_time_year = cmos.year;
-                    
-                    if(request.buffer_size == 0){
-                        table.entry[0].size += 32;
-                    }
-                    else{
-                        table.entry[0].size += request.buffer_size;
-                    }
-                }
-                else{
-                    read_clusters((void*)reader, table.entry[i].cluster_number, 1);
-                    DirectoryTable table2 = read_directory(reader);
-                    if(request.buffer_size == 0){
-                        table2.entry[0].size += 32;
-                    }
-                    else{
-                        table2.entry[0].size += request.buffer_size;
-                    }
-                    writer = (void*) &table2;
-                    write_clusters(writer, table.entry[i].cluster_number, 1);
-                }
-            }
-        }
-
-        write_size_recurse(next_request, request.parent_cluster_number);
+        update_size_recurse(next_request, request.parent_cluster_number, category);
     }
 }
 
-void write_size(FAT32DriverRequest request){
+void update_size(FAT32DriverRequest request, char category){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     
     if(request.parent_cluster_number == 2){
@@ -347,22 +409,59 @@ void write_size(FAT32DriverRequest request){
         table.entry[0].modification_time_month = cmos.month;
         table.entry[0].modifcation_time_year = cmos.year;
         if(request.buffer_size == 0){
-            table.entry[0].size += 32;
+            if(category == '+'){
+                table.entry[0].size += 32;
+
+            }
+            else if (category == '-'){
+                table.entry[0].size -= 32;
+            }
         }
         else{
-            table.entry[0].size += request.buffer_size;
+            if(category == '+'){
+                table.entry[0].size += request.buffer_size;
+            }
+            else if (category == '-'){
+                table.entry[0].size -= request.buffer_size;
+            }
         }
+
+        for(int i = 1; i < 64; i++){
+            if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){  //sinkronisasi size semua subfolder
+                read_clusters((void*)reader, table.entry[i].cluster_number, 1);
+                DirectoryTable table2 = read_directory(reader);
+                if(request.buffer_size == 0){
+                    if(category == '+'){
+                        table2.entry[0].size += 32;
+                    }
+                    else if(category == '-'){
+                        table2.entry[0].size -= 32;
+                    }
+                }
+                else{
+                    if(category == '+'){
+                        table2.entry[0].size += request.buffer_size;
+                    }
+                    else if (category == '-'){
+                        table2.entry[0].size -= request.buffer_size;
+                    }
+                }
+                void* writer = (void*) &table2;
+                write_clusters(writer, table.entry[i].cluster_number, 1);
+            }
+        }
+
         void* writer = (void*) &table;
         write_clusters(writer, 2, 1);
     }
     else{
         cmos = get_cmos_data();
-        write_size_recurse(request, 0);
+        update_size_recurse(request, 0, category);
     }
 }
 
 void write(FAT32DriverRequest request){
-    write_size(request);
+    update_size(request, '+');
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, 1, 1);
@@ -443,6 +542,8 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
 }
 
 void delete(FAT32DriverRequest request){
+    update_size(request, '-');
+
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t empty_cluster[CLUSTER_SIZE/4] = {0};
     DirectoryEntry self = get_self_info(request);
@@ -457,8 +558,8 @@ void delete(FAT32DriverRequest request){
 
     read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
-    marker = reader[current_cluster];
     current_cluster = self.cluster_number;
+    marker = reader[current_cluster];
     deleting = 1;
     
     while (deleting){
