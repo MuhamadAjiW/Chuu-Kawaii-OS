@@ -10,21 +10,7 @@
 
 struct GlobalDescriptorTable global_descriptor_table = {
     .table = {
-        {
-            .segment_low = 0,
-            .base_low = 0,
-            .base_mid = 0,  
-            .type_bit = 0,
-            .non_system = 0,
-            .DPL = 0,
-            .P = 0,
-            .segment_mid = 0,
-            .AVL = 0,
-            .L = 0,
-            .DB = 0,   
-            .G = 0,
-            .base_high = 0,
-        },
+        {0},
         {
             .segment_low = 0xff,
             .base_low = 0,

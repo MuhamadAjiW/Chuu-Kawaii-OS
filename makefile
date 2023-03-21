@@ -18,7 +18,6 @@ CFLAGS        = $(DEBUG_CFLAG) $(WARNING_CFLAG) $(STRIP_CFLAG) -m32 -c -I$(SOURC
 AFLAGS        = -f elf32 -g -F dwarf
 LFLAGS        = -T $(SOURCE_FOLDER)/linker.ld -melf_i386
 
-
 run: all
 	@qemu-system-i386 -s -S -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
 all: build
@@ -26,33 +25,28 @@ build: iso
 clean:
 	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel
 
+$(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/%.c
+	@$(CC) $(CFLAGS) $< -o $@
 
+SRC := $(shell find $(SOURCE_FOLDER) -name '*.c')
+DIR := $(filter-out src, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell find $(SOURCE_FOLDER) -type d)))
+OBJ := $(patsubst $(SOURCE_FOLDER)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRC))
 
-kernel:
+dir: 
+	@for dir in $(DIR); do \
+		if [ ! -d $$dir ]; then mkdir -p $$dir; fi \
+	done
+
+kernel: $(OBJ)
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel_loader.s -o $(OUTPUT_FOLDER)/kernel_loader.o
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/cpu/interrupt.s -o $(OUTPUT_FOLDER)/interrupt.o
-	
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/kernel.c -o $(OUTPUT_FOLDER)/kernel.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/lib/portio.c -o $(OUTPUT_FOLDER)/portio.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/lib/stdmem.c -o $(OUTPUT_FOLDER)/stdmem.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/lib/string.c -o $(OUTPUT_FOLDER)/string.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cpu/gdt.c -o $(OUTPUT_FOLDER)/gdt.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cpu/idt.c -o $(OUTPUT_FOLDER)/idt.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/cpu/timer.c -o $(OUTPUT_FOLDER)/timer.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/keyboard.c -o $(OUTPUT_FOLDER)/keyboard.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/disk.c -o $(OUTPUT_FOLDER)/disk.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/parser.c -o $(OUTPUT_FOLDER)/parser.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/graphics.c -o $(OUTPUT_FOLDER)/graphics.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/drivers/cmos.c -o $(OUTPUT_FOLDER)/cmos.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/filesystem/fat32.c -o $(OUTPUT_FOLDER)/fat32.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/memory/memory_manager.c -o $(OUTPUT_FOLDER)/memory_manager.o
-	@$(CC) $(CFLAGS) $(SOURCE_FOLDER)/shell.c -o $(OUTPUT_FOLDER)/shell.o
 
-	@$(LIN) $(LFLAGS) bin/*.o -o $(OUTPUT_FOLDER)/kernel
+	@$(LIN) $(LFLAGS) $(OBJ) $(OUTPUT_FOLDER)/interrupt.o $(OUTPUT_FOLDER)/kernel_loader.o -o $(OUTPUT_FOLDER)/kernel
 	@echo Linking object files and generate elf32...
+	@rm -rf ${DIR}
 	@rm -f *.o
 
-iso: kernel
+iso: dir kernel
 	@mkdir -p $(OUTPUT_FOLDER)/iso/boot/grub
 	@cp $(OUTPUT_FOLDER)/kernel     $(OUTPUT_FOLDER)/iso/boot/
 	@cp other/grub1                 $(OUTPUT_FOLDER)/iso/boot/grub/
@@ -71,5 +65,4 @@ iso: kernel
 	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./bin
 
 	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 200m
-
 	@rm -r $(OUTPUT_FOLDER)/iso/

@@ -11,7 +11,7 @@ uint32_t heap_end = 0;
 void initialize_memory(){
     last_alloc = 0x30000000; //start alignment + 2mb untuk kernel
     heap_start = last_alloc;
-    heap_end = 0x40000000; // 256mb heap
+    heap_end = 0x32000000; // 32mb heap
     memset((char*) heap_start, 0, heap_end - heap_start);
 }
 

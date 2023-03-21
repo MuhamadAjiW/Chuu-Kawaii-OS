@@ -1,5 +1,7 @@
 *.o
 *.iso
 *.img
-*
+bin/
+obsolete/
+
 !.gitignore

@@ -44,8 +44,7 @@ void execute_reader(){
             int counter = 1;
             char char_buffer[9];
             
-            graphics_print("\n");
-            graphics_print("\n    Parent folder: ");
+            graphics_print("    Parent folder: ");
 
             for(int j = 0; j < 8; j++){
                 char_buffer[j] = table.entry[0].filename[j];
@@ -178,23 +177,18 @@ void execute_reader(){
                     read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
                     current_cluster = reader[current_cluster];
                 }
-            }
-
-            
-            
-            graphics_print("\n");
+            }           
         }
         else{
-            graphics_print("\nYou wrote: ");
+            graphics_print("You wrote: ");
             graphics_print(get_keyboard_buffer());
-            graphics_print("\n");
         }
     }
     else if (get_word_count() != 0){
-        graphics_print("\nYou wrote: ");
+        graphics_print("You wrote: ");
         graphics_print(get_keyboard_buffer());
-        graphics_print("\n");
     }
+    init_shell();
     clearParser();
 }
 

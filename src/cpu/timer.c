@@ -4,13 +4,13 @@
 #include "../lib-header/string.h"
 
 uint32_t tick = 0;
-char buffer[256];
+char timerbuffer[256];
 
 static void timer_callback(){
     tick++;
     //framebuffer_printDef("Tick: ");
 
-    int_toString(tick, buffer);
+    int_toString(tick, timerbuffer);
     
     //framebuffer_printDef(buffer);
     //framebuffer_printDef("\n");    

@@ -56,7 +56,7 @@ void kernel_setup(void) {
     memcpy(request.name, "ikanaide", 8);
     delete(request); // Delete first folder, thus creating hole in FS
 
-    
+    /*
     //testing untuk extendable folder
     for(int i = 10; i < 80; i++){
         int_toString(i, buffer);
@@ -68,7 +68,7 @@ void kernel_setup(void) {
         buffer[7] = ' ';
         memcpy(request.name, buffer, 8);
         write(request);
-    }
+    }*/
     
     
     memcpy(request.name, "kano2   ", 8);

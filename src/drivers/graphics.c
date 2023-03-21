@@ -5,7 +5,7 @@
 #include "../lib-header/portio.h"
 #include "../lib-header/timer.h"
 #include "../lib-header/isr.h"
-#include "lib-header/stdfont.h"
+#include "../lib-header/stdfont.h"
 
 void initialize_vga(){
     //source
