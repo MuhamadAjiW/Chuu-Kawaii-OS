@@ -64,5 +64,5 @@ iso: dir kernel
 			.
 	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./bin
 
-	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 200m
+	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 4m
 	@rm -r $(OUTPUT_FOLDER)/iso/

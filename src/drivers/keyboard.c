@@ -61,7 +61,7 @@ void clear_reader(){
 }
 
 void append_reader(char in){
-    if(key.maxIdx < 500 - 1){
+    if(key.maxIdx < 1000 - 1){
         if(!(in == '\n')){
             for(int i = key.maxIdx; i > key.currentIdx; i--){
                 key.keyboard_buffer[i] = key.keyboard_buffer[i-1];
@@ -79,9 +79,7 @@ void append_reader(char in){
     }
     else{
         graphics_print("\nBuffer overflowed, resetting buffer...\n");
-        append_reader('\n');
         clear_reader();
-        newline_shell();
     }
 }
 

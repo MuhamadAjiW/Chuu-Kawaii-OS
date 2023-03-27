@@ -135,12 +135,10 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     };
     if(request.buffer_size == 0){
         add.size = 32;
-    }
-
-    if (request.buffer_size == 0){
         add.directory = 1;
         init_directory_table(cluster_number, request.parent_cluster_number);
     }
+
     memcpy(add.filename, request.name, 8);
     memcpy(add.extension, request.ext, 3);
 
@@ -291,7 +289,6 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
         }
         else{
             for(int i = 1; i < SECTOR_COUNT; i++){
-                //TODO: expandable folder
                 if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){  //sinkronisasi size semua subfolder
                     read_clusters((void*)reader, table.entry[i].cluster_number, 1);
                     DirectoryTable table2 = read_directory(reader);

@@ -17,7 +17,6 @@
 
 #include "lib-header/shell.h"
 
-
 //debug purposes
 uint32_t target[CLUSTER_SIZE/4] = {0};
 uint32_t entry[512];
