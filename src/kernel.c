@@ -33,7 +33,6 @@ void kernel_setup(void) {
     
     initialize_paging();
 
-
     activate_keyboard_interrupt();
     graphics_clear_buffer();
     graphics_cursor_on();
@@ -73,8 +72,8 @@ void kernel_setup(void) {
         buffer[7] = ' ';
         memcpy(request.name, buffer, 8);
         write(request);
-    }*/
-    
+    }
+    */
     
     memcpy(request.name, "kano2   ", 8);
     write(request);

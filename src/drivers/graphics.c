@@ -145,10 +145,20 @@ void initialize_vga(){
 uint8_t colLimit = SCREEN_WIDTH/BLOCK_WIDTH;
 uint8_t rowLimit = SCREEN_HEIGHT/BLOCK_HEIGHT;
 char screenMap[SCREEN_HEIGHT/BLOCK_HEIGHT][SCREEN_WIDTH/BLOCK_WIDTH] = {0};
+uint8_t backBuffer[320*200];
 
+void clear_graphics_memory(){
+    memset(MEMORY_GRAPHICS, DEFAULT_COLOR_BG, 0xfa00);
+    return;
+}
 
 void graphics_clear(){
-    memset(MEMORY_GRAPHICS, DEFAULT_COLOR_BG, 0x10000);
+    memset(backBuffer, DEFAULT_COLOR_BG, 0xfa00);
+    return;
+}
+
+void graphics_swap_buffer(){
+    memcpy(MEMORY_GRAPHICS, backBuffer, 0xfa00);
     return;
 }
 
@@ -158,13 +168,13 @@ void graphics_clear_buffer(){
             screenMap[i][j] = 0;
         }
     }
-    memset(MEMORY_GRAPHICS, DEFAULT_COLOR_BG, 0x10000);
+    graphics_clear();
     graphics_set_cursor(0, 0);
     return;
 }
 
 void graphics_draw(uint16_t x, uint16_t y, uint8_t color){
-    memset(MEMORY_GRAPHICS + (320 * y) + x, color, 1);
+    memset(&backBuffer[(320 * y) + x], color, 1);
     return;
 }
 
@@ -234,9 +244,10 @@ void graphics_show_cursor(){
     cursor_counter = 0;
     uint16_t xOffset = BLOCK_WIDTH*cursor.x;
     for(uint8_t j = 0; j < BLOCK_HEIGHT-1; j++){
-        memcpy(&cursor.cached_bg[j], (MEMORY_GRAPHICS + (320 * (((BLOCK_HEIGHT)*cursor.y) + j)) + xOffset), 1);
+        memcpy(&cursor.cached_bg[j], (&backBuffer[(320 * (((BLOCK_HEIGHT)*cursor.y) + j)) + xOffset]), 1);
         graphics_draw((BLOCK_WIDTH*cursor.x), ((BLOCK_HEIGHT)*cursor.y) + j, CURSOR_COLOR);
     }
+    graphics_swap_buffer();
     cursor_blocker = 0;
     return;
 }
@@ -248,6 +259,7 @@ void graphics_hide_cursor(){
     for(uint8_t j = 0; j < BLOCK_HEIGHT-1; j++){
         graphics_draw((BLOCK_WIDTH*cursor.x), (BLOCK_HEIGHT*cursor.y) + j, cursor.cached_bg[j]);
     }
+    graphics_swap_buffer();
     cursor_blocker = 0;
     return;
 }
@@ -385,6 +397,7 @@ void refresh_screen_buffer(){
         }
     }
     graphics_show_cursor();
+    graphics_swap_buffer();
     cursor_blocker2 = 0;
 }
 

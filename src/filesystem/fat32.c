@@ -648,11 +648,11 @@ void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_coun
     uint32_t reader[128] = {0};
     read_blocks(reader, cluster_to_lba(cluster), sector_count);
     memcpy(target, &reader, 512);
-    read_blocks(reader, cluster_to_lba(cluster) + 512, sector_count);
+    read_blocks(reader, cluster_to_lba(cluster) + 1, sector_count);
     memcpy(&target->buf[512], &reader, 512);
-    read_blocks(reader, cluster_to_lba(cluster) + 1024, sector_count);
+    read_blocks(reader, cluster_to_lba(cluster) + 2, sector_count);
     memcpy(&target->buf[1024], &reader, 512);
-    read_blocks(reader, cluster_to_lba(cluster) + 1536, sector_count);
+    read_blocks(reader, cluster_to_lba(cluster) + 3, sector_count);
     memcpy(&target->buf[1536], &reader, 512);
 };
 
@@ -662,11 +662,11 @@ void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_coun
     memcpy(writer, entry, 512);
     write_blocks(cluster_to_lba(cluster), sector_count, writer);
     memcpy(writer, &entry->buf[512], 512);
-    write_blocks(cluster_to_lba(cluster) + 512, sector_count, writer);
+    write_blocks(cluster_to_lba(cluster) + 1, sector_count, writer);
     memcpy(writer, &entry->buf[1024], 512);
-    write_blocks(cluster_to_lba(cluster) + 1024, sector_count, writer);
+    write_blocks(cluster_to_lba(cluster) + 2, sector_count, writer);
     memcpy(writer, &entry->buf[1536], 512);
-    write_blocks(cluster_to_lba(cluster) + 1536, sector_count, writer);
+    write_blocks(cluster_to_lba(cluster) + 3, sector_count, writer);
 };
 /*
 bool is_empty_storage(DirectoryTable table){
@@ -718,7 +718,7 @@ void close(ClusterBuffer* pointer){
 }
 
 int cluster_to_lba(int clusters){
-    return CLUSTER_SIZE * clusters;
+    return 4 * clusters;
 }
 
 uint32_t expand_folder(int cluster_number){

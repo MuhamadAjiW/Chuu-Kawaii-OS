@@ -56,6 +56,7 @@ typedef struct cursor_t cursor_t;
 void initialize_vga();
 
 void graphics_clear();
+void graphics_swap_buffer();
 void graphics_clear_buffer();
 void graphics_draw(uint16_t x, uint16_t y, uint8_t color);
 void graphics_draw_block(uint8_t x, uint8_t y, uint8_t color);
