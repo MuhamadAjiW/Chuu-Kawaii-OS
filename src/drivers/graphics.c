@@ -3,9 +3,10 @@
 #include "../lib-header/string.h"
 #include "../lib-header/stdtype.h"
 #include "../lib-header/portio.h"
-#include "../lib-header/timer.h"
+#include "../lib-header/pit.h"
 #include "../lib-header/isr.h"
 #include "../lib-header/stdfont.h"
+#include "../lib-header/stdbg.h"
 
 void initialize_vga(){
     //source
@@ -119,16 +120,16 @@ void initialize_vga(){
         16,  8, 16,  16,  8, 14,  16,  8, 12,  16,  8, 10,
         16,  8,  8,  16, 10,  8,  16, 12,  8,  16, 14,  8,
         16, 16,  8,  14, 16,  8,  12, 16,  8,  10, 16,  8,
-        8, 16,  8,   8, 16, 10,   8, 16, 12,   8, 16, 14,
-        8, 16, 16,   8, 14, 16,   8, 12, 16,   8, 10, 16,
-        11, 11, 16,  12, 11, 16,  13, 11, 16,  15, 11, 16,
-        16, 11, 16,  16, 11, 15,  16, 11, 13,  16, 11, 12,
-        16, 11, 11,  16, 12, 11,  16, 13, 11,  16, 15, 11,
-        16, 16, 11,  15, 16, 11,  13, 16, 11,  12, 16, 11,
-        11, 16, 11,  11, 16, 12,  11, 16, 13,  11, 16, 15,
-        11, 16, 16,  11, 15, 16,  11, 13, 16,  11, 12, 16,
-        0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0,
-        0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0
+        8, 16,  8,   8, 16, 10,   8, 16, 12,   56, 39, 44, 
+        49, 36, 52, 53, 37, 47, 54, 38, 52, 52, 39, 52, 
+        51, 37, 52, 48, 38, 53, 44, 44, 52, 53, 44, 52, 
+        58, 43, 50, 47, 40, 53, 45, 47, 58, 60, 50, 54, 
+        47, 46, 55, 45, 44, 54, 46, 42, 53, 61, 48, 51, 
+        54, 50, 58, 61, 45, 49, 53, 55, 60, 61, 47, 49, 
+        48, 50, 58, 52, 51, 59, 50, 50, 58, 56, 55, 60, 
+        56, 50, 58, 42, 46, 57, 45, 46, 56, 48, 46, 57, 
+        51, 46, 56, 54, 45, 56, 56, 47, 55, 58, 48, 55, 
+        60, 48, 53, 60, 50, 52, 63, 63, 63, 0, 0, 0
     };
 
     out(DAC_WRITE_REG, 0);
@@ -153,7 +154,7 @@ void clear_graphics_memory(){
 }
 
 void graphics_clear(){
-    memset(backBuffer, DEFAULT_COLOR_BG, 0xfa00);
+    memcpy(backBuffer, background, 0xfa00);
     return;
 }
 
@@ -217,11 +218,12 @@ static void cursor_callback(){
             cursor_counter++;
         }
     }
+    pit_callback();
     return;
 }
 
 void graphics_cursor_on(){
-    activate_timer_interrupt(DEFAULT_FREQUENCY);
+    activate_pit_interrupt(DEFAULT_FREQUENCY);
     register_interrupt_handler(32, cursor_callback);
     graphics_show_cursor();
     cursor.status = 1;
@@ -229,7 +231,7 @@ void graphics_cursor_on(){
 }
 
 void graphics_cursor_off(){
-    activate_timer_interrupt(DEFAULT_FREQUENCY);
+    activate_pit_interrupt(DEFAULT_FREQUENCY);
 
     graphics_hide_cursor();
     cursor.cursor_show = 0;

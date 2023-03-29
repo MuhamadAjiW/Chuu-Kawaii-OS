@@ -39,7 +39,7 @@
 
 
 #define DEFAULT_COLOR_BG 84
-#define DEFAULT_COLOR_FG 15
+#define DEFAULT_COLOR_FG 25
 #define CURSOR_COLOR 13
 
 #define MEMORY_GRAPHICS (uint8_t *) 0xA0000

@@ -3,6 +3,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 
+uint32_t* kernel_dir;
 uint32_t* page_directory = 0;
 uint32_t* page_table_addr = 0;
 
@@ -10,15 +11,16 @@ uint32_t last_alloc = 0;
 uint32_t heap_start = 0;
 uint32_t heap_end = 0;
 
+//heap
 void initialize_memory(){
-    last_alloc = 0x30000000; //start alignment
+    last_alloc = 0x800000; //start alignment
     heap_start = last_alloc;
-    heap_end = 0x32000000; // 32mb heap
+    heap_end = 0x2800000; // 32mb heap
     memset((char*) heap_start, 0, heap_end - heap_start);
 }
 
 char* malloc(uint32_t size){
-    uint8_t* memory = (uint8_t*) heap_start;
+    void* memory = (void*) heap_start;
 
     if (size == 0){
         return 0;
@@ -36,13 +38,18 @@ char* malloc(uint32_t size){
                 if(a->size >= size){
                     a->status = 1;
                     a->size = size;
+                    
+                    allocator* b = (allocator*)((uint32_t)a + size + sizeof(allocator));
+                    b->status = 0;
+                    b->size = a->size - size;
+
                     memset(memory + sizeof(allocator), 0, size);
+                    
                     return (char*)(memory + sizeof(allocator));
                 }
                 else{
                     memory += a->size;
                     memory += sizeof(allocator);
-                    memory += 4;
                 }
             }
         }
@@ -57,12 +64,10 @@ char* malloc(uint32_t size){
         alloc->size = size;
 
         last_alloc += size;
-        last_alloc += sizeof(allocator);
-        last_alloc += 4;
+        last_alloc += 2*sizeof(allocator);
         memset((char*)((uint32_t)alloc + sizeof(allocator)), 0, size);
         return (char*)((uint32_t)alloc + sizeof(allocator));
     }
-
 }
 
 void free(void* memory){
@@ -70,28 +75,24 @@ void free(void* memory){
     alloc->status = 0;
 }
 
+//paging
 void enable_paging(void* page_dir){
     __asm__ volatile ("mov %%eax, %%cr3": :"a"(page_dir));
     __asm__ volatile ("mov %cr0, %eax");
-    
     __asm__ volatile ("or 0x80000000, %eax");
     __asm__ volatile ("mov %eax, %cr0");
 }
 
-
-
 void map_table(uint32_t virt, uint32_t phys, uint32_t flags){
     uint32_t pd_idx = virt >> 22;
 
-    if(page_directory[pd_idx] == 2){
-        for(int i = 0; i < 1024; i++){
-            page_table_addr[i] = phys | (flags & 0xfff) | 0x01;
-            phys += 0x1000;
-        }
-
-        page_directory[pd_idx] = ((uint32_t) page_table_addr) | 3;
-        page_table_addr = (uint32_t*)((uint32_t) page_table_addr + 0x1000);
+    for(int i = 0; i < 1024; i++){
+        page_table_addr[i] = phys | (flags & 0xfff) | 0x01;
+        phys += 0x1000;
     }
+
+    page_directory[pd_idx] = ((uint32_t) page_table_addr) | (flags & 0xfff) | 0x01;
+    page_table_addr = (uint32_t*)((uint32_t) page_table_addr + 0x1000);
 }
 
 void map_page(uint32_t virt, uint32_t phys, uint32_t flags){
@@ -108,10 +109,12 @@ void initialize_paging(){
     for(int i = 0; i < 1024; i++){
         page_directory[i] = 2;
     }
+    kernel_dir = page_directory;
+
     map_table(0, 0, 3);
     map_table(0x400000, 0x400000, 3);
     for(int i = 0; i < 5; i++){
-        map_table(0x30000000 + i*0x400000, 0x30000000 + i*0x400000, 3);
+        map_table(0x800000 + i*0x400000, 0x800000 + i*0x400000, 3);
     }
 
     enable_paging(page_directory);

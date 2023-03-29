@@ -1,7 +1,6 @@
 
 #include "../lib-header/stdtype.h"
 
-
 //font bitmap, because fuck you
 //source: https://static.fontstruct.com/showings/14103.png
 static const uint8_t ascii0[1] = {0};

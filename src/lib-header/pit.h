@@ -5,7 +5,8 @@
 
 #define DEFAULT_FREQUENCY 20
 
-void activate_timer_interrupt(uint32_t);
+void pit_callback();
+void activate_pit_interrupt(uint32_t);
 void sleep(uint32_t duration);
 uint32_t get_tick();
 

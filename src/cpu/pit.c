@@ -1,4 +1,4 @@
-#include "../lib-header/timer.h"
+#include "../lib-header/pit.h"
 #include "../lib-header/isr.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/string.h"
@@ -6,7 +6,7 @@
 uint32_t tick = 0;
 char timerbuffer[256];
 
-static void timer_callback(){
+void pit_callback(){
     tick++;
     //framebuffer_printDef("Tick: ");
 
@@ -18,8 +18,8 @@ static void timer_callback(){
     return;
 }
 
-void activate_timer_interrupt(uint32_t freq){
-    register_interrupt_handler(32, timer_callback);
+void activate_pit_interrupt(uint32_t freq){
+    register_interrupt_handler(32, pit_callback);
 
     uint32_t x = 1193182 / freq;
     uint8_t low = (uint8_t) (x & 0xff);
@@ -33,7 +33,7 @@ void activate_timer_interrupt(uint32_t freq){
 }
 
 void sleep(uint32_t duration){
-    register_interrupt_handler(32, timer_callback);
+    register_interrupt_handler(32, pit_callback);
 
     uint32_t cachedTime = tick;
     while (cachedTime + duration > tick){}
