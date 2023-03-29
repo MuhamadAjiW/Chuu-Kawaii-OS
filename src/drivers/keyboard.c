@@ -156,36 +156,38 @@ void keyboard_driver_graphics(uint8_t input){
 
             default:
                 if(input < 64){
-                    if (key.caps){
-                        if(key.shift){
-                            if(scantableCaps[input] >= 'A' && scantableCaps[input] <= 'Z'){
-                                graphics_write_char(scantable[input]);
-                                append_reader(scantable[input]);
+                    if(scantable[input] != 0 && scantableCaps[input] != 0){
+                        if (key.caps){
+                            if(key.shift){
+                                if(scantableCaps[input] >= 'A' && scantableCaps[input] <= 'Z'){
+                                    graphics_write_char(scantable[input]);
+                                    append_reader(scantable[input]);
+                                }
+                                else{
+                                    graphics_write_char(scantableCaps[input]);
+                                    append_reader(scantableCaps[input]);
+                                }
                             }
                             else{
+                                if(scantableCaps[input] >= 'A' && scantableCaps[input] <= 'Z'){
+                                    graphics_write_char(scantableCaps[input]);
+                                    append_reader(scantableCaps[input]);
+                                }
+                                else{
+                                    graphics_write_char(scantable[input]);
+                                    append_reader(scantable[input]);
+                                }
+                            }
+                        }
+                        else {
+                            if (key.shift){
                                 graphics_write_char(scantableCaps[input]);
                                 append_reader(scantableCaps[input]);
                             }
-                        }
-                        else{
-                            if(scantableCaps[input] >= 'A' && scantableCaps[input] <= 'Z'){
-                                graphics_write_char(scantableCaps[input]);
-                                append_reader(scantableCaps[input]);
-                            }
                             else{
                                 graphics_write_char(scantable[input]);
                                 append_reader(scantable[input]);
                             }
-                        }
-                    }
-                    else {
-                        if (key.shift){
-                            graphics_write_char(scantableCaps[input]);
-                            append_reader(scantableCaps[input]);
-                        }
-                        else{
-                            graphics_write_char(scantable[input]);
-                            append_reader(scantable[input]);
                         }
                     }
                 }

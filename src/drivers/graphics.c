@@ -342,33 +342,32 @@ void graphics_write_char_c(uint8_t x, uint8_t y, char c, uint8_t color){
 }
 
 void graphics_write_char(char c){
-    if(c!= 0){
-        if(c != '\n'){
-            if(cursor.x == colLimit && cursor.y == rowLimit-1){
-                graphics_scroll();
-                graphics_set_cursor(0, rowLimit - 1);
-            }
+    if(c != '\n'){
+        if(cursor.x == colLimit && cursor.y == rowLimit-1){
+            graphics_scroll();
+            graphics_set_cursor(0, rowLimit - 1);
+        }
 
-            uint16_t end = colLimit*rowLimit;
-            uint16_t loc = cursor.y*colLimit + cursor.x;
-            for(int i = end-1; i >= loc; i--){
-                screenMap[0][i] = screenMap[0][i - 1];
-            }
+        uint16_t end = colLimit*rowLimit;
+        uint16_t loc = cursor.y*colLimit + cursor.x;
+        for(int i = end-1; i >= loc; i--){
+            screenMap[0][i] = screenMap[0][i - 1];
+        }
 
-            screenMap[cursor.y][cursor.x] = c;
-            graphics_move_cursor(1);
-            refresh_screen_buffer();
+        screenMap[cursor.y][cursor.x] = c;
+        graphics_move_cursor(1);
+        refresh_screen_buffer();
+    }
+    else{
+        if(cursor.y == rowLimit -1){
+            graphics_scroll();
+            graphics_set_cursor(0, rowLimit - 1);
         }
         else{
-            if(cursor.y == rowLimit -1){
-                graphics_scroll();
-                graphics_set_cursor(0, rowLimit - 1);
-            }
-            else{
-                graphics_set_cursor(0, cursor.y+1);
-            }
+            graphics_set_cursor(0, cursor.y+1);
         }
     }
+    
     
 
 

@@ -30,11 +30,17 @@ void kernel_setup(void) {
     initialize_idt();
     initialize_memory();
     initialize_vga();
+    
+    initialize_paging();
+
+
     activate_keyboard_interrupt();
     graphics_clear_buffer();
     graphics_cursor_on();
     initialize_filesystem_fat32();
     keyboard_state_activate();
+    
+    
 
     struct ClusterBuffer cbuf[5];
     for (uint32_t i = 0; i < 5; i++)
