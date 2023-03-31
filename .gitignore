@@ -2,6 +2,9 @@
 *.iso
 *.img
 bin/
+other/*.txt
+other/*.png
+other/*.jpg
 obsolete/
 
 !.gitignore

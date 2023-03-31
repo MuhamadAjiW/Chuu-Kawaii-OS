@@ -17,7 +17,8 @@
         "string.h": "c",
         "graphics.h": "c",
         "stdfont.h": "c",
-        "syscall.h": "c"
+        "syscall.h": "c",
+        "tss.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

@@ -5,7 +5,7 @@
 #include "lib-header/kernel_loader.h"
 #include "lib-header/idt.h"
 #include "lib-header/isr.h"
-#include "lib-header/timer.h"
+#include "lib-header/pit.h"
 #include "lib-header/keyboard.h"
 #include "lib-header/string.h"
 #include "lib-header/fat32.h"
@@ -28,10 +28,10 @@ void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
-    initialize_memory();
-    initialize_vga();
     
-    initialize_paging();
+    initialize_memory();
+    
+    initialize_vga();
 
     activate_keyboard_interrupt();
     graphics_clear_buffer();
@@ -59,7 +59,7 @@ void kernel_setup(void) {
     write(request);  // Create folder "kano1"
     memcpy(request.name, "ikanaide", 8);
     delete(request); // Delete first folder, thus creating hole in FS
-
+    
     /*
     //testing untuk extendable folder
     for(int i = 10; i < 80; i++){
@@ -75,14 +75,14 @@ void kernel_setup(void) {
     }
     */
     
-    memcpy(request.name, "kano2   ", 8);
-    write(request);
-    delete(request);
+    
 
     memcpy(request.name, "daijoubu", 8);
     request.buffer_size = 5*CLUSTER_SIZE;
     write(request);  // Create fragmented file "daijoubu"
 
+    memcpy(request.name, "kano2   ", 8);
+    write(request);
 
 
     

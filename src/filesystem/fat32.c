@@ -38,19 +38,16 @@ FAT32FileAllocationTable fat;
 DirectoryEntry* root_directory;
 
 void initialize_filesystem_fat32(){
-    uint32_t entry[CLUSTER_SIZE/4];
-    uint32_t entry2[CLUSTER_SIZE/4];
-
-    for(int i = 0; i < CLUSTER_SIZE/4; i++){
-        entry[i] = 0;
-        entry2[i] = 0;
-    }
+    uint32_t entry[CLUSTER_SIZE/4] = {0};
+    uint32_t entry2[CLUSTER_SIZE/4] = {0};
 
     entry2[0] = 'f' | ('s' << 8) | ('_' << 16) | ('s' << 24);
     entry2[1] = 'i' | ('g' << 8) | ('n' << 16) | ('a' << 24);
     entry2[2] = 't' | ('u' << 8) | ('r' << 16) | ('e' << 24);
     write_clusters((void*)entry2, 0, 1);
-    DirectoryTable table;
+    DirectoryTable table = {
+        .entry = 0
+    };
     DirectoryEntry parent = {
         .filename = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '},
         .extension = {' ', ' ', ' '},
@@ -84,9 +81,7 @@ void initialize_filesystem_fat32(){
         .size = 32
     };
     table.entry[0] = parent;
-    for(int i = 1; i < SECTOR_COUNT; i++){
-        table.entry[i] = emptyEntry;
-    }
+
     void* writer = (void*) &table;
     write_clusters(writer, 2, 1);
 
@@ -443,7 +438,7 @@ void write(FAT32DriverRequest request){
 
 
 void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number){
-    DirectoryTable table;
+    DirectoryTable table = {.entry = 0};
 
     if (parent_cluster_number == ROOT_CLUSTER_NUMBER){
         uint32_t reader[CLUSTER_SIZE/4] = {0};
@@ -454,11 +449,6 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
     else{
         DirectoryEntry parent = get_parent_info(parent_cluster_number);
         table.entry[0] = parent;
-    }
-
-
-    for(int i = 1; i < SECTOR_COUNT; i++){
-        table.entry[i] = emptyEntry;
     }
     
     void* writer = (void*) &table;

@@ -9,11 +9,14 @@ int word_count;
 
 void init_parser(){
     strcpy(main_parser, get_keyboard_buffer());
-    split_reader = (char**) malloc(sizeof(char) * 1000);
+    split_reader = (char**) malloc(sizeof(char) * 128);
     word_count = 0;
 }
 
 void clearParser(){
+    for(int i = 0; i < word_count; i++){
+        free(split_reader[i]);
+    }
     free(split_reader);
     main_parser[0] = 0;
     word_count = 0;
@@ -30,11 +33,17 @@ void splitWords(){
         }
         else{
             letter_counter = 0;
+
             while (main_parser[index] != ' ' && main_parser[index] != 0 && main_parser[index] != '\n'){
-                split_reader[word_count][letter_counter] = main_parser[index];
                 letter_counter++;
                 index++;
             }
+            split_reader[word_count] = (char*) malloc(sizeof(letter_counter + 1));
+
+            for(int i = 0; i < letter_counter; i++){
+                split_reader[word_count][i] = main_parser[index - letter_counter + i];
+            }
+            
             split_reader[word_count][letter_counter] = 0;
             word_count++;
         }

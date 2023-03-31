@@ -1,5 +1,6 @@
 #include "../lib-header/idt.h"
 #include "../lib-header/isr.h"
+#include "../lib-header/tss.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/string.h"
@@ -7,6 +8,7 @@
 
 extern void* isr_stub_table[];
 
+struct TSSEntry _interrupt_tss_entry;
 InterruptService interruptHandlers[IDT_MAX_COUNT];
 InterruptDescriptorTable idt;
 IDTR idtr = {
@@ -91,7 +93,14 @@ char *exception_msg[] = {
     "Intel Reserved"                    //31
 };
 
+void page_fault_handler(){
+    __asm__ volatile ("iret");
+}
+
 void main_interrupt_handler(registers r){
+    //if(r.int_no == 14){
+    //    page_fault_handler();
+    //}
     if(r.int_no < 32){
         graphics_print("received interrupt: 0x");
         char s[3];
@@ -99,7 +108,9 @@ void main_interrupt_handler(registers r){
         graphics_print(s);
         graphics_print("\nexception: ");
         graphics_print(exception_msg[r.int_no]);
-        graphics_print("\n");
+        graphics_print("\nerror code: ");
+        int_toString(r.err_code, s);
+        graphics_print(s);
         __asm__ volatile("hlt");
     }
     else{
@@ -118,4 +129,12 @@ void main_interrupt_handler(registers r){
 
 void register_interrupt_handler(uint8_t n, InterruptService input){
     interruptHandlers[n] = input;
+}
+
+void set_tss_kernel_current_stack(void) {
+    uint32_t stack_ptr;
+    // Reading base stack frame instead esp
+    __asm__ volatile ("mov %%ebp, %0": "=r"(stack_ptr) : /* <Empty> */);
+    // Add 8 because 4 for ret address and other 4 is for stack_ptr variable
+    _interrupt_tss_entry.esp0 = stack_ptr + 8; 
 }
