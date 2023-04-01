@@ -1,4 +1,5 @@
 #include "../lib-header/keyboard.h"
+#include "../lib-header/memory_manager.h"
 #include "../lib-header/shell.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/isr.h"
@@ -28,6 +29,8 @@ static char scantableCaps[64] = {
 };
 
 static keyboardDriverState key ={
+    .keyboard_buffer = 0,
+    .buffersize = KEYBOARD_BUFFER_SIZE,
     .currentIdx = 0,
     .maxIdx = 0,
     .shift = 0,
@@ -47,6 +50,9 @@ void activate_keyboard_interrupt(){
 }
 
 void keyboard_state_activate(){
+    if(key.keyboard_buffer == 0){
+        key.keyboard_buffer = (char*) malloc (sizeof(char) * KEYBOARD_BUFFER_SIZE);
+    }
     key.keyboard_input_on = 1;
 }
 
@@ -55,13 +61,16 @@ void keyboard_state_deactivate(){
 }
 
 void clear_reader(){
+    key.buffersize = KEYBOARD_BUFFER_SIZE;
+    free(key.keyboard_buffer);
+    key.keyboard_buffer = (char*) malloc (sizeof(char) * KEYBOARD_BUFFER_SIZE);;
     key.keyboard_buffer[0] = 0;
     key.currentIdx = 0;
     key.maxIdx = 0;
 }
 
 void append_reader(char in){
-    if(key.maxIdx < 1000 - 1){
+    if(key.maxIdx < key.buffersize - 1){
         if(!(in == '\n')){
             for(int i = key.maxIdx; i > key.currentIdx; i--){
                 key.keyboard_buffer[i] = key.keyboard_buffer[i-1];
@@ -78,8 +87,9 @@ void append_reader(char in){
         }
     }
     else{
-        graphics_print("\nBuffer overflowed, resetting buffer...\n");
-        clear_reader();
+        key.buffersize += KEYBOARD_BUFFER_SIZE;
+        key.keyboard_buffer = (char*) realloc (key.keyboard_buffer, sizeof(char) * key.buffersize);
+        append_reader(in);
     }
 }
 

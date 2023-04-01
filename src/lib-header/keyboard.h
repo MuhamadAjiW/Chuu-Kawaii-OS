@@ -3,10 +3,11 @@
 
 #include "lib-header/stdtype.h"
 
-#define KEYBOARD_BUFFER_SIZE 1000
+#define KEYBOARD_BUFFER_SIZE 1024
 
 struct keyboard{
-    char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
+    char* keyboard_buffer;
+    uint32_t buffersize;
     uint16_t maxIdx;
     uint16_t currentIdx;
     uint8_t caps;

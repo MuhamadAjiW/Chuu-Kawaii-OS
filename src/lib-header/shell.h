@@ -11,4 +11,6 @@ void append_reader(char in);
 void move_reader(int direction);
 void backspace_reader();
 
+void dir();
+
 #endif

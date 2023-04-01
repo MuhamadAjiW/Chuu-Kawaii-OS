@@ -54,6 +54,7 @@ void kernel_setup(void) {
         .buffer_size           = 0,
     } ;
 
+    
     write(request);  // Create folder "ikanaide"
     memcpy(request.name, "kano1   ", 8);
     write(request);  // Create folder "kano1"
@@ -91,12 +92,14 @@ void kernel_setup(void) {
     read_clusters(&readcbuf, ROOT_CLUSTER_NUMBER+1, 1); 
     // If read properly, readcbuf should filled with 'a'
 
+
+    /*
     request.buffer_size = CLUSTER_SIZE;
     read(request);   // Failed read due not enough buffer size
     request.buffer_size = 5*CLUSTER_SIZE;
     ClusterBuffer* reader = read(request);   // Success read on file "daijoubu"
     close(reader);
-    
+    */
 
     
 

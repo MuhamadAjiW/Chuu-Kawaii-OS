@@ -13,8 +13,11 @@ struct allocator{
 typedef struct allocator allocator;
 
 void initialize_memory();
+void clean_memory();
 
-char* malloc(uint32_t size);
+
+void* malloc(uint32_t size);
+void* realloc(void* ptr, uint32_t size);
 void free(void*);
 
 
