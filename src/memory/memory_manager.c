@@ -80,6 +80,7 @@ void* malloc(uint32_t size){
     }
 
     if (last_alloc + size + sizeof(allocator) >= heap_end){
+        __asm__ volatile ("int $4");
         return 0;
     }
     else{

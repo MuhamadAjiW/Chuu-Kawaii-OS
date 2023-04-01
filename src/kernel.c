@@ -40,7 +40,7 @@ void kernel_setup(void) {
     keyboard_state_activate();
     
     
-
+    /*
     struct ClusterBuffer cbuf[5];
     for (uint32_t i = 0; i < 5; i++)
         for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
@@ -61,20 +61,7 @@ void kernel_setup(void) {
     memcpy(request.name, "ikanaide", 8);
     delete(request); // Delete first folder, thus creating hole in FS
     
-    /*
-    //testing untuk extendable folder
-    for(int i = 10; i < 80; i++){
-        int_toString(i, buffer);
-        buffer[2] = ' ';
-        buffer[3] = ' ';
-        buffer[4] = ' ';
-        buffer[5] = ' ';
-        buffer[6] = ' ';
-        buffer[7] = ' ';
-        memcpy(request.name, buffer, 8);
-        write(request);
-    }
-    */
+    
     
     
 
@@ -93,7 +80,7 @@ void kernel_setup(void) {
     // If read properly, readcbuf should filled with 'a'
 
 
-    /*
+    
     request.buffer_size = CLUSTER_SIZE;
     read(request);   // Failed read due not enough buffer size
     request.buffer_size = 5*CLUSTER_SIZE;
@@ -102,34 +89,20 @@ void kernel_setup(void) {
     */
 
     
-
-    /**
-    read_rtc();
-    tester = get_cmos_data();
-    graphics_print("\n");
-    int_toString(tester.century, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    int_toString(tester.year, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    int_toString(tester.month, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    int_toString(tester.day, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    int_toString(tester.hour, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    int_toString(tester.minute, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    int_toString(tester.second, buffer);
-    graphics_print(buffer);
-    graphics_print("\n");
-    */
-    
     init_shell();
     while (TRUE);
 }
+    /*
+    //testing untuk extendable folder
+    for(int i = 10; i < 80; i++){
+        int_toString(i, buffer);
+        buffer[2] = ' ';
+        buffer[3] = ' ';
+        buffer[4] = ' ';
+        buffer[5] = ' ';
+        buffer[6] = ' ';
+        buffer[7] = ' ';
+        memcpy(request.name, buffer, 8);
+        write(request);
+    }
+    */

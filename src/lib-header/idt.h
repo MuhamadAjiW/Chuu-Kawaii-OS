@@ -1,7 +1,7 @@
 #ifndef _IDT_H
 #define _IDT_H
 
-#include "lib-header/stdtype.h"
+#include "stdtype.h"
 
 #define IDT_MAX_COUNT 256
 #define SELECTOR 0x08

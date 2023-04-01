@@ -1,7 +1,7 @@
 #ifndef _TASK_H
 #define _TASK_H
 
-#include "lib-header/stdtype.h"
+#include "stdtype.h"
 
 #define PSTATE_ALIVE 0
 #define PSTATE_DONE 1

@@ -2,7 +2,7 @@
 #ifndef _DISK_H
 #define _DISK_H
 
-#include "../lib-header/stdtype.h"
+#include "stdtype.h"
 
 #define READ_CODE 32
 #define WRITE_CODE 48

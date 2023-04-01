@@ -1,7 +1,7 @@
 #ifndef _GRAPHICS_H
 #define _GRAPHICS_H
 
-#include "../lib-header/stdtype.h"
+#include "stdtype.h"
 
 /* VGA Port Macros */
 #define MISC_OUT_REG 0x3c2

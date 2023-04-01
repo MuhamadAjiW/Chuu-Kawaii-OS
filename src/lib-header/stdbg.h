@@ -1,5 +1,5 @@
 
-#include "../lib-header/stdtype.h"
+#include "stdtype.h"
 
 static const uint8_t background[200*320] = {
     

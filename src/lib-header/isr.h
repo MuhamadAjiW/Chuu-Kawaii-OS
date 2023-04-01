@@ -1,7 +1,7 @@
 #ifndef _ISR_H
 #define _ISR_H
 
-#include "lib-header/stdtype.h"
+#include "stdtype.h"
 
 struct registers{
    uint32_t ds;

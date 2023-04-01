@@ -1,7 +1,7 @@
 #ifndef _TIMER_H
 #define _TIMER_H
 
-#include "lib-header/stdtype.h"
+#include "stdtype.h"
 
 #define DEFAULT_FREQUENCY 20
 

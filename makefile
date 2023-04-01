@@ -63,6 +63,13 @@ iso: dir kernel
 			-o OS2023.iso              						\
 			.
 	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./bin
-
-	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 64m
 	@rm -r $(OUTPUT_FOLDER)/iso/
+
+disk:
+	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 64m
+
+inserter:
+	@$(CC) -Wno-builtin-declaration-mismatch \
+		$(SOURCE_FOLDER)/lib/stdmem.c $(SOURCE_FOLDER)/filesystem/fat32.c $(SOURCE_FOLDER)/drivers/cmos.c $(SOURCE_FOLDER)/lib/portio.c \
+		other/external-inserter.c \
+		-o $(OUTPUT_FOLDER)/inserter

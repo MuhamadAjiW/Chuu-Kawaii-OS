@@ -1,5 +1,5 @@
 
-#include "../lib-header/stdtype.h"
+#include "stdtype.h"
 
 //font bitmap, because fuck you
 //source: https://static.fontstruct.com/showings/14103.png

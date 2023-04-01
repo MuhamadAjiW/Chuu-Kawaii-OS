@@ -2,7 +2,7 @@
 #ifndef _FAT32_H
 #define _FAT32_H
 
-#include "../lib-header/stdtype.h"
+#include "stdtype.h"
 
 #define END_OF_FILE 0xfffffff8
 
@@ -195,17 +195,20 @@ DirectoryEntry get_parent_info(uint16_t parent_cluster_number);
 DirectoryEntry get_self_info(FAT32DriverRequest request);
 DirectoryTable read_directory(uint32_t* reader);
 int cluster_to_lba(int clusters);
-void delete(FAT32DriverRequest);
+uint8_t delete(FAT32DriverRequest);
 void deleteFolder(uint16_t cluster_number);
-bool is_empty_storage(DirectoryTable table);
+uint8_t is_empty_storage();
 void read_clusters(ClusterBuffer* target, uint16_t cluster, uint16_t sector_count);
 void write_clusters(ClusterBuffer* entry, uint16_t cluster, uint16_t sector_count);
 ClusterBuffer* read(FAT32DriverRequest request);
-void write(FAT32DriverRequest request);
+uint8_t write(FAT32DriverRequest request);
 void close(ClusterBuffer* pointer);
 
 uint32_t expand_folder(int cluster_number);
 void update_file_time(DirectoryEntry *entry);
 void update_file_size(DirectoryEntry* entry, uint32_t size, char category);
+
+uint8_t is_directory(uint32_t cluster);
+uint8_t name_exists(FAT32DriverRequest request);
 
 #endif

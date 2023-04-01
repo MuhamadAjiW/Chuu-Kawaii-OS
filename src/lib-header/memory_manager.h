@@ -4,7 +4,7 @@
 
 #define KERNEL_OFFSET 0xc0000000
 
-#include "lib-header/stdtype.h"
+#include "stdtype.h"
 
 struct allocator{
     bool status;
