@@ -19,7 +19,7 @@ struct FAT32DriverRequest {
 void*  memcpy(void* restrict dest, const void* restrict src, size_t n);
 
 void   initialize_filesystem_fat32(void);
-int8_t write(struct FAT32DriverRequest request);
+uint8_t write(struct FAT32DriverRequest request);
 
 // Global variable
 uint8_t *image_storage;
@@ -52,14 +52,18 @@ int main(int argc, char *argv[]) {
     // Read target file, assuming file is less than 4 MiB
     FILE *fptr_target = fopen(argv[1], "r");
     size_t filesize   = 0;
-    if (fptr_target == NULL)
+    if (fptr_target == NULL){
+        printf("File not found!\n");
         filesize = 0;
+    }
     else {
+        printf("File found!\n");
         filesize = ftell(fptr_target);
         fread(file_buffer, 4*1024*1024, 1, fptr_target);
         fseek(fptr_target, 0, SEEK_END);
         fclose(fptr_target);
     }
+    
 
     printf("Filename : %s\n",  argv[1]);
     printf("Filesize : %ld bytes\n", filesize);
@@ -91,4 +95,4 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-//Usage ./inserter <file to insert> <parent cluster index> <storage>
+// ./inserter <file to insert> <parent cluster index> <storage>

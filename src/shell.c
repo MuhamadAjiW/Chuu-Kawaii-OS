@@ -97,10 +97,8 @@ void dir(){
     graphics_print("    Parent folder: ");
 
     for(int j = 0; j < 8; j++){
-        char_buffer[j] = table.entry[0].filename[j];
+        graphics_write_char(table.entry[0].filename[j]);
     }
-    char_buffer[8] = 0;
-    graphics_print(char_buffer);
     graphics_print("\n    No   Name        Ext    Size      Creation time");
 
     uint32_t current_cluster = currentCluster;
@@ -121,18 +119,19 @@ void dir(){
                     }
 
                     for(int j = 0; j < 8; j++){
-                        char_buffer[j] = table.entry[i].filename[j];
+                        if(table.entry[i].filename[j] == 0){
+                            graphics_write_char(' ');
+                        }
+                        graphics_write_char(table.entry[i].filename[j]);
                     }
-                    char_buffer[8] = 0;
 
-                    graphics_print(char_buffer);
-
-                    for(int j = 0; j < 3; j++){
-                        char_buffer[j] = table.entry[i].extension[j];
-                    }
-                    char_buffer[3] = 0;
                     graphics_print("    ");
-                    graphics_print(char_buffer);
+                    for(int j = 0; j < 3; j++){
+                        if(table.entry[i].extension[j] == 0){
+                            graphics_write_char(' ');
+                        }
+                        else graphics_write_char(table.entry[i].extension[j]);
+                    }
                     
                     graphics_print("    ");
                     int_toString(table.entry[i].size, char_buffer);

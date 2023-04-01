@@ -28,7 +28,7 @@ void read_blocks(uint32_t target_address, uint32_t lba, uint8_t sector_count){
 	return;
 }
 
-void write_blocks(uint32_t lba, uint8_t sector_count, uint32_t* entry){
+void write_blocks(uint32_t* entry, uint32_t lba, uint8_t sector_count){
 	while(in(0x1F7) & 0x80){}
 	out(0x1F6, 0xE0 | ((lba >>24) & 0xF));
 	out(0x1F2, sector_count);

@@ -1,42 +1,35 @@
-//TODO: optimization, jorok banget ini
-//TODO: comment juga, jelasin lah anjir cok ini codenya ngapain aja
 
-#include "../lib-header/fat32.h"
-#include "../lib-header/stdtype.h"
-#include "../lib-header/stdmem.h"
-#include "../lib-header/disk.h"
-#include "../lib-header/cmos.h"
-#include "../lib-header/memory_manager.h"
-#include "../lib-header/graphics.h"
-#include "../lib-header/string.h"
+#include <time.h>
+
+#include "../src/lib-header/fat32.h"
+#include "../src/lib-header/stdtype.h"
+#include "../src/lib-header/stdmem.h"
+#include "../src/lib-header/disk.h"
+#include "../src/lib-header/cmos.h"
+#include "../src/lib-header/memory_manager.h"
+#include "../src/lib-header/graphics.h"
+#include "../src/lib-header/string.h"
 
 static cmos_reader cmos = {0};
 DirectoryEntry emptyEntry = {0};
 
-/* //debug purposes
-static char buffer[CLUSTER_SIZE/4];
-graphics_clear_buffer();
-uint32_t reader2[CLUSTER_SIZE/4] = {0};
-read_clusters((void*)reader2, request.parent_cluster_number, 1);
-for(int i = 0; i < 128; i++){
-    int_toString((reader2[i]) >> 24, buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
-    int_toString(((reader2[i]) >> 16) & 0xff, buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
-    int_toString(((reader2[i]) >> 8) & 0xff, buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
-    int_toString((reader2[i]) & 0xff, buffer);
-    graphics_print(buffer);
-    graphics_print(" ");
-}
-*/
-
 FAT32FileAllocationTable fat;
 DirectoryEntry* root_directory;
 
+cmos_reader get_time_data(){
+    time_t raw;
+    time(&raw);
+
+    struct tm* t = localtime(&raw);
+    cmos.second = t->tm_sec;
+    cmos.minute = t->tm_min;
+    cmos.hour = t->tm_hour;
+    cmos.day = t->tm_mday;
+    cmos.month = t->tm_mon;
+    cmos.year = t->tm_year;
+    
+    return cmos;
+}
 
 uint8_t is_empty_storage(){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
@@ -108,7 +101,7 @@ void initialize_filesystem_fat32(){
 
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
-    cmos = get_cmos_data();
+    cmos = get_time_data();
     DirectoryEntry add = {
         .filename = {0},
         .extension = {0},
@@ -301,7 +294,7 @@ void update_size(FAT32DriverRequest request, char category){
     if(request.parent_cluster_number == 2){
         uint32_t current_cluster = ROOT_CLUSTER_NUMBER;
         DirectoryTable table = {0};
-        cmos = get_cmos_data();
+        cmos = get_time_data();
         void* writer;
 
         do
@@ -327,7 +320,7 @@ void update_size(FAT32DriverRequest request, char category){
         } while (current_cluster != END_OF_FILE);
     }
     else{
-        cmos = get_cmos_data();
+        cmos = get_time_data();
         update_size_recurse(request, 0, category);
     }
 }

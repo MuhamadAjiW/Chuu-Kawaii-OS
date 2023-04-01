@@ -70,6 +70,6 @@ disk:
 
 inserter:
 	@$(CC) -Wno-builtin-declaration-mismatch \
-		$(SOURCE_FOLDER)/lib/stdmem.c $(SOURCE_FOLDER)/filesystem/fat32.c $(SOURCE_FOLDER)/drivers/cmos.c $(SOURCE_FOLDER)/lib/portio.c \
+		$(SOURCE_FOLDER)/lib/stdmem.c other/fat32nocmos.c \
 		other/external-inserter.c \
 		-o $(OUTPUT_FOLDER)/inserter
