@@ -25,7 +25,7 @@ void initialize_memory(){
     };
     
     for (int i = 0; i < 4; i++)    {
-        update_page_directory_entry((void *)(0x400000 + (i*0x400000)), (void *)(0xc0400000 + (i*0x400000)), flags);
+        update_page_directory_entry((void *)(0x800000 + (i*0x400000)), (void *)(0xc0400000 + (i*0x400000)), flags);
     }
 
     last_alloc = 0xc0400000; //start alignment

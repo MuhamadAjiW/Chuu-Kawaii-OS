@@ -25,8 +25,8 @@ cmos_reader get_time_data(){
     cmos.minute = t->tm_min;
     cmos.hour = t->tm_hour;
     cmos.day = t->tm_mday;
-    cmos.month = t->tm_mon;
-    cmos.year = t->tm_year;
+    cmos.month = t->tm_mon + 1;
+    cmos.year = t->tm_year - 100;
     
     return cmos;
 }
@@ -364,7 +364,7 @@ uint8_t write(FAT32DriverRequest request){
         }
         
         if(size != 0){
-            void* writer = (void*) &request.buf[index];
+            void* writer = (void*) request.buf + index;
             write_clusters(writer, i, 1);
             index++;
         }
@@ -599,7 +599,7 @@ void write_clusters(void* entry, uint16_t cluster, uint16_t sector_count){
     write_blocks(entry + 1536, cluster_to_lba(cluster) + 3, sector_count);
 };
 
-ClusterBuffer* read(FAT32DriverRequest request){
+void* read(FAT32DriverRequest request){
     ClusterBuffer* output = 0;
     DirectoryEntry self = get_self_info(request);
 

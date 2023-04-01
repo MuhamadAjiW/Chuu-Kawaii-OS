@@ -180,10 +180,10 @@ struct FAT32DriverState{
 typedef struct FAT32DriverState FAT32DriverState;
 
 struct FAT32DriverRequest{
-    ClusterBuffer* buf;
+    void* buf;
     char name[8];
     char ext[3];
-    uint16_t parent_cluster_number;
+    uint32_t parent_cluster_number;
     uint32_t buffer_size;
 }__attribute__((packed));
 typedef struct FAT32DriverRequest FAT32DriverRequest;
@@ -200,7 +200,8 @@ void deleteFolder(uint16_t cluster_number);
 uint8_t is_empty_storage();
 void read_clusters(void*, uint16_t cluster, uint16_t sector_count);
 void write_clusters(void*, uint16_t cluster, uint16_t sector_count);
-ClusterBuffer* read(FAT32DriverRequest request);
+void* read(FAT32DriverRequest request);
+void* load(FAT32DriverRequest request);
 uint8_t write(FAT32DriverRequest request);
 void close(ClusterBuffer* pointer);
 

@@ -73,3 +73,17 @@ inserter:
 		$(SOURCE_FOLDER)/lib/stdmem.c other/fat32nocmos.c \
 		other/external-inserter.c \
 		-o $(OUTPUT_FOLDER)/inserter
+
+
+user-shell:
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/user/user-entry.s -o user-entry.o
+	@$(CC)  $(CFLAGS) -fno-pie $(SOURCE_FOLDER)/user/user-shell.c -o user-shell.o
+	@$(LIN) -T $(SOURCE_FOLDER)/user/user-linker.ld -melf_i386 \
+		user-entry.o user-shell.o -o $(OUTPUT_FOLDER)/usersh
+	@echo Linking object shell object files and generate flat binary...
+	@size --target=binary bin/usersh
+	@rm -f *.o
+
+insert-shell: inserter user-shell
+	@echo Inserting shell into root directory... && cd bin && ./inserter usersh 2 drive.img
+# TODO : Insert shell into storage image

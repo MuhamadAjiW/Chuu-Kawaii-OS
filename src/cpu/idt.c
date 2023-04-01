@@ -8,7 +8,7 @@
 
 extern void* isr_stub_table[];
 
-struct TSSEntry _interrupt_tss_entry;
+struct TSSEntry _interrupt_tss_entry = {0};
 InterruptService interruptHandlers[IDT_MAX_COUNT];
 InterruptDescriptorTable idt;
 IDTR idtr = {

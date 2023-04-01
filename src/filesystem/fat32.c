@@ -371,7 +371,7 @@ uint8_t write(FAT32DriverRequest request){
         }
         
         if(size != 0){
-            void* writer = (void*) &request.buf[index];
+            void* writer = request.buf + index;
             write_clusters(writer, i, 1);
             index++;
         }
@@ -606,7 +606,7 @@ void write_clusters(void* entry, uint16_t cluster, uint16_t sector_count){
     write_blocks(entry + 1536, cluster_to_lba(cluster) + 3, sector_count);
 };
 
-ClusterBuffer* read(FAT32DriverRequest request){
+void* read(FAT32DriverRequest request){
     ClusterBuffer* output = 0;
     DirectoryEntry self = get_self_info(request);
 
@@ -623,6 +623,40 @@ ClusterBuffer* read(FAT32DriverRequest request){
         uint32_t current_cluster = self.cluster_number;
         uint32_t marker = reader[current_cluster];
         output = (ClusterBuffer*) malloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
+        while (reading){
+            read_clusters(output+index, current_cluster, 1); 
+
+            if(marker == END_OF_FILE){
+                reading = 0;
+            }
+            else{
+                current_cluster = marker;
+                marker = reader[current_cluster];
+                index++;
+            }
+        }
+    }
+
+    return output;
+}
+
+void* load(FAT32DriverRequest request){
+    ClusterBuffer* output = 0;
+    DirectoryEntry self = get_self_info(request);
+
+    if(request.buffer_size < self.size){
+        return 0;
+    }
+    else{
+        bool reading = 1;
+        uint16_t index = 0;
+
+        uint32_t reader[CLUSTER_SIZE/4] = {0};
+        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
+
+        uint32_t current_cluster = self.cluster_number;
+        uint32_t marker = reader[current_cluster];
+        output = 0;
         while (reading){
             read_clusters(output+index, current_cluster, 1); 
 

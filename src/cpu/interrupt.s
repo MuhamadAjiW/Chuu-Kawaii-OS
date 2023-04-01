@@ -18,58 +18,13 @@ isr_stub_%1:
     jmp call_generic_handler
 %endmacro
 
-interrupt_handler_i 0
-interrupt_handler_i 1
-interrupt_handler_i 2
-interrupt_handler_i 3
-interrupt_handler_i 4
-interrupt_handler_i 5
-interrupt_handler_i 6
-interrupt_handler_i 7
-interrupt_handler_i 8
-interrupt_handler_i 9
-interrupt_handler_i 10
-interrupt_handler_i 11
-interrupt_handler_i 12
-interrupt_handler_i 13
-interrupt_handler_i 14
-interrupt_handler_i 15
-interrupt_handler_i 16
-interrupt_handler_i 17
-interrupt_handler_i 18
-interrupt_handler_i 19
-interrupt_handler_i 20
-interrupt_handler_i 21
-interrupt_handler_i 22
-interrupt_handler_i 23
-interrupt_handler_i 24
-interrupt_handler_i 25
-interrupt_handler_i 26
-interrupt_handler_i 27
-interrupt_handler_i 28
-interrupt_handler_i 29
-interrupt_handler_i 30
-interrupt_handler_i 31
 
-;irqs
-interrupt_handler_i 32
-interrupt_handler_i 33
-interrupt_handler_i 34
-interrupt_handler_i 35
-interrupt_handler_i 36
-interrupt_handler_i 37
-interrupt_handler_i 38
-interrupt_handler_i 39
-interrupt_handler_i 40
-interrupt_handler_i 41
-interrupt_handler_i 42
-interrupt_handler_i 43
-interrupt_handler_i 44
-interrupt_handler_i 45
-interrupt_handler_i 46
-interrupt_handler_i 47
+%assign i 0
+%rep 128
+    interrupt_handler_i i
+%assign i i+1
+%endrep
 
-interrupt_handler_i 48
 
 call_generic_handler:
     pusha
@@ -96,7 +51,7 @@ call_generic_handler:
 
 isr_stub_table:
 %assign i 0
-%rep 49
+%rep 128
     dd isr_stub_%+i
 %assign i i+1
 %endrep

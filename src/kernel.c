@@ -14,14 +14,16 @@
 #include "lib-header/parser.h"
 #include "lib-header/graphics.h"
 #include "lib-header/cmos.h"
+#include "lib-header/paging.h"
+#include "lib-header/tss.h"
 
 #include "lib-header/shell.h"
 
 //debug purposes
-uint32_t target[CLUSTER_SIZE/4] = {0};
-uint32_t entry[512];
-char buffer[128]; 
-DirectoryTable table;
+//uint32_t target[CLUSTER_SIZE/4] = {0};
+//uint32_t entry[512];
+//char buffer[128]; 
+//DirectoryTable table;
 //cmos_reader tester;
 
 void kernel_setup(void) {
@@ -37,8 +39,28 @@ void kernel_setup(void) {
     graphics_clear_buffer();
     graphics_cursor_on();
     initialize_filesystem_fat32();
+    
     keyboard_state_activate();
     
+
+    /*
+    gdt_install_tss();
+    set_tss_register();
+
+    allocate_single_user_page_frame(0);
+
+    struct FAT32DriverRequest request = {
+        .buf                   = (uint8_t*)0,
+        .name                  = "usersh",
+        .ext                   = "\0\0\0",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0x100000,
+    };
+    load(request);
+
+    set_tss_kernel_current_stack();
+    kernel_execute_user_program((uint8_t*)0);
+    */
     
     /*
     struct ClusterBuffer cbuf[5];

@@ -58,9 +58,9 @@ int main(int argc, char *argv[]) {
     }
     else {
         printf("File found!\n");
-        filesize = ftell(fptr_target);
         fread(file_buffer, 4*1024*1024, 1, fptr_target);
         fseek(fptr_target, 0, SEEK_END);
+        filesize = ftell(fptr_target);
         fclose(fptr_target);
     }
     
