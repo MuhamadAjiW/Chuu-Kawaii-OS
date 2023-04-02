@@ -65,6 +65,7 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_MOVE_CURSOR, sys_move_cursor);
     register_syscall_response(SYSCALL_BACKSPACE, sys_backspace);
     register_syscall_response(SYSCALL_READ_FILE, sys_read);
+
 }
 
 void syscall(registers r) {

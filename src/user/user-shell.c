@@ -3,17 +3,17 @@
 #include "lib-header/syscall.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/string.h"
+
 #include "lib-header/parser.h"
 
 static shell_reader shell = {
-    .keyboard_buffer = 0,
-    .buffersize = 0,
+    .keyboard_buffer = {0},
+    .buffersize = INPUT_BUFFER_SIZE,
     .maxIdx = 0,
     .currentIdx = 0
 };
 
 void init_shell(){
-    shell.keyboard_buffer = (char*) malloc (sizeof(INPUT_BUFFER_SIZE));
     shell.buffersize = INPUT_BUFFER_SIZE;
 }
 
@@ -23,8 +23,8 @@ void close_shell(){
 
 void clear_reader(){
     shell.buffersize = INPUT_BUFFER_SIZE;
-    free(shell.keyboard_buffer);
-    shell.keyboard_buffer = (char*) malloc (INPUT_BUFFER_SIZE);;
+    //free(shell.keyboard_buffer);
+    //shell.keyboard_buffer = (char*) malloc (INPUT_BUFFER_SIZE);;
     shell.keyboard_buffer[0] = 0;
     shell.currentIdx = 0;
     shell.maxIdx = 0;
@@ -48,9 +48,9 @@ void append_reader(char in){
         }
     }
     else{
-        shell.buffersize += INPUT_BUFFER_SIZE;
-        shell.keyboard_buffer = (char*) realloc (shell.keyboard_buffer, sizeof(char) * shell.buffersize);
-        append_reader(in);
+        //shell.buffersize += INPUT_BUFFER_SIZE;
+        //shell.keyboard_buffer = (char*) realloc (shell.keyboard_buffer, sizeof(char) * shell.buffersize);
+        //append_reader(in);
     }
 }
 
@@ -78,7 +78,7 @@ void execute(){
     split_words(shell.keyboard_buffer);
 
     if (get_word_count() > 0){
-        if(strcmp(get_parsed()[0], "clear")){
+        if(strcmp(get_parsed()[0], "clear") == 0){
             syscall(SYSCALL_CLEAR_SCREEN, 0, 0, 0);
         }
     }
@@ -88,7 +88,8 @@ void execute(){
 }
 
 int main(void) {
-    init_shell();
+
+    //init_shell();
 
     /*
     struct ClusterBuffer cl           = {0};
@@ -103,22 +104,23 @@ int main(void) {
     syscall(SYSCALL_READ_FILE, (uint32_t) &request, (uint32_t) &retcode, 0);
     */
 
-    syscall(SYSCALL_PRINT_STR, (uint32_t) "owo\n", 4, 0xF);
+    char* hello = "hewwo\n";
+    syscall(SYSCALL_PRINT_STR, (uint32_t) hello, 0, 0);
     
-    
-    char buf = 0;
+    char buf[2] = {0, 0};
     while (TRUE) {
-        syscall(SYSCALL_GET_KEYBOARD_LAST_KEY, (uint32_t) &buf, 0, 0);
+        syscall(SYSCALL_GET_KEYBOARD_LAST_KEY, (uint32_t) buf, 0, 0);
+    
         
         
-        if(buf == TAB_CHAR){
+        if(buf[0] == TAB_CHAR){
             append_reader(' ');
             append_reader(' ');
             append_reader(' ');
             append_reader(' ');
             syscall(SYSCALL_PRINT_STR, (uint32_t) "    ", 0, 0);
         }
-        else if(buf == LARROW_CHAR){
+        else if(buf[0] == LARROW_CHAR){
             uint8_t success = 0;
             syscall(SYSCALL_MOVE_CURSOR, (uint32_t) -1, (uint32_t) success, 0);
             if(success){
@@ -126,14 +128,14 @@ int main(void) {
             }
         }
         
-        else if(buf == RARROW_CHAR){
+        else if(buf[0] == RARROW_CHAR){
             uint8_t success = 0;
             syscall(SYSCALL_MOVE_CURSOR, (uint32_t) 1, (uint32_t) success, 0);
             if(success){
                 move_reader(1);
             }
         }
-        else if(buf == BACKSPACE_CHAR){
+        if (buf[0] == BACKSPACE_CHAR){
             uint8_t success = 0;
             syscall(SYSCALL_BACKSPACE, (uint32_t) success, 0, 0);
             if(success){
@@ -141,18 +143,19 @@ int main(void) {
             }
         }
         
-        else if(buf == '\n'){
-            execute();
-            syscall(SYSCALL_PRINT_STR, (uint32_t) &buf, 0, 0);
+        if(buf[0] == '\n'){
+            //execute();
+            //syscall(SYSCALL_PRINT_STR, (uint32_t) &buf, 0, 0);
         }
         
         
-        else if(buf >= 32 && buf <= 126){
-            syscall(SYSCALL_PRINT_STR, (uint32_t) &buf, 0, 0);
+        else if(buf[0] >= 32 && buf[0] <= 126){
+            append_reader(buf[0]);
+            syscall(SYSCALL_PRINT_STR, (uint32_t) buf, 0, 0);
         }
         
     }
     
-    close_shell();
+    //close_shell();
     return 0;
 }

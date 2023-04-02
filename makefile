@@ -47,7 +47,7 @@ kernel: $(OBJ)
 	@rm -rf ${DIR}
 	@rm -f *.o
 
-iso: user-shell dir kernel
+iso: dir kernel
 	@mkdir -p $(OUTPUT_FOLDER)/iso/boot/grub
 	@cp $(OUTPUT_FOLDER)/kernel     $(OUTPUT_FOLDER)/iso/boot/
 	@cp other/grub1                 $(OUTPUT_FOLDER)/iso/boot/grub/
@@ -94,12 +94,12 @@ user-shell: dir-u $(OBJ_U)
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/user/user-entry.s -o user-entry.o
 
 	@$(LIN) -T $(SOURCE_FOLDER)/user/user-linker.ld -melf_i386 \
-		$(OBJ_U) user-entry.o -o $(OUTPUT_FOLDER)/sh
+		user-entry.o $(OBJ_U) -o $(OUTPUT_FOLDER)/sh
 	@echo Linking object shell object files and generate flat binary...
 	
 	
 	@$(LIN) -T $(SOURCE_FOLDER)/user/user-linker.ld -melf_i386 --oformat=elf32-i386\
-		$(OBJ_U) user-entry.o -o $(OUTPUT_FOLDER)/sh_elf
+		user-entry.o $(OBJ_U) -o $(OUTPUT_FOLDER)/sh_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/sh
 	@rm -rf ${DIR_U}

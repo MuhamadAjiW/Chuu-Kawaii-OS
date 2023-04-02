@@ -1,3 +1,4 @@
+/*
 #include "lib-header/keyboard.h"
 #include "lib-header/stdtype.h"
 #include "lib-header/string.h"
@@ -10,7 +11,6 @@
 #include "lib-header/cmos.h"
 #include "lib-header/graphics.h"
 
-/*
 extern int SYSTEM_RUNNING;
 
 char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};

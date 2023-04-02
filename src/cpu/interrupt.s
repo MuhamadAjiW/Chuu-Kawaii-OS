@@ -60,15 +60,22 @@ no_error_code_interrupt_handler 31 ; 0x1F - Reserved
 
 ;IRQ & syscall
 %assign i 32 
-%rep    32
+%rep    16
 no_error_code_interrupt_handler i
 %assign i i+1 
 %endrep
 
+isr_stub_48:
+    cli
+    push dword 48
+    jmp call_syscall_handler
+
 call_generic_handler:
     pusha
+
 	mov ax, ds
 	push eax
+    
 	mov ax, 0x10
 	mov ds, ax
 	mov es, ax
@@ -82,15 +89,42 @@ call_generic_handler:
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
+
 	popa
 	add esp, 8
 	sti
 
     iret
 
+call_syscall_handler:
+    pusha
+
+	mov ax, ds
+	push eax
+    
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+    
+    call main_interrupt_handler
+
+    pop eax 
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+
+	popa
+	add esp, 0x4
+	sti
+
+    iret
+
 isr_stub_table:
 %assign i 0
-%rep 64
+%rep 49
     dd isr_stub_%+i
 %assign i i+1
 %endrep

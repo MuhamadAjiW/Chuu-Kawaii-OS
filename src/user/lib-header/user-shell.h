@@ -13,7 +13,7 @@
 
 struct shell_reader
 {
-    char* keyboard_buffer;
+    char keyboard_buffer[INPUT_BUFFER_SIZE];
     uint32_t buffersize;
     uint32_t maxIdx;
     uint32_t currentIdx;

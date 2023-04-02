@@ -1,4 +1,4 @@
-
+/*
 #ifndef _PARSER_H
 #define _PARSER_H
 
@@ -9,3 +9,4 @@ char** get_parsed();
 int get_word_count();
 
 #endif
+*/

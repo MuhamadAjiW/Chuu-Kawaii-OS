@@ -1,3 +1,4 @@
+/*
 #include "../lib-header/string.h"
 #include "../lib-header/memory_manager.h"
 #include "../lib-header/stdmem.h"
@@ -70,3 +71,4 @@ char** get_parsed(){
 int get_word_count(){
     return word_count;
 }
+*/
