@@ -10,6 +10,7 @@
 #include "lib-header/cmos.h"
 #include "lib-header/graphics.h"
 
+/*
 extern int SYSTEM_RUNNING;
 
 char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};
@@ -49,7 +50,7 @@ void execute_reader(){
     clearParser();
 }
 
-/*
+
 bool closed_sentence(){
     bool closed = 0;
 
@@ -66,7 +67,7 @@ bool closed_sentence(){
 
     return closed;
 }
-*/
+
 
 void newline_shell(){
     uint8_t row = get_cursor_y();
@@ -170,3 +171,4 @@ void dir(){
         }
     }           
 }
+*/

@@ -16,4 +16,6 @@ void isr_handler(registers);
 void irq_handler(registers);
 void register_interrupt_handler(uint8_t, InterruptService input);
 
+void syscall_response(registers r);
+
 #endif

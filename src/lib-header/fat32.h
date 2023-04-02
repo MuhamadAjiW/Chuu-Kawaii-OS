@@ -201,7 +201,7 @@ uint8_t is_empty_storage();
 void read_clusters(void*, uint16_t cluster, uint16_t sector_count);
 void write_clusters(void*, uint16_t cluster, uint16_t sector_count);
 void* read(FAT32DriverRequest request);
-void* load(FAT32DriverRequest request);
+uint8_t load(FAT32DriverRequest request);
 uint8_t write(FAT32DriverRequest request);
 void close(ClusterBuffer* pointer);
 

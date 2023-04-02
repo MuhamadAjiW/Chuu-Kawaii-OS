@@ -2,9 +2,7 @@
 #ifndef _SYSCALL_H
 #define _SYSCALL_H
 
-#include "isr.h"
-
-#define SYSCALL_COUNT 128
+#include "stdtype.h"
 
 #define SYSCALL_IDLE 0
 #define SYSCALL_MALLOC 1
@@ -17,7 +15,6 @@
 #define SYSCALL_BACKSPACE 8
 #define SYSCALL_READ_FILE 9
 
-void syscall(registers r);
-void activate_system_call();
+void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
 #endif

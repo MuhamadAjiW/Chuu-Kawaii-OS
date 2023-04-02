@@ -4,24 +4,19 @@
 #include "../lib-header/stdmem.h"
 #include "../lib-header/paging.h"
 
-uint32_t* kernel_dir;
-uint32_t* page_directory = 0;
-uint32_t* page_table_addr = 0;
-
-uint32_t last_alloc = 0;
-uint32_t heap_start = 0;
-uint32_t heap_end = 0;
+static uint32_t last_alloc = 0;
+static uint32_t heap_start = 0;
+static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
-
-extern struct PageDirectory _paging_kernel_page_directory;
 
 //heap
 void initialize_memory(){
     struct PageDirectoryEntryFlag flags ={
         .present_bit       = 1,
+        .user_supervisor   = 1,
         .write_bit         = 1,
-        .use_pagesize_4_mb = 1,
+        .use_pagesize_4_mb = 1
     };
     
     for (int i = 0; i < 4; i++)    {

@@ -5,12 +5,13 @@
 
 #define IDT_MAX_COUNT 256
 #define SELECTOR 0x08
-#define KERNEL_FLAGS 0x8e
+#define KERNEL_FLAGS 0b10001110
+#define USER_FLAGS 0b11101110
 
 struct InterruptDescriptor{
    uint16_t base_low;             
    uint16_t selector;
-   uint8_t  zero;
+   uint8_t  reserved;
    uint8_t  flags;
    uint16_t base_high;
 } __attribute__((packed));
@@ -29,7 +30,9 @@ typedef struct IDTR IDTR;
 
 extern void load_idt(IDTR*);
 void initialize_idt();
-void set_idt_gate(uint8_t ,void*);
+void set_idt_gate(uint8_t n, void* input, uint8_t flags);
 void pic_remap();
+
+void enable_system_calls();
 
 #endif

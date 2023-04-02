@@ -559,7 +559,7 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
 
     bool found = 0;
     uint8_t i;
-    while (!found)
+    while (!found && current_cluster != END_OF_FILE)
     {
         for(i = 0; i < SECTOR_COUNT; i++){
             if(memcmp(&table.entry[i].filename, &request.name, 8) == 0){
@@ -579,6 +579,8 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
             table = read_directory(reader);
         }
     }
+    if (current_cluster == END_OF_FILE && !found)
+        return emptyEntry;
 
     return info;
 }
@@ -640,10 +642,12 @@ void* read(FAT32DriverRequest request){
     return output;
 }
 
-void* load(FAT32DriverRequest request){
-    ClusterBuffer* output = 0;
+uint8_t load(FAT32DriverRequest request){
+    void* output = (void*) request.buf;
     DirectoryEntry self = get_self_info(request);
-
+    if (memcmp(&self, &emptyEntry, sizeof(DirectoryEntry)) == 0){
+        return 0;
+    }
     if(request.buffer_size < self.size){
         return 0;
     }
@@ -656,7 +660,6 @@ void* load(FAT32DriverRequest request){
 
         uint32_t current_cluster = self.cluster_number;
         uint32_t marker = reader[current_cluster];
-        output = 0;
         while (reading){
             read_clusters(output+index, current_cluster, 1); 
 
@@ -671,7 +674,7 @@ void* load(FAT32DriverRequest request){
         }
     }
 
-    return output;
+    return 1;
 }
 
 void close(ClusterBuffer* pointer){

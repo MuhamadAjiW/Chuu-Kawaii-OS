@@ -16,6 +16,7 @@
 #include "lib-header/cmos.h"
 #include "lib-header/paging.h"
 #include "lib-header/tss.h"
+#include "lib-header/syscall.h"
 
 #include "lib-header/shell.h"
 
@@ -40,10 +41,21 @@ void kernel_setup(void) {
     graphics_cursor_on();
     initialize_filesystem_fat32();
     
-    keyboard_state_activate();
-    
-
     /*
+    struct ClusterBuffer cbuf[5];
+    struct FAT32DriverRequest folder = {
+        .buf                   = cbuf,
+        .name                  = "ikanaide",
+        .ext                   = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0,
+    } ;
+
+    
+    write(folder);  // Create folder "ikanaide"
+    */
+
+    
     gdt_install_tss();
     set_tss_register();
 
@@ -51,7 +63,7 @@ void kernel_setup(void) {
 
     struct FAT32DriverRequest request = {
         .buf                   = (uint8_t*)0,
-        .name                  = "usersh",
+        .name                  = "sh",
         .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
@@ -59,8 +71,9 @@ void kernel_setup(void) {
     load(request);
 
     set_tss_kernel_current_stack();
+    enable_system_calls();
     kernel_execute_user_program((uint8_t*)0);
-    */
+    
     
     /*
     struct ClusterBuffer cbuf[5];
@@ -111,7 +124,7 @@ void kernel_setup(void) {
     */
 
     
-    init_shell();
+    //init_shell();
     while (TRUE);
 }
     /*

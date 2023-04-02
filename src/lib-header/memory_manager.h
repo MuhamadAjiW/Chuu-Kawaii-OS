@@ -2,8 +2,6 @@
 #ifndef _MEMMNG_H
 #define _MEMMNG_H
 
-#define KERNEL_OFFSET 0xc0000000
-
 #include "stdtype.h"
 
 struct allocator{

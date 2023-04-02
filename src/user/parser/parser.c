@@ -1,12 +1,11 @@
 #include "../lib-header/string.h"
-#include "../lib-header/memory_manager.h"
 #include "../lib-header/stdmem.h"
 
 char** split_reader;
 int word_count;
 
 // Kalo split jangan lupa clear, memory leak ntar
-void clearParser(){
+void clear_parser(){
     for(int i = 0; i < word_count; i++){
         free(split_reader[i]);
     }
@@ -15,7 +14,7 @@ void clearParser(){
     word_count = 0;
 }
 
-void splitWords(char* main_parser){
+void split_words(char* main_parser){
     int index = 0;
     int letter_counter = 0;
     word_count = 0;

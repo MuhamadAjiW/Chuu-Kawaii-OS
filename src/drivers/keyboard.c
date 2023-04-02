@@ -7,9 +7,7 @@
 #include "../lib-header/string.h"
 #include "../lib-header/graphics.h"
 
-extern void* isr_stub_table[];
-
-static char scantable[64] = {
+static const char scantable[64] = {
     0,0,'1','2','3','4','5','6','7','8',
     '9','0','-','=',0,0,'q','w','e','r',
     't','y','u','i','o','p','[',']','\n',0,
@@ -18,7 +16,7 @@ static char scantable[64] = {
     'm',',','.','/',0,0,0,' ',0,0,
     0,0,0,0
 };
-static char scantableCaps[64] = {
+static const char scantableCaps[64] = {
     0,0,'!','@','#','$','%','^','&','*',
     '(',')','_','+',0,0,'Q','W','E','R',
     'T','Y','U','I','O','P','{','}','\n',0,
@@ -29,10 +27,11 @@ static char scantableCaps[64] = {
 };
 
 static keyboardDriverState key ={
-    .keyboard_buffer = 0,
-    .buffersize = KEYBOARD_BUFFER_SIZE,
-    .currentIdx = 0,
-    .maxIdx = 0,
+    .last = 0,
+    //.keyboard_buffer = 0,
+    //.buffersize = KEYBOARD_BUFFER_SIZE,
+    //.currentIdx = 0,
+    //.maxIdx = 0,
     .shift = 0,
     .caps = 0,
     .keyboard_input_on = 0
@@ -50,16 +49,18 @@ void activate_keyboard_interrupt(){
 }
 
 void keyboard_state_activate(){
+    /*
     if(key.keyboard_buffer == 0){
         key.keyboard_buffer = (char*) malloc (sizeof(char) * KEYBOARD_BUFFER_SIZE);
     }
+    */
     key.keyboard_input_on = 1;
 }
 
 void keyboard_state_deactivate(){
     key.keyboard_input_on = 0;
 }
-
+/*
 void clear_reader(){
     key.buffersize = KEYBOARD_BUFFER_SIZE;
     free(key.keyboard_buffer);
@@ -68,8 +69,8 @@ void clear_reader(){
     key.currentIdx = 0;
     key.maxIdx = 0;
 }
-
 void append_reader(char in){
+    key.last[0] = in;
     if(key.maxIdx < key.buffersize - 1){
         if(!(in == '\n')){
             for(int i = key.maxIdx; i > key.currentIdx; i--){
@@ -108,9 +109,18 @@ void backspace_reader(){
         key.maxIdx--;
     }
 }
-
 char* get_keyboard_buffer(){
     return key.keyboard_buffer;
+}
+*/
+char get_keyboard_last_key(){
+    char temp = key.last;
+    key.last = NULL_CHAR;
+    return temp;
+}
+
+void set_keyboard_last_key(char in){
+    key.last = in;
 }
 
 void keyboard_driver_graphics(uint8_t input){
@@ -137,31 +147,41 @@ void keyboard_driver_graphics(uint8_t input){
                 break;
 
             case 14:
+                set_keyboard_last_key(BACKSPACE_CHAR);
+                /*
                 if (graphics_backspace()){
                     backspace_reader();
                 }
+                */
                 break;
 
             case 15:
-                graphics_write_char(' ');
-                graphics_write_char(' ');
-                graphics_write_char(' ');
-                graphics_write_char(' ');
-                append_reader(' ');
-                append_reader(' ');
-                append_reader(' ');
-                append_reader(' ');
+                set_keyboard_last_key(TAB_CHAR);
+                //graphics_write_char(' ');
+                //graphics_write_char(' ');
+                //graphics_write_char(' ');
+                //graphics_write_char(' ');
+                //append_reader(' ');
+                //append_reader(' ');
+                //append_reader(' ');
+                //append_reader(' ');
                 break;
 
             case 75:
+                set_keyboard_last_key(LARROW_CHAR);
+                /*
                 if (graphics_move_cursor(-1)){
-                    move_reader(-1);
+                    //move_reader(-1);
                 };
+                */
                 break;
             case 77:
+                set_keyboard_last_key(RARROW_CHAR);
+                /*
                 if (graphics_move_cursor(1)){
                     move_reader(1);
                 };
+                */
                 break;
 
             default:
@@ -170,33 +190,39 @@ void keyboard_driver_graphics(uint8_t input){
                         if (key.caps){
                             if(key.shift){
                                 if(scantableCaps[input] >= 'A' && scantableCaps[input] <= 'Z'){
-                                    graphics_write_char(scantable[input]);
-                                    append_reader(scantable[input]);
+                                    //graphics_write_char(scantable[input]);
+                                    //append_reader(scantable[input]);
+                                    set_keyboard_last_key(scantable[input]);
                                 }
                                 else{
-                                    graphics_write_char(scantableCaps[input]);
-                                    append_reader(scantableCaps[input]);
+                                    //graphics_write_char(scantableCaps[input]);
+                                    //append_reader(scantableCaps[input]);
+                                    set_keyboard_last_key(scantableCaps[input]);
                                 }
                             }
                             else{
                                 if(scantableCaps[input] >= 'A' && scantableCaps[input] <= 'Z'){
-                                    graphics_write_char(scantableCaps[input]);
-                                    append_reader(scantableCaps[input]);
+                                    //graphics_write_char(scantableCaps[input]);
+                                    //append_reader(scantableCaps[input]);
+                                    set_keyboard_last_key(scantableCaps[input]);
                                 }
                                 else{
-                                    graphics_write_char(scantable[input]);
-                                    append_reader(scantable[input]);
+                                    //graphics_write_char(scantable[input]);
+                                    //append_reader(scantable[input]);
+                                    set_keyboard_last_key(scantable[input]);
                                 }
                             }
                         }
                         else {
                             if (key.shift){
-                                graphics_write_char(scantableCaps[input]);
-                                append_reader(scantableCaps[input]);
+                                //graphics_write_char(scantableCaps[input]);
+                                //append_reader(scantableCaps[input]);
+                                set_keyboard_last_key(scantableCaps[input]);
                             }
                             else{
-                                graphics_write_char(scantable[input]);
-                                append_reader(scantable[input]);
+                                //graphics_write_char(scantable[input]);
+                                //append_reader(scantable[input]);
+                                set_keyboard_last_key(scantable[input]);
                             }
                         }
                     }
