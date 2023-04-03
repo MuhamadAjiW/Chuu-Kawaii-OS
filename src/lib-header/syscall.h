@@ -12,12 +12,17 @@
 #define SYSCALL_FREE 3
 #define SYSCALL_GET_KEYBOARD_LAST_KEY 4
 #define SYSCALL_PRINT_STR 5
-#define SYSCALL_CLEAR_SCREEN 6
-#define SYSCALL_MOVE_CURSOR 7
-#define SYSCALL_BACKSPACE 8
-#define SYSCALL_READ_FILE 9
+#define SYSCALL_PRINT_CHAR 6
+#define SYSCALL_CLEAR_SCREEN 7
+#define SYSCALL_MOVE_CURSOR 8
+#define SYSCALL_LIMIT_CURSOR 9
+#define SYSCALL_BACKSPACE 10
+#define SYSCALL_READ_FILE 11
+#define SYSCALL_READ_DIR 12
+#define SYSCALL_WRITE_FILE 13
+#define SYSCALL_DELETE_FILE 14
 
-void syscall(registers r);
+void syscall_response(registers r);
 void activate_system_call();
 
 #endif

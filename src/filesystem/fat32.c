@@ -624,7 +624,7 @@ void* read(FAT32DriverRequest request){
 
         uint32_t current_cluster = self.cluster_number;
         uint32_t marker = reader[current_cluster];
-        output = (ClusterBuffer*) malloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
+        output = (ClusterBuffer*) kmalloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
         while (reading){
             read_clusters(output + index * 2048, current_cluster, 1); 
 
@@ -678,7 +678,7 @@ uint8_t load(FAT32DriverRequest request){
 }
 
 void close(ClusterBuffer* pointer){
-    free(pointer);
+    kfree(pointer);
 }
 
 int cluster_to_lba(int clusters){

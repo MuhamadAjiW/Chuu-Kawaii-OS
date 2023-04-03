@@ -1,36 +1,42 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/user-shell.h"
 #include "lib-header/syscall.h"
-#include "lib-header/stdmem.h"
+#include "lib-header/stdlib.h"
+#include "lib-header/stdio.h"
 #include "lib-header/string.h"
+#include "lib-header/commands.h"
 
 #include "lib-header/parser.h"
 
 static shell_reader shell = {
-    .keyboard_buffer = {0},
+    .keyboard_buffer = (char*) 1,
     .buffersize = INPUT_BUFFER_SIZE,
     .maxIdx = 0,
     .currentIdx = 0
 };
 
-void init_shell(){
+void initialize_shell(){
     shell.buffersize = INPUT_BUFFER_SIZE;
+    shell.keyboard_buffer = (char*) malloc (sizeof(char) * INPUT_BUFFER_SIZE);
+    newline_shell();
 }
 
 void close_shell(){
+    shell.buffersize = 0;
     free(shell.keyboard_buffer);
 }
 
-void clear_reader(){
+void clear_shell(){
     shell.buffersize = INPUT_BUFFER_SIZE;
-    //free(shell.keyboard_buffer);
-    //shell.keyboard_buffer = (char*) malloc (INPUT_BUFFER_SIZE);;
+    free(shell.keyboard_buffer);
+    shell.keyboard_buffer = (char*) malloc (INPUT_BUFFER_SIZE);;
     shell.keyboard_buffer[0] = 0;
     shell.currentIdx = 0;
     shell.maxIdx = 0;
 }
 
-void append_reader(char in){
+
+void append_shell(char in){
     if(shell.maxIdx < shell.buffersize - 1){
         if(!(in == '\n')){
             for(uint32_t i = shell.maxIdx; i > shell.currentIdx; i--){
@@ -43,22 +49,23 @@ void append_reader(char in){
         }
         else{
             shell.keyboard_buffer[shell.maxIdx] = 0;
-            //execute_reader();
-            clear_reader();
+            evaluate_shell();
+            clear_shell();
+            newline_shell();
         }
     }
     else{
-        //shell.buffersize += INPUT_BUFFER_SIZE;
-        //shell.keyboard_buffer = (char*) realloc (shell.keyboard_buffer, sizeof(char) * shell.buffersize);
-        //append_reader(in);
+        shell.buffersize += INPUT_BUFFER_SIZE;
+        shell.keyboard_buffer = (char*) realloc (shell.keyboard_buffer, sizeof(char) * shell.buffersize);
+        append_shell(in);
     }
 }
-
-void move_reader(int direction){
+void move_shell(int direction){
     shell.currentIdx = shell.currentIdx + direction;
+    return;
 }
 
-void backspace_reader(){
+void backspace_shell(){
     for(uint32_t i = shell.currentIdx-1; i < shell.maxIdx-1; i++){
         shell.keyboard_buffer[i] = shell.keyboard_buffer[i+1];
     }
@@ -68,28 +75,50 @@ void backspace_reader(){
     if(shell.maxIdx > 0){
         shell.maxIdx--;
     }
+
+    return;
 }
 
 char* get_keyboard_buffer(){
     return shell.keyboard_buffer;
 }
 
-void execute(){
-    split_words(shell.keyboard_buffer);
-
-    if (get_word_count() > 0){
-        if(strcmp(get_parsed()[0], "clear") == 0){
-            syscall(SYSCALL_CLEAR_SCREEN, 0, 0, 0);
-        }
-    }
-
-    clear_parser();
-    clear_reader();
+void newline_shell(){
+    print("\n    >> ");
+    syscall(SYSCALL_LIMIT_CURSOR, 0, 0, 0);
+    return;
 }
 
-int main(void) {
 
-    //init_shell();
+
+
+
+
+
+
+char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};
+uint32_t currentCluster = 2;
+
+void evaluate_shell(){
+    parse(shell.keyboard_buffer);
+    if (get_parsed_word_count() > 0){
+        if(strcmp(get_parsed_result()[0], "clear") == 0){
+            clear();
+        }
+        else{
+            print("\nNo Command found: ");
+            print(shell.keyboard_buffer);
+            print("\n");
+        }
+    }    
+    parser_clear();    
+}
+
+int main(void){
+    char* hello = "hewwo\n";
+    print(hello);
+
+    initialize_shell();
 
     /*
     struct ClusterBuffer cl           = {0};
@@ -103,59 +132,47 @@ int main(void) {
     int32_t retcode;
     syscall(SYSCALL_READ_FILE, (uint32_t) &request, (uint32_t) &retcode, 0);
     */
-
-    char* hello = "hewwo\n";
-    syscall(SYSCALL_PRINT_STR, (uint32_t) hello, 0, 0);
     
     char buf[2] = {0, 0};
     while (TRUE) {
         syscall(SYSCALL_GET_KEYBOARD_LAST_KEY, (uint32_t) buf, 0, 0);
-    
-        
         
         if(buf[0] == TAB_CHAR){
-            append_reader(' ');
-            append_reader(' ');
-            append_reader(' ');
-            append_reader(' ');
-            syscall(SYSCALL_PRINT_STR, (uint32_t) "    ", 0, 0);
+            append_shell(' ');
+            append_shell(' ');
+            append_shell(' ');
+            append_shell(' ');
+            print("    ");
         }
         else if(buf[0] == LARROW_CHAR){
-            uint8_t success = 0;
-            syscall(SYSCALL_MOVE_CURSOR, (uint32_t) -1, (uint32_t) success, 0);
-            if(success){
-                move_reader(-1);
+            if(move_cursor(-1)){
+                move_shell(-1);
             }
         }
         
         else if(buf[0] == RARROW_CHAR){
-            uint8_t success = 0;
-            syscall(SYSCALL_MOVE_CURSOR, (uint32_t) 1, (uint32_t) success, 0);
-            if(success){
-                move_reader(1);
+            if(move_cursor(1)){
+                move_shell(1);
             }
         }
         if (buf[0] == BACKSPACE_CHAR){
-            uint8_t success = 0;
-            syscall(SYSCALL_BACKSPACE, (uint32_t) success, 0, 0);
-            if(success){
-                move_reader(-1);
+            if(backspace()){
+                backspace_shell();
+                move_shell(-1);
             }
         }
         
         if(buf[0] == '\n'){
-            //execute();
-            //syscall(SYSCALL_PRINT_STR, (uint32_t) &buf, 0, 0);
-        }
-        
+            append_shell('\n');
+        }  
         
         else if(buf[0] >= 32 && buf[0] <= 126){
-            append_reader(buf[0]);
-            syscall(SYSCALL_PRINT_STR, (uint32_t) buf, 0, 0);
+            append_shell(buf[0]);
+            print(buf);
         }
-        
     }
     
-    //close_shell();
+    close_shell();
+    
     return 0;
 }

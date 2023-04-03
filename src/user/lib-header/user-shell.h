@@ -13,12 +13,22 @@
 
 struct shell_reader
 {
-    char keyboard_buffer[INPUT_BUFFER_SIZE];
+    char* keyboard_buffer;
     uint32_t buffersize;
     uint32_t maxIdx;
     uint32_t currentIdx;
 };
 typedef struct shell_reader shell_reader;
+
+void initialize_shell();
+void close_shell();
+void clear_shell();
+void evaluate_shell();
+void append_shell(char in);
+void move_shell(int direction);
+void backspace_shell();
+char* get_keyboard_buffer();
+void newline_shell();
 
 
 #endif

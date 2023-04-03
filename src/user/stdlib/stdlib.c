@@ -1,6 +1,6 @@
 
 #include "../lib-header/stdtype.h"
-#include "../lib-header/stdmem.h"
+#include "../lib-header/stdlib.h"
 #include "../lib-header/syscall.h"
 
 void* malloc(uint32_t size){

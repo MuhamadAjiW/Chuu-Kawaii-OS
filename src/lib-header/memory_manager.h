@@ -14,9 +14,9 @@ void initialize_memory();
 void clean_memory();
 
 
-void* malloc(uint32_t size);
-void* realloc(void* ptr, uint32_t size);
-void free(void*);
+void* kmalloc(uint32_t size);
+void* krealloc(void* ptr, uint32_t size);
+void kfree(void*);
 
 
 #endif

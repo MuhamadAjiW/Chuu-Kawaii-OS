@@ -599,44 +599,6 @@ void write_clusters(void* entry, uint16_t cluster, uint16_t sector_count){
     write_blocks(entry + 1536, cluster_to_lba(cluster) + 3, sector_count);
 };
 
-void* read(FAT32DriverRequest request){
-    ClusterBuffer* output = 0;
-    DirectoryEntry self = get_self_info(request);
-
-    if(request.buffer_size < self.size){
-        return 0;
-    }
-    else{
-        bool reading = 1;
-        uint16_t index = 0;
-
-        uint32_t reader[CLUSTER_SIZE/4] = {0};
-        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
-
-        uint32_t current_cluster = self.cluster_number;
-        uint32_t marker = reader[current_cluster];
-        output = (ClusterBuffer*) malloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
-        while (reading){
-            read_clusters(output + index*2048, current_cluster, 1); 
-
-            if(marker == END_OF_FILE){
-                reading = 0;
-            }
-            else{
-                current_cluster = marker;
-                marker = reader[current_cluster];
-                index++;
-            }
-        }
-    }
-
-    return output;
-}
-
-void close(ClusterBuffer* pointer){
-    free(pointer);
-}
-
 int cluster_to_lba(int clusters){
     return 4 * clusters;
 }

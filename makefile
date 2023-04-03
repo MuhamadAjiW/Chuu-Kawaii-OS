@@ -97,11 +97,11 @@ user-shell: dir-u $(OBJ_U)
 		user-entry.o $(OBJ_U) -o $(OUTPUT_FOLDER)/sh
 	@echo Linking object shell object files and generate flat binary...
 	
-	
 	@$(LIN) -T $(SOURCE_FOLDER)/user/user-linker.ld -melf_i386 --oformat=elf32-i386\
 		user-entry.o $(OBJ_U) -o $(OUTPUT_FOLDER)/sh_elf
 	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/sh
+	
 	@rm -rf ${DIR_U}
 	@rm -f *.o
 

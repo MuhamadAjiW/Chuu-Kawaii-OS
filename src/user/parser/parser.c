@@ -1,71 +1,84 @@
 #include "../lib-header/string.h"
-#include "../lib-header/stdmem.h"
+#include "../lib-header/stdlib.h"
+#include "../lib-header/syscall.h"
 
-char** split_reader;
-int word_count;
+static char** parsed = (char**) 1;
+static int parsed_word_count = 1;
 
-// Kalo split jangan lupa clear, memory leak ntar
-void clear_parser(){
-    for(int i = 0; i < word_count; i++){
-        free(split_reader[i]);
-    }
-    free(split_reader);
-    //main_parser[0] = 0;
-    word_count = 0;
+void initialize_parser(){
+    parsed_word_count = 1;
 }
 
-void split_words(char* main_parser){
+// Kalo split jangan lupa clear, memory leak ntar
+void parser_clear(){
+    if(parsed != 0){
+        for(int i = 0; i < parsed_word_count; i++){
+            free(parsed[i]);
+        }
+
+        free(parsed);
+    }
+    //string[0] = 0;
+    parsed_word_count = 0;
+
+    return;
+}
+
+void parse(char* string){
     int index = 0;
     int letter_counter = 0;
-    word_count = 0;
-    while (main_parser[index] != 0){
-        if(main_parser[index] == ' '){
+    char* intermediary;
+    parsed_word_count = 0;
+    while (string[index] != 0){
+        if(string[index] == ' '){
             index++;
             continue;
         }
         else{
-            while (main_parser[index] != ' ' && main_parser[index] != 0 && main_parser[index] != '\n'){
+            while (string[index] != ' ' && string[index] != 0 && string[index] != '\n'){
                 index++;
             }
 
-            word_count++;
+            parsed_word_count++;
         }
     }
-    split_reader = (char**) malloc(sizeof(char*) * word_count);
+    parsed = (char**) malloc(sizeof(char*) * parsed_word_count);
 
     index = 0;
     letter_counter = 0;
-    word_count = 0;
-    while (main_parser[index] != 0){
-        if(main_parser[index] == ' '){
+    parsed_word_count = 0;
+    while (string[index] != 0){
+        if(string[index] == ' '){
             index++;
             continue;
         }
         else{
             letter_counter = 0;
 
-            while (main_parser[index] != ' ' && main_parser[index] != 0 && main_parser[index] != '\n'){
+            while (string[index] != ' ' && string[index] != 0 && string[index] != '\n'){
                 letter_counter++;
                 index++;
             }
-            split_reader[word_count] = (char*) malloc(sizeof(char) * letter_counter + 1);
+            intermediary = (char*) malloc(sizeof(char) * letter_counter + 1);
+            parsed[parsed_word_count] = intermediary;
 
             for(int i = 0; i < letter_counter; i++){
-                split_reader[word_count][i] = main_parser[index - letter_counter + i];
+                parsed[parsed_word_count][i] = string[index - letter_counter + i];
             }
             
-            split_reader[word_count][letter_counter] = 0;
-            word_count++;
+            parsed[parsed_word_count][letter_counter] = 0;
+            parsed_word_count++;
         }
     }
     
     return;
 }
 
-char** get_parsed(){
-    return split_reader;
+char** get_parsed_result(){
+    return parsed;
 }
 
-int get_word_count(){
-    return word_count;
+
+int get_parsed_word_count(){
+    return parsed_word_count;
 }

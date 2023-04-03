@@ -1,6 +1,6 @@
+/*
 #ifndef _SHELL_H
 #define _SHELL_H
-
 
 void init_shell();
 void clear_reader();
@@ -12,5 +12,5 @@ void move_reader(int direction);
 void backspace_reader();
 
 void dir();
-
 #endif
+*/
