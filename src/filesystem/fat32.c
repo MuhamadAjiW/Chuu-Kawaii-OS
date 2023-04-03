@@ -153,7 +153,7 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
     memcpy(add.filename, request.name, 8);
 
     read_clusters((void*)reader, request.parent_cluster_number, 1);
-    DirectoryTable table = read_directory(reader);
+    DirectoryTable table = as_directory(reader);
     int i;
 
     uint32_t current_cluster = request.parent_cluster_number;
@@ -176,11 +176,11 @@ void create_fat32(FAT32DriverRequest request, uint16_t cluster_number){
             if(current_cluster == END_OF_FILE){
                 current_cluster = expand_folder(request.parent_cluster_number);
                 read_clusters((void*)reader, current_cluster, 1);
-                table = read_directory(reader);
+                table = as_directory(reader);
             }
             else{    
                 read_clusters((void*)reader, current_cluster, 1);
-                table = read_directory(reader);
+                table = as_directory(reader);
             }
         }
     }
@@ -200,7 +200,7 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
         do
         {
             read_clusters((void*)reader, current_cluster, 1);                     //nambah size root
-            table = read_directory(reader); 
+            table = as_directory(reader); 
             update_file_time(&table.entry[0]);
             update_file_size(&table.entry[0], request.buffer_size, category);
             for(int i = 1; i < SECTOR_COUNT; i++){
@@ -209,11 +209,22 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
                     update_file_size(&table.entry[i], request.buffer_size, category);
                 }
                 else if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
-                    read_clusters((void*)reader, table.entry[i].cluster_number, 1);
-                    DirectoryTable table2 = read_directory(reader);
-                    update_file_size(&table2.entry[0], request.buffer_size, category);
-                    writer = (void*) &table2;
-                    write_clusters(writer, table.entry[i].cluster_number, 1);
+                    uint32_t cluster_sub = table.entry[i].cluster_number;
+                    do{
+                        if(is_directory(cluster_sub)){
+                            read_clusters((void*)reader, cluster_sub, 1);
+                            DirectoryTable table2 = as_directory(reader);
+                            update_file_size(&table2.entry[0], request.buffer_size, category);
+                            writer = (void*) &table2;
+                            write_clusters(writer, cluster_sub, 1);
+
+                            read_clusters((void*) reader, FAT_CLUSTER_NUMBER, 1);
+                            cluster_sub = reader[cluster_sub];
+                        }
+                        else{
+                            break;
+                        }
+                    } while (cluster_sub != END_OF_FILE);
                 }
             }
             writer = (void*) &table;
@@ -228,30 +239,43 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
         DirectoryTable table = {0};
         uint32_t current_cluster = request.parent_cluster_number;
         
-        if(request.buffer_size == 0){
-            table.entry[0].size += 32;
-        }
-        else{
-            table.entry[0].size += request.buffer_size;
-        }
 
         if (self_cluster != 0){                                               //bukan rekursi pertama karena rekursi pertama harusnya belum merujuk folder
             do
             {
                 read_clusters((void*)reader, current_cluster, 1);
-                table = read_directory(reader); 
+                table = as_directory(reader); 
                 update_file_time(&table.entry[0]);
+                
+                if(request.buffer_size == 0){
+                    table.entry[0].size += 32;
+                }
+                else{
+                    table.entry[0].size += request.buffer_size;
+                }
+                
                 for(int i = 1; i < SECTOR_COUNT; i++){
                     if (table.entry[i].cluster_number == self_cluster){                         //nambah size subfolder
                         update_file_time(&table.entry[i]);
                         update_file_size(&table.entry[i], request.buffer_size, category);
                     }
                     else if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
-                        read_clusters((void*)reader, table.entry[i].cluster_number, 1);
-                        DirectoryTable table2 = read_directory(reader);
-                        update_file_size(&table2.entry[0], request.buffer_size, category);
-                        writer = (void*) &table2;
-                        write_clusters(writer, table.entry[i].cluster_number, 1);
+                        uint32_t cluster_sub = table.entry[i].cluster_number;
+                        do{
+                            if(is_directory(cluster_sub)){
+                                read_clusters((void*)reader, cluster_sub, 1);
+                                DirectoryTable table2 = as_directory(reader);
+                                update_file_size(&table2.entry[0], request.buffer_size, category);
+                                writer = (void*) &table2;
+                                write_clusters(writer, cluster_sub, 1);
+
+                                read_clusters((void*) reader, FAT_CLUSTER_NUMBER, 1);
+                                cluster_sub = reader[cluster_sub];
+                            }
+                            else{
+                                break;
+                            }
+                        } while (cluster_sub != END_OF_FILE);
                     }
                 }
                 writer = (void*) &table;
@@ -265,14 +289,25 @@ void update_size_recurse(FAT32DriverRequest request, uint16_t self_cluster, char
             do
             {
                 read_clusters((void*)reader, current_cluster, 1); 
-                table = read_directory(reader); 
+                table = as_directory(reader); 
                 for(int i = 1; i < SECTOR_COUNT; i++){
                     if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){                                               //sinkronisasi size semua subfolder
-                        read_clusters((void*)reader, table.entry[i].cluster_number, 1);
-                        DirectoryTable table2 = read_directory(reader);
-                        update_file_size(&table2.entry[0], request.buffer_size, category);
-                        writer = (void*) &table2;
-                        write_clusters(writer, table.entry[i].cluster_number, 1);
+                        uint32_t cluster_sub = table.entry[i].cluster_number;
+                        do{
+                            if(is_directory(cluster_sub)){
+                                read_clusters((void*)reader, cluster_sub, 1);
+                                DirectoryTable table2 = as_directory(reader);
+                                update_file_size(&table2.entry[0], request.buffer_size, category);
+                                writer = (void*) &table2;
+                                write_clusters(writer, cluster_sub, 1);
+
+                                read_clusters((void*) reader, FAT_CLUSTER_NUMBER, 1);
+                                cluster_sub = reader[cluster_sub];
+                            }
+                            else{
+                                break;
+                            }
+                        } while (cluster_sub != END_OF_FILE);
                     }
                 }
                 writer = (void*) &table;
@@ -307,16 +342,27 @@ void update_size(FAT32DriverRequest request, char category){
         do
         {
             read_clusters((void*)reader, current_cluster, 1);                     //nambah size root
-            table = read_directory(reader); 
+            table = as_directory(reader); 
             update_file_time(&table.entry[0]);
             update_file_size(&table.entry[0], request.buffer_size, category);
-            for(int i = 0; i < SECTOR_COUNT; i++){
+            for(int i = 1; i < SECTOR_COUNT; i++){
                 if ((memcmp(&table.entry[i], &emptyEntry, 32) != 0)){                                               //sinkronisasi size semua subfolder
-                    read_clusters((void*)reader, table.entry[i].cluster_number, 1);
-                    DirectoryTable table2 = read_directory(reader);
-                    update_file_size(&table2.entry[0], request.buffer_size, category);
-                    writer = (void*) &table2;
-                    write_clusters(writer, table.entry[i].cluster_number, 1);
+                    uint32_t cluster_sub = table.entry[i].cluster_number;
+                    do{
+                        if(is_directory(cluster_sub)){
+                            read_clusters((void*)reader, cluster_sub, 1);
+                            DirectoryTable table2 = as_directory(reader);
+                            update_file_size(&table2.entry[0], request.buffer_size, category);
+                            writer = (void*) &table2;
+                            write_clusters(writer, cluster_sub, 1);
+
+                            read_clusters((void*) reader, FAT_CLUSTER_NUMBER, 1);
+                            cluster_sub = reader[cluster_sub];
+                        }
+                        else{
+                            break;
+                        }
+                    } while (cluster_sub != END_OF_FILE);
                 }
             }
             writer = (void*) &table;
@@ -404,7 +450,7 @@ void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_numbe
     if (parent_cluster_number == ROOT_CLUSTER_NUMBER){
         uint32_t reader[CLUSTER_SIZE/4] = {0};
         read_clusters((void*)reader, ROOT_CLUSTER_NUMBER, 1);
-        DirectoryTable root_table = read_directory(reader);
+        DirectoryTable root_table = as_directory(reader);
         table.entry[0] = root_table.entry[0];
     }
     else{
@@ -461,7 +507,7 @@ uint8_t delete(FAT32DriverRequest request){
 
     while (!found && roaming_cluster != END_OF_FILE){
         read_clusters((void*)reader, roaming_cluster, 1);
-        parent_table = read_directory(reader);
+        parent_table = as_directory(reader);
         for(int i = 1; i < SECTOR_COUNT; i++){
             if(memcmp(&parent_table.entry[i].filename, &request.name, 8) == 0){
                 if (request.buffer_size == 0 ||
@@ -496,7 +542,7 @@ void deleteFolder(uint16_t cluster_number){
     uint32_t current_cluster = cluster_number;
     do{
         read_clusters((void*)reader, current_cluster, 1);
-        table = read_directory(reader);
+        table = as_directory(reader);
         for(int i = 1; i < SECTOR_COUNT; i++){
             if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
                 memcpy(&request.name, &table.entry[i].filename, 8);
@@ -520,9 +566,9 @@ DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, parent_cluster_number, 1);
-    table = read_directory(reader);
+    table = as_directory(reader);
     read_clusters((void*)reader, table.entry[0].cluster_number, 1);
-    table = read_directory(reader);
+    table = as_directory(reader);
 
     uint32_t current_cluster = parent_cluster_number;
     bool found = 0;
@@ -539,7 +585,7 @@ DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
             read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
             current_cluster = reader[current_cluster];
             read_clusters((void*)reader, current_cluster, 1);
-            table = read_directory(reader);
+            table = as_directory(reader);
         }
     }
 
@@ -555,7 +601,7 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t current_cluster = request.parent_cluster_number;
     read_clusters((void*)reader, current_cluster, 1);
-    table = read_directory(reader);
+    table = as_directory(reader);
 
     bool found = 0;
     uint8_t i;
@@ -576,7 +622,7 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
             read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
             current_cluster = reader[current_cluster];
             read_clusters((void*)reader, current_cluster, 1);
-            table = read_directory(reader);
+            table = as_directory(reader);
         }
     }
     if (current_cluster == END_OF_FILE && !found)
@@ -586,7 +632,7 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
 }
 
 
-DirectoryTable read_directory(uint32_t* reader){
+DirectoryTable as_directory(uint32_t* reader){
     DirectoryTable table;
     memcpy(&table, reader, CLUSTER_SIZE);
     return table;
@@ -608,13 +654,32 @@ void write_clusters(void* entry, uint16_t cluster, uint16_t sector_count){
     write_blocks(entry + 1536, cluster_to_lba(cluster) + 3, sector_count);
 };
 
-void* read(FAT32DriverRequest request){
-    ClusterBuffer* output = 0;
+//TODO: Fix alloc each page instead of continuous
+FAT32FileReader read(FAT32DriverRequest request){
+    FAT32FileReader retval = {0};
+    
+    if(request.parent_cluster_number < 2){
+        retval.content = (void*) 2;
+        return retval;
+    }
+    else if (!is_directory(request.parent_cluster_number)){
+        retval.content = (void*) 2;
+        return retval;
+    }
+    else if (!name_exists(request)){
+        retval.content = (void*) 1;
+        return retval;
+    }
+
+    ClusterBuffer* output;
     DirectoryEntry self = get_self_info(request);
 
-    if(request.buffer_size < self.size){
-        return 0;
+    if (self.directory == 1)
+    {
+        retval.content = (void*) 3;
+        return retval;
     }
+
     else{
         bool reading = 1;
         uint16_t index = 0;
@@ -639,17 +704,84 @@ void* read(FAT32DriverRequest request){
         }
     }
 
-    return output;
+    retval.content = output;
+
+    return retval;
+}
+
+//TODO: Fix alloc each page instead of continuous
+FAT32DirectoryReader read_directory(FAT32DriverRequest request){
+    FAT32DirectoryReader retval = {0};
+
+    if(request.parent_cluster_number < 2){
+        retval.content = (void*) 2;
+        return retval;
+    }
+    else if (!is_directory(request.parent_cluster_number)){
+        retval.content = (void*) 2;
+        return retval;
+    }
+    else if (!name_exists(request)){
+        retval.content = (void*) 1;
+        return retval;
+    }
+
+    DirectoryTable* output;
+    DirectoryEntry self = get_self_info(request);
+    
+    if (self.directory != 1)
+    {
+        retval.content = (void*) 3;
+        return retval;
+    }
+    
+    else{
+        bool reading = 1;
+        uint16_t index = 0;
+
+        uint32_t reader[CLUSTER_SIZE/4] = {0};
+        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
+
+        uint32_t current_cluster = self.cluster_number;
+        uint32_t marker = reader[current_cluster];
+        output = (DirectoryTable*) kmalloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
+        while (reading){
+            read_clusters(output + index * 2048, current_cluster, 1); 
+
+            if(marker == END_OF_FILE){
+                reading = 0;
+            }
+            else{
+                current_cluster = marker;
+                marker = reader[current_cluster];
+                index++;
+            }
+        }
+    }
+
+    retval.content = output;
+
+    return retval;
+}
+
+//TODO: Fix dealloc each page
+void close_file(FAT32FileReader pointer){
+    kfree(pointer.content);
+}
+
+//TODO: Fix dealloc each page
+void close_directory(FAT32DirectoryReader pointer){
+    kfree(pointer.content);
 }
 
 uint8_t load(FAT32DriverRequest request){
     void* output = (void*) request.buf;
     DirectoryEntry self = get_self_info(request);
     if (memcmp(&self, &emptyEntry, sizeof(DirectoryEntry)) == 0){
-        return 0;
+        return 1;
     }
     if(request.buffer_size < self.size){
-        return 0;
+        return 2;
     }
     else{
         bool reading = 1;
@@ -674,12 +806,9 @@ uint8_t load(FAT32DriverRequest request){
         }
     }
 
-    return 1;
+    return 0;
 }
 
-void close(ClusterBuffer* pointer){
-    kfree(pointer);
-}
 
 int cluster_to_lba(int clusters){
     return 4 * clusters;
@@ -720,7 +849,7 @@ uint32_t expand_folder(int cluster_number){
     read_clusters((void*)reader, cluster_number, 1);
 
     DirectoryTable table = {0};
-    table.entry[0] = read_directory(reader).entry[0];
+    table.entry[0] = as_directory(reader).entry[0];
 
     writer = (void*) &table;
     write_clusters(writer, i, 1);
@@ -763,7 +892,7 @@ void update_file_size(DirectoryEntry* entry, uint32_t size, char category){
 uint8_t is_directory(uint32_t cluster){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, cluster, 1);
-    DirectoryTable table = read_directory(reader);
+    DirectoryTable table = as_directory(reader);
 
     for(int i = 0; i < 10; i++){
         if(table.entry[i].reserved != 0){
@@ -781,7 +910,7 @@ uint8_t name_exists(FAT32DriverRequest request){
 
     do{
         read_clusters((void*)reader, current_cluster, 1);
-        table = read_directory(reader);
+        table = as_directory(reader);
         for(int i = 1; i < SECTOR_COUNT; i++){
             if((memcmp(&table.entry[i].filename, request.name, 8) == 0) && 
                 (memcmp(&table.entry[i].extension, request.ext, 3) == 0)

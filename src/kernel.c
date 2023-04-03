@@ -42,6 +42,7 @@ void kernel_setup(void) {
     initialize_filesystem_fat32();
     
     
+    
     gdt_install_tss();
     set_tss_register();
 
@@ -61,6 +62,7 @@ void kernel_setup(void) {
     enable_system_calls();
     kernel_execute_user_program((uint8_t*)0);
     
+    
     /*
     struct ClusterBuffer cbuf[5];
     for (uint32_t i = 0; i < 5; i++)
@@ -72,13 +74,11 @@ void kernel_setup(void) {
         .name                  = "ikanaide",
         .ext                   = "uwu",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size           = 5*CLUSTER_SIZE,
+        .buffer_size           = 0,
     } ;
 
     
     write(request);  // Create folder "ikanaide"
-    */
-    /*
     memcpy(request.name, "kano1   ", 8);
     write(request);  // Create folder "kano1"
     memcpy(request.name, "ikanaide", 8);
@@ -93,6 +93,7 @@ void kernel_setup(void) {
     write(request);  // Create fragmented file "daijoubu"
 
     memcpy(request.name, "kano2   ", 8);
+    request.parent_cluster_number = 6;
     write(request);
 
 
@@ -109,10 +110,11 @@ void kernel_setup(void) {
     request.buffer_size = 5*CLUSTER_SIZE;
     ClusterBuffer* reader = read(request);   // Success read on file "daijoubu"
     close(reader);
-    */
 
     
     //init_shell();
+    dir();
+    */
     while (TRUE);
 }
     /*

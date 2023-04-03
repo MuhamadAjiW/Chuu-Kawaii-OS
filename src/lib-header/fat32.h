@@ -174,11 +174,6 @@ struct DirectoryTable{
 }__attribute__((packed));
 typedef struct DirectoryTable DirectoryTable;
 
-struct FAT32DriverState{
-    uint8_t state;
-}__attribute__((packed));
-typedef struct FAT32DriverState FAT32DriverState;
-
 struct FAT32DriverRequest{
     void* buf;
     char name[8];
@@ -188,23 +183,37 @@ struct FAT32DriverRequest{
 }__attribute__((packed));
 typedef struct FAT32DriverRequest FAT32DriverRequest;
 
+struct FAT32FileReader{
+    uint32_t cluster_count;
+    ClusterBuffer* content;
+    uint8_t active;
+}__attribute__((packed));
+typedef struct FAT32FileReader FAT32FileReader;
+
+struct FAT32DirectoryReader{
+    uint32_t cluster_count;
+    DirectoryTable* content;
+}__attribute__((packed));
+typedef struct FAT32DirectoryReader FAT32DirectoryReader;
+
 void initialize_filesystem_fat32();
 void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
 void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number);
 DirectoryEntry get_parent_info(uint16_t parent_cluster_number);
 DirectoryEntry get_self_info(FAT32DriverRequest request);
-DirectoryTable read_directory(uint32_t* reader);
+DirectoryTable as_directory(uint32_t* reader);
 int cluster_to_lba(int clusters);
 uint8_t delete(FAT32DriverRequest);
 void deleteFolder(uint16_t cluster_number);
 uint8_t is_empty_storage();
 void read_clusters(void*, uint16_t cluster, uint16_t sector_count);
 void write_clusters(void*, uint16_t cluster, uint16_t sector_count);
-void* read(FAT32DriverRequest request);
+FAT32FileReader read(FAT32DriverRequest request);
+FAT32DirectoryReader read_directory(FAT32DriverRequest request);
+void close_file(FAT32FileReader pointer);
+void close_directory(FAT32DirectoryReader pointer);
 uint8_t load(FAT32DriverRequest request);
 uint8_t write(FAT32DriverRequest request);
-void close(ClusterBuffer* pointer);
-
 uint32_t expand_folder(int cluster_number);
 void update_file_time(DirectoryEntry *entry);
 void update_file_size(DirectoryEntry* entry, uint32_t size, char category);

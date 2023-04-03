@@ -7,8 +7,57 @@
 #include "../lib-header/syscall.h"
 
 DirectoryEntry emptyEntry = {0};
+
+uint8_t is_empty_empty(DirectoryEntry in){
+    return (in.filename == 0 &&
+        in.extension == 0 &&
+        in.read_only == 0 &&
+        in.hidden == 0 &&
+        in.system == 0 &&
+        in.volume_id == 0 &&
+        in.directory == 0 &&
+        in.archive == 0 &&
+        in.resbit1 == 0 &&
+        in.resbit2 == 0 &&
+        in.reserved == 0 &&
+        in.creation_time_low == 0 &&
+        in.creation_time_seconds == 0 &&
+        in.creation_time_minutes == 0 &&
+        in.creation_time_hours == 0 &&
+        in.creation_time_day == 0 &&
+        in.creation_time_month == 0 &&
+        in.creation_time_year == 0 &&
+        in.accessed_time_day == 0 &&
+        in.accessed_time_month == 0 &&
+        in.accessed_time_year == 0 &&
+        in.high_bits == 0 &&
+        in.modification_time_seconds == 0 &&
+        in.modification_time_minutes == 0 &&
+        in.modification_time_hours == 0 &&
+        in.modification_time_day == 0 &&
+        in.modification_time_month == 0 &&
+        in.modifcation_time_year == 0 &&
+        in.cluster_number == 0 &&
+        in.size == 0
+    );
+}
+
 /*
-void dir(uint32_t currentCluster){
+void dir(uint32_t currentCluster, char dirname[8]){
+    struct FAT32DriverRequest request = {
+        .parent_cluster_number = 2,
+        .name = dirname,
+    };
+
+    FAT32DirectoryReader reader;
+    reader = readf_dir(request);
+
+    for(int i = 0; i < reader.cluster_count){
+        for(int j = 1; j < SECTOR_COUNT; j++){
+            if(is_empty_empty(reader.content->entry ))
+        }
+    }
+
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable table;
     read_clusters((void*)reader, currentCluster, 1);

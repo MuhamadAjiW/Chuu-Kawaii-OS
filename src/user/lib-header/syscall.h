@@ -19,6 +19,8 @@
 #define SYSCALL_READ_DIR 12
 #define SYSCALL_WRITE_FILE 13
 #define SYSCALL_DELETE_FILE 14
+#define SYSCALL_CLOSE_FILE 15
+#define SYSCALL_CLOSE_DIR 16
 
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 

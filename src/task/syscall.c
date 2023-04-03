@@ -55,10 +55,6 @@ void sys_graphics_limit_cursor(){
 }
 
 //TODO: assert stability
-void sys_read(registers r){
-    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
-    *((int8_t*) r.ecx) =  load(request);
-}
 void sys_delete(registers r){
     struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
     *((int8_t*) r.ecx) =  delete(request);
@@ -67,9 +63,21 @@ void sys_write(registers r){
     struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
     *((int8_t*) r.ecx) =  write(request);
 }
-void sys_read_directory(){
-    //TODO: implement
+void sys_read(registers r){
+    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
+    *((FAT32FileReader*) r.ecx) = read(request);
 }
+void sys_read_directory(registers r){
+    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
+    *((FAT32DirectoryReader*) r.ecx) = read_directory(request);
+}
+void sys_close_file(registers r){
+    close_file(*(struct FAT32FileReader*) r.ebx);
+}
+void sys_close_directory(registers r){
+    close_directory(*(struct FAT32DirectoryReader*) r.ebx);
+}
+
 
 void enable_system_calls(){
     register_interrupt_handler(0x30, syscall_response);
@@ -87,6 +95,8 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_BACKSPACE, sys_backspace);
     register_syscall_response(SYSCALL_READ_FILE, sys_read);
     register_syscall_response(SYSCALL_READ_DIR, sys_read_directory);
+    register_syscall_response(SYSCALL_CLOSE_FILE, sys_close_file);
+    register_syscall_response(SYSCALL_CLOSE_DIR, sys_close_directory);
     register_syscall_response(SYSCALL_WRITE_FILE, sys_write);
     register_syscall_response(SYSCALL_DELETE_FILE, sys_delete);
 

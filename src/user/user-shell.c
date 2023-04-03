@@ -135,7 +135,7 @@ int main(void){
     
     char buf[2] = {0, 0};
     while (TRUE) {
-        syscall(SYSCALL_GET_KEYBOARD_LAST_KEY, (uint32_t) buf, 0, 0);
+        buf[0] = getc();
         
         if(buf[0] == TAB_CHAR){
             append_shell(' ');
@@ -158,7 +158,6 @@ int main(void){
         if (buf[0] == BACKSPACE_CHAR){
             if(backspace()){
                 backspace_shell();
-                move_shell(-1);
             }
         }
         

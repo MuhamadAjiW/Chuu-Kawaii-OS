@@ -1,4 +1,3 @@
-/*
 #include "lib-header/keyboard.h"
 #include "lib-header/stdtype.h"
 #include "lib-header/string.h"
@@ -13,11 +12,12 @@
 
 extern int SYSTEM_RUNNING;
 
-char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};
-uint16_t currentCluster = 2;
+char currentDir[8] = {'k', 'a', 'n', 'o','1', ' ', ' ', ' '};
+uint16_t currentCluster = 6;
 
 extern DirectoryEntry emptyEntry;
 
+/*
 void init_shell(){
     clear_reader();
     graphics_print("\n    >> ");
@@ -84,13 +84,14 @@ void newline_shell(){
     }
 }
 
+*/
 void dir(){
     //TODO: Refactor
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable table;
     read_clusters((void*)reader, currentCluster, 1);
 
-    table = read_directory(reader);
+    table = as_directory(reader);
     
     int counter = 1;
     char char_buffer[9];
@@ -106,7 +107,7 @@ void dir(){
     if(current_cluster != END_OF_FILE){
         while (current_cluster != END_OF_FILE){
             read_clusters((void*)reader, current_cluster, 1);
-            table = read_directory(reader);
+            table = as_directory(reader);
             
             for(int i = 1; i < 64; i++){
                 if(memcmp(&table.entry[i], &emptyEntry, 32) != 0){
@@ -171,4 +172,3 @@ void dir(){
         }
     }           
 }
-*/
