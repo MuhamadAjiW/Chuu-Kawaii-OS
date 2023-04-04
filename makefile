@@ -47,6 +47,7 @@ kernel: $(OBJ)
 	@rm -rf ${DIR}
 	@rm -f *.o
 
+# ngejalanin si kernel doang
 iso: dir kernel
 	@mkdir -p $(OUTPUT_FOLDER)/iso/boot/grub
 	@cp $(OUTPUT_FOLDER)/kernel     $(OUTPUT_FOLDER)/iso/boot/
@@ -65,10 +66,11 @@ iso: dir kernel
 	@cp $(OUTPUT_FOLDER)/iso/OS2023.iso ./bin
 	@rm -r $(OUTPUT_FOLDER)/iso/
 	
-
+# ngereset harddisk jadi kosong
 disk:
 	@cd $(OUTPUT_FOLDER) && $(QEMU_IMG) create -f raw drive.img 64m
 
+# ngecompile yang buat nginsert user
 inserter:
 	@$(CC) -Wno-builtin-declaration-mismatch \
 		$(SOURCE_FOLDER)/lib/stdmem.c other/fat32nocmos.c \
@@ -90,6 +92,7 @@ dir-u:
 		if [ ! -d $$dir ]; then mkdir -p $$dir; fi \
 	done
 
+# ngecompile user
 user-shell: dir-u $(OBJ_U)
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/user/user-entry.s -o user-entry.o
 
@@ -105,7 +108,7 @@ user-shell: dir-u $(OBJ_U)
 	@rm -rf ${DIR_U}
 	@rm -f *.o
 
-
+# masukin user yang udah dicompile ke harddisk
 insert-shell: inserter user-shell
 	@echo Inserting shell into root directory... && cd bin && ./inserter sh 2 drive.img
 

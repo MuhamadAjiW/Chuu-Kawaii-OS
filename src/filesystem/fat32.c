@@ -653,7 +653,6 @@ void write_clusters(void* entry, uint16_t cluster, uint16_t sector_count){
     write_blocks(entry + 1536, cluster_to_lba(cluster) + 3, sector_count);
 };
 
-//TODO: Fix alloc each page instead of continuous
 FAT32FileReader read(FAT32DriverRequest request){
     FAT32FileReader retval = {0};
     if(request.parent_cluster_number < 2){
@@ -741,8 +740,6 @@ FAT32DirectoryReader read_directory(FAT32DriverRequest request){
         retval.content = (void*) 1;
         return retval;
     }
-    /*
-    */
 
     DirectoryTable* output;
     DirectoryEntry self = get_self_info(request);

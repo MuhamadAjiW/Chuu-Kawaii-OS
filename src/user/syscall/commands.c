@@ -113,3 +113,5 @@ void dir(uint32_t currentCluster){
 void clear(){
     syscall(SYSCALL_CLEAR_SCREEN, 0, 0, 0);
 }
+
+//TODO: isi function command di sini

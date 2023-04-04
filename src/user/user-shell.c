@@ -107,6 +107,8 @@ void evaluate_shell(){
         else if(strcmp(get_parsed_result()[0], "dir") == 0){
             dir(currentCluster);
         }
+        //TODO: lengkapin command
+
         else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);
