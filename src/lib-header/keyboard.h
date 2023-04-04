@@ -10,7 +10,7 @@
 #define BACKSPACE_CHAR 4
 
 /**
- *  Struct to store necessary keyboard information
+ *  Singleton struct to store necessary keyboard information
  *  
  *  @param last                 last key pressed on the keyboard
  *  @param caps                 capslock status on the keyboard

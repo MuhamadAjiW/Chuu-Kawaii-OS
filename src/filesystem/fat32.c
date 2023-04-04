@@ -41,10 +41,9 @@ DirectoryEntry* root_directory;
 uint8_t is_empty_storage(){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, RESERVED_CLUSTER_NUMBER, 1);
-    if(memcmp(reader, "fs_signature", 12) == 0){
-        return 0;
-    }
-    return 1;
+    
+    uint32_t empty[CLUSTER_SIZE/4] = {0};
+    return (memcmp(reader, empty, CLUSTER_SIZE) == 0);
 }
 
 
@@ -445,7 +444,7 @@ uint8_t write(FAT32DriverRequest request){
 
 
 void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number){
-    DirectoryTable table = {.entry = 0};
+    DirectoryTable table = {0};
 
     if (parent_cluster_number == ROOT_CLUSTER_NUMBER){
         uint32_t reader[CLUSTER_SIZE/4] = {0};
@@ -946,6 +945,9 @@ uint8_t is_directory(uint32_t cluster){
     read_clusters((void*)reader, cluster, 1);
     DirectoryTable table = as_directory(reader);
 
+    if(table.entry[0].directory != 1){
+        return 0;
+    }
     for(int i = 0; i < 10; i++){
         if(table.entry[i].reserved != 0){
             return 0;

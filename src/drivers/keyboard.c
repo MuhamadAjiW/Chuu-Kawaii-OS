@@ -1,6 +1,5 @@
 #include "../lib-header/keyboard.h"
 #include "../lib-header/memory_manager.h"
-#include "../lib-header/shell.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/isr.h"
 #include "../lib-header/idt.h"

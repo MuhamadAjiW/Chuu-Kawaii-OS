@@ -11,14 +11,11 @@
 #include "lib-header/fat32.h"
 #include "lib-header/disk.h"
 #include "lib-header/memory_manager.h"
-#include "lib-header/parser.h"
 #include "lib-header/graphics.h"
 #include "lib-header/cmos.h"
 #include "lib-header/paging.h"
 #include "lib-header/tss.h"
 #include "lib-header/syscall.h"
-
-#include "lib-header/shell.h"
 
 //debug purposes
 //uint32_t target[CLUSTER_SIZE/4] = {0};
@@ -114,8 +111,6 @@ void kernel_setup(void) {
     close(reader);
 
     
-    //init_shell();
-    dir();
     */
     while (TRUE);
 }

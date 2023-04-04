@@ -48,7 +48,9 @@ void dir(uint32_t currentCluster){
                         if(read_entry.filename[j] == 0){
                            print_char(' ');
                         }
-                        print_char(read_entry.filename[j]);
+                        else{
+                            print_char(read_entry.filename[j]);
+                        }
                     }
 
                     print("    ");

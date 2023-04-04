@@ -13,7 +13,16 @@
 #define CLUSTER_SIZE 2048
 #define SECTOR_COUNT 64
 
-/*
+/* further reading:
+        https://en.wikipedia.org/wiki/File_Allocation_Table
+        https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system
+        https://wiki.osdev.org/FAT
+*/
+
+
+
+/* Bootsector, commented as the specification explicitly says we do not need it
+
 #define BYTE_PER_SECTOR 4096
 #define SECTORS_PER_CLUSTER 64
 #define RESERVED_SECTORS 32
@@ -115,17 +124,31 @@ static FAT32BootSector bootSector ={
 };
 */
 
+/**
+ * Struct containing the value of bytes in a cluster
+ * 
+ * @param buf Array of each byte
+ */
 struct ClusterBuffer{
     uint8_t buf[CLUSTER_SIZE];
 }__attribute__((packed));
 typedef struct ClusterBuffer ClusterBuffer;
 
+/**
+ * Struct containing the FAT table
+ * 
+ * @param sector_next Array of next cluster location
+ */
 struct FAT32FileAllocationTable{
     uint32_t sector_next[CLUSTER_SIZE/4];
 }__attribute__((packed));
-
 typedef struct FAT32FileAllocationTable FAT32FileAllocationTable;
 
+/**
+ * Struct for FAT entries
+ * Should be self explanatory
+ * 
+ */
 struct DirectoryEntry{
     char filename[8];
     char extension[3];
@@ -169,11 +192,26 @@ struct DirectoryEntry{
 }__attribute__((packed));
 typedef struct DirectoryEntry DirectoryEntry;
 
+/**
+ * Struct for folders
+ * Index 0 always contains parent info, even in extension tables
+ * 
+ * @param entry file FAT entry
+ */
 struct DirectoryTable{
     DirectoryEntry entry[CLUSTER_SIZE/sizeof(DirectoryEntry)];
 }__attribute__((packed));
 typedef struct DirectoryTable DirectoryTable;
 
+/**
+ * Struct for CRUD request
+ * 
+ * @param buf                   assigned buffer location for load, unused for other operations
+ * @param name                  file name
+ * @param ext                   file extension
+ * @param parent_cluster_number parent cluster location
+ * @param buffer_size           assigned buffer size for load, unused for other operations
+ */
 struct FAT32DriverRequest{
     void* buf;
     char name[8];
@@ -183,43 +221,249 @@ struct FAT32DriverRequest{
 }__attribute__((packed));
 typedef struct FAT32DriverRequest FAT32DriverRequest;
 
+/**
+ * Struct for reading files
+ * 
+ * @param cluster_count         number of clusters containing the read file
+ * @param content               pointer to the actual content of the file divided to clusters
+ */
 struct FAT32FileReader{
     uint32_t cluster_count;
     ClusterBuffer* content;
-    uint8_t active;
 }__attribute__((packed));
 typedef struct FAT32FileReader FAT32FileReader;
 
+/**
+ * Struct for reading folders
+ * 
+ * @param cluster_count         number of clusters containing the read folder
+ * @param content               pointer to the actual content of the folder divided to clusters
+ */
 struct FAT32DirectoryReader{
     uint32_t cluster_count;
     DirectoryTable* content;
 }__attribute__((packed));
 typedef struct FAT32DirectoryReader FAT32DirectoryReader;
 
-void initialize_filesystem_fat32();
-void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
-void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number);
-DirectoryEntry get_parent_info(uint16_t parent_cluster_number);
-DirectoryEntry get_self_info(FAT32DriverRequest request);
-DirectoryTable as_directory(uint32_t* reader);
-int cluster_to_lba(int clusters);
-uint8_t delete(FAT32DriverRequest);
-void deleteFolder(uint16_t cluster_number);
+/**
+ * Check the bootsector of a drive
+ * 
+ * @return 1 if boot sector is empty, 0 if not
+ */
 uint8_t is_empty_storage();
-void read_clusters(void*, uint16_t cluster, uint16_t sector_count);
-void write_clusters(void*, uint16_t cluster, uint16_t sector_count);
+
+/**
+ * If drive is empty, initialize boot sector, FAT table, and root directory
+ * Else do nothing
+ * 
+ */
+void initialize_filesystem_fat32();
+
+/**
+ * Create a new fat directory entry in a directory cluster
+ * 
+ * @param request
+ * @param cluster_number
+ */
+void create_fat32(FAT32DriverRequest request, uint16_t cluster_number);
+
+/**
+ * Create an empty folder in cluster_number
+ * 
+ * @param cluster_number            location of folder
+ * @param parent_cluster_number     used to determine parent info at index 0
+ */
+void init_directory_table(uint16_t cluster_number, uint16_t parent_cluster_number);
+
+/**
+ * Get fat directory entry of parent cluster
+ * 
+ * @param parent_cluster_number     parent cluster number
+ * 
+ * @return                          fat entry of parent cluster
+ */
+DirectoryEntry get_parent_info(uint16_t parent_cluster_number);
+
+/**
+ * Get fat directory entry of request, request must exist in the folder beforehand
+ * 
+ * @param request                   requested file
+ * 
+ * @return                          fat entry of request
+ */
+DirectoryEntry get_self_info(FAT32DriverRequest request);
+
+/**
+ * Copies a reader buffer and returns it as a directory table
+ *  Seems redundant but quite useful in a lot of cases. Might be a subject to refactor.
+ * 
+ * @param reader                    pointer to a reader buffer
+ * 
+ * @return                          reader as directory table, contents are copied and not as a casted pointer
+ */
+DirectoryTable as_directory(uint32_t* reader);
+
+/**
+ * Translates cluster number to index in lba
+ * 
+ * @param cluster                   cluster number
+ * 
+ * @return                          cluster number in lba
+ */
+int cluster_to_lba(int clusters);
+
+
+/**
+ * Create a fat directory entry in a directory cluster
+ * 
+ * @param request                   requested file
+ * 
+ * @return                          Status of deletion, 0 is success, other than 0 are error codes
+ */
+uint8_t delete(FAT32DriverRequest request);
+
+/**
+ * Inner recursive function for delete
+ * 
+ * @param cluster_number            cluster of the folder
+ */
+void deleteFolder(uint16_t cluster_number);
+
+/**
+ * Read clusters from the disk
+ * 
+ * @param reader                    destination buffer to store the read data
+ * @param cluster                   cluster index to read
+ * @param sector_count              number of clusters to read
+ */
+void read_clusters(void* reader, uint16_t cluster, uint16_t sector_count);
+
+/**
+ * Write clusters to the disk
+ * 
+ * @param writer                    source buffer of data that is going to be written
+ * @param cluster                   cluster index to write
+ * @param sector_count              number of clusters to write
+ */
+void write_clusters(void* writer, uint16_t cluster, uint16_t sector_count);
+
+/**
+ * Read a file from a request
+ *  Note: this function uses malloc, be sure to close the reader afterwards
+ * 
+ * @param request                   requested file
+ * 
+ * @return                          a struct containing the read data and number of read clusters
+ */
 FAT32FileReader read(FAT32DriverRequest request);
+
+/**
+ * Read a folder from a request
+ *  Note: this function uses malloc, be sure to close the reader afterwards
+ * 
+ * @param request                   requested folder
+ * 
+ * @return                          a struct containing the read data and number of read clusters
+ */
 FAT32DirectoryReader read_directory(FAT32DriverRequest request);
+
+/**
+ * Reads a cluster as a folder without input handling
+ *  Note: this function uses malloc, be sure to close the reader afterwards
+ * 
+ * @param cluster_number            requested folder cluster number
+ * 
+ * @return                          a struct containing the read data and number of read clusters
+ */
 FAT32DirectoryReader self_directory_info(uint32_t cluster_number);
+
+/**
+ * Unallocates file reader buffer
+ *  Note: this function is for allocated pointers, do not use on unallocated pointers
+ * 
+ * @param pointer                   an allocated file reader pointer
+ * 
+ */
 void close_file(FAT32FileReader pointer);
+
+/**
+ * Unallocates folder reader buffer
+ *  Note: this function is for allocated pointers, do not use on unallocated pointers
+ * 
+ * @param pointer                   an allocated folder reader pointer
+ * 
+ */
 void close_directory(FAT32DirectoryReader pointer);
+
+/**
+ * Copies a requested file to a requested address
+ *  Note: this function is referred to by the specification as the read function
+ *        due to malloc being possible and the second milestone was done without the guidebook
+ *        the read function in this operating system was modified to copy the file into heap memory
+ *        this function was made to compensate for the missing functionalities of the original function
+ *        Might cause some confusion here and there, sorry for the inconvenience.
+ * 
+ * @param request                   requested file
+ *                                  request.buf is the requested buffer destination
+ * 
+ * @return                          0 means success, anything other than 0 are error codes
+ */
 uint8_t load(FAT32DriverRequest request);
+
+/**
+ * Writes a requested file to the filesystem
+ * 
+ * @param request                   requested file
+ * 
+ * @return                          0 means success, anything other than 0 are error codes
+ */
 uint8_t write(FAT32DriverRequest request);
+
+/**
+ * Expands folder to a new cluster
+ * 
+ * @param cluster_number            last cluster of the folder
+ * 
+ * @return                          cluster index of the expansion
+ */
 uint32_t expand_folder(int cluster_number);
+
+/**
+ * Updates file time modified data by inserting CMOS data
+ *  Note: reading of CMOS is not done inside this function in case of a complex long running operation
+ *        be sure to call read_cmos before updating file time
+ * 
+ * @param entry                     FAT entry to be updated
+ * 
+ */
 void update_file_time(DirectoryEntry *entry);
+
+/**
+ * Updates file size
+ * 
+ * @param entry                     FAT entry to be updated
+ * @param size                      size to be added or subtracted, 0 will be converted to 32 as folders are treated to use 32 bytes of memory
+ * @param category                  used to categorize addition or subtraction. '+' and '-' respectively
+ * 
+ */
 void update_file_size(DirectoryEntry* entry, uint32_t size, char category);
 
+/**
+ * Checks whether a cluster is a directory, uses reserved bits and directory flags, still might not be 100% accurate
+ * 
+ * @param cluster                   Cluster to check
+ * 
+ * @return                          1 if is a folder, 0 if not
+ */
 uint8_t is_directory(uint32_t cluster);
+
+/**
+ * Checks whether an entry name and extension already exists in the parent folder
+ * 
+ * @param request                   requested file to check
+ * 
+ * @return                          1 if is a folder, 0 if not
+ */
 uint8_t name_exists(FAT32DriverRequest request);
 
 #endif
