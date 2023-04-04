@@ -103,7 +103,7 @@ FAT32FileReader readf(FAT32DriverRequest request);
 FAT32DirectoryReader readf_dir(FAT32DriverRequest request);
 void closef(FAT32FileReader request);
 void closef_dir(FAT32DirectoryReader request);
-uint8_t writef();
-uint8_t deletef();
+uint8_t writef(FAT32DriverRequest request);
+uint8_t deletef(FAT32DriverRequest request);
 
 #endif

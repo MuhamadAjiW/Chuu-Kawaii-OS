@@ -19,10 +19,12 @@
 #define SYSCALL_BACKSPACE 10
 #define SYSCALL_READ_FILE 11
 #define SYSCALL_READ_DIR 12
-#define SYSCALL_WRITE_FILE 13
-#define SYSCALL_DELETE_FILE 14
-#define SYSCALL_CLOSE_FILE 15
-#define SYSCALL_CLOSE_DIR 16
+#define SYSCALL_SELF_DIR_INFO 13
+#define SYSCALL_WRITE_FILE 14
+#define SYSCALL_DELETE_FILE 15
+#define SYSCALL_CLOSE_FILE 16
+#define SYSCALL_CLOSE_DIR 17
+#define SYSCALL_GET_CMOS_DATA 18
 
 void syscall_response(registers r);
 void activate_system_call();

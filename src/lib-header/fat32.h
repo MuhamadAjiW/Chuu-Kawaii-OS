@@ -210,6 +210,7 @@ void read_clusters(void*, uint16_t cluster, uint16_t sector_count);
 void write_clusters(void*, uint16_t cluster, uint16_t sector_count);
 FAT32FileReader read(FAT32DriverRequest request);
 FAT32DirectoryReader read_directory(FAT32DriverRequest request);
+FAT32DirectoryReader self_directory_info(uint32_t cluster_number);
 void close_file(FAT32FileReader pointer);
 void close_directory(FAT32DirectoryReader pointer);
 uint8_t load(FAT32DriverRequest request);

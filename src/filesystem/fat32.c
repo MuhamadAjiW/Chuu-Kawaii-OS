@@ -657,7 +657,6 @@ void write_clusters(void* entry, uint16_t cluster, uint16_t sector_count){
 //TODO: Fix alloc each page instead of continuous
 FAT32FileReader read(FAT32DriverRequest request){
     FAT32FileReader retval = {0};
-    
     if(request.parent_cluster_number < 2){
         retval.content = (void*) 2;
         return retval;
@@ -666,53 +665,62 @@ FAT32FileReader read(FAT32DriverRequest request){
         retval.content = (void*) 2;
         return retval;
     }
-    else if (!name_exists(request)){
+    else if (!name_exists(request) && !(
+        request.name[0] == 'r' &&
+        request.name[1] == 'o' &&
+        request.name[2] == 'o' &&
+        request.name[3] == 't' &&
+        request.name[4] == ' ' &&
+        request.name[5] == ' ' &&
+        request.name[6] == ' ' &&
+        request.name[7] == ' ')
+    ){
         retval.content = (void*) 1;
         return retval;
     }
 
     ClusterBuffer* output;
     DirectoryEntry self = get_self_info(request);
-
+    
     if (self.directory == 1)
     {
         retval.content = (void*) 3;
         return retval;
     }
-
+    
     else{
-        bool reading = 1;
-        uint16_t index = 0;
-
         uint32_t reader[CLUSTER_SIZE/4] = {0};
-        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
         uint32_t current_cluster = self.cluster_number;
-        uint32_t marker = reader[current_cluster];
-        output = (ClusterBuffer*) kmalloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
-        while (reading){
-            read_clusters(output + index * 2048, current_cluster, 1); 
+        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
-            if(marker == END_OF_FILE){
-                reading = 0;
-            }
-            else{
-                current_cluster = marker;
-                marker = reader[current_cluster];
-                index++;
-            }
-        }
+        uint32_t cluster_count = 0;
+        do
+        {
+            cluster_count++;
+            current_cluster = reader[current_cluster];
+        } while (current_cluster != END_OF_FILE);
+        output = (ClusterBuffer*) kmalloc (sizeof(ClusterBuffer) * cluster_count);        
+
+        current_cluster = self.cluster_number;
+        uint32_t counter = 0;
+        do
+        {
+            read_clusters((void*) &output[counter], current_cluster, 1);
+            current_cluster = reader[current_cluster];
+            counter++;
+            
+        } while (current_cluster != END_OF_FILE);
+        
+        retval.cluster_count = counter;
+        retval.content = output;
+
+        return retval;
     }
-
-    retval.content = output;
-
-    return retval;
 }
 
-//TODO: Fix alloc each page instead of continuous
 FAT32DirectoryReader read_directory(FAT32DriverRequest request){
     FAT32DirectoryReader retval = {0};
-
     if(request.parent_cluster_number < 2){
         retval.content = (void*) 2;
         return retval;
@@ -721,10 +729,21 @@ FAT32DirectoryReader read_directory(FAT32DriverRequest request){
         retval.content = (void*) 2;
         return retval;
     }
-    else if (!name_exists(request)){
+    else if (!name_exists(request) && !(
+        request.name[0] == 'r' &&
+        request.name[1] == 'o' &&
+        request.name[2] == 'o' &&
+        request.name[3] == 't' &&
+        request.name[4] == ' ' &&
+        request.name[5] == ' ' &&
+        request.name[6] == ' ' &&
+        request.name[7] == ' ')
+    ){
         retval.content = (void*) 1;
         return retval;
     }
+    /*
+    */
 
     DirectoryTable* output;
     DirectoryEntry self = get_self_info(request);
@@ -736,40 +755,73 @@ FAT32DirectoryReader read_directory(FAT32DriverRequest request){
     }
     
     else{
-        bool reading = 1;
-        uint16_t index = 0;
-
         uint32_t reader[CLUSTER_SIZE/4] = {0};
-        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
         uint32_t current_cluster = self.cluster_number;
-        uint32_t marker = reader[current_cluster];
-        output = (DirectoryTable*) kmalloc (((CLUSTER_SIZE + self.size - 1 )/CLUSTER_SIZE)*sizeof(ClusterBuffer));
-        while (reading){
-            read_clusters(output + index * 2048, current_cluster, 1); 
+        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
 
-            if(marker == END_OF_FILE){
-                reading = 0;
-            }
-            else{
-                current_cluster = marker;
-                marker = reader[current_cluster];
-                index++;
-            }
-        }
+        uint32_t cluster_count = 0;
+        do
+        {
+            cluster_count++;
+            current_cluster = reader[current_cluster];
+        } while (current_cluster != END_OF_FILE);
+        output = (DirectoryTable*) kmalloc (sizeof(DirectoryTable) * cluster_count);        
+
+        current_cluster = self.cluster_number;
+        uint32_t counter = 0;
+        do
+        {
+            read_clusters((void*) &output[counter], current_cluster, 1);
+            current_cluster = reader[current_cluster];
+            counter++;
+            
+        } while (current_cluster != END_OF_FILE);
+        
+        retval.cluster_count = counter;
+        retval.content = output;
+
+        return retval;
     }
+}
 
+FAT32DirectoryReader self_directory_info(uint32_t cluster_number){
+    FAT32DirectoryReader retval = {0};
+
+    DirectoryTable* output;
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+
+    uint32_t current_cluster = cluster_number;
+    read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
+
+    uint32_t cluster_count = 0;
+    do
+    {
+        cluster_count++;
+        current_cluster = reader[current_cluster];
+    } while (current_cluster != END_OF_FILE);
+    output = (DirectoryTable*) kmalloc (sizeof(DirectoryTable) * cluster_count);        
+
+    current_cluster = cluster_number;
+    uint32_t counter = 0;
+    do
+    {
+        read_clusters((void*) &output[counter], current_cluster, 1);
+        current_cluster = reader[current_cluster];
+        counter++;
+        
+    } while (current_cluster != END_OF_FILE);
+    
+    retval.cluster_count = counter;
     retval.content = output;
 
     return retval;
 }
 
-//TODO: Fix dealloc each page
 void close_file(FAT32FileReader pointer){
     kfree(pointer.content);
 }
 
-//TODO: Fix dealloc each page
 void close_directory(FAT32DirectoryReader pointer){
     kfree(pointer.content);
 }

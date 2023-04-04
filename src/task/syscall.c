@@ -8,6 +8,7 @@
 
 #include "../lib-header/graphics.h"
 #include "../lib-header/keyboard.h"
+#include "../lib-header/cmos.h"
 #include "../lib-header/fat32.h"
 
 
@@ -71,11 +72,17 @@ void sys_read_directory(registers r){
     struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
     *((FAT32DirectoryReader*) r.ecx) = read_directory(request);
 }
+void sys_self_directory_info(registers r){
+    *((FAT32DirectoryReader*) r.ecx) = self_directory_info(r.ebx);
+}
 void sys_close_file(registers r){
     close_file(*(struct FAT32FileReader*) r.ebx);
 }
 void sys_close_directory(registers r){
     close_directory(*(struct FAT32DirectoryReader*) r.ebx);
+}
+void sys_get_cmos_data(registers r){
+    *((cmos_reader*) r.ebx) = get_cmos_data();
 }
 
 
@@ -95,11 +102,12 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_BACKSPACE, sys_backspace);
     register_syscall_response(SYSCALL_READ_FILE, sys_read);
     register_syscall_response(SYSCALL_READ_DIR, sys_read_directory);
+    register_syscall_response(SYSCALL_SELF_DIR_INFO, sys_self_directory_info);
     register_syscall_response(SYSCALL_CLOSE_FILE, sys_close_file);
     register_syscall_response(SYSCALL_CLOSE_DIR, sys_close_directory);
     register_syscall_response(SYSCALL_WRITE_FILE, sys_write);
     register_syscall_response(SYSCALL_DELETE_FILE, sys_delete);
-
+    register_syscall_response(SYSCALL_GET_CMOS_DATA, sys_get_cmos_data);
 }
 
 void syscall_response(registers r) {

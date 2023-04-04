@@ -84,8 +84,8 @@ void* kmalloc(uint32_t size){
         a->size = size;
 
         last_alloc += size;
-        last_alloc += 2*sizeof(allocator);
-        memset((char*)((uint32_t)a + sizeof(allocator)), 0, size + sizeof(allocator));
+        last_alloc += sizeof(allocator);
+        memset((char*)((uint32_t)a + sizeof(allocator)), 0, size);
 
         dynamic_pointers++;
 

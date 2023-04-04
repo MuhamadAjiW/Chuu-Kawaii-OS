@@ -3,52 +3,97 @@
 
 #include "../lib-header/stdio.h"
 #include "../lib-header/string.h"
+#include "../lib-header/time.h"
 #include "../lib-header/stdlib.h"
 #include "../lib-header/syscall.h"
 
-DirectoryEntry emptyEntry = {0};
-
 uint8_t is_empty_empty(DirectoryEntry in){
-    return (in.filename == 0 &&
-        in.extension == 0 &&
-        in.read_only == 0 &&
-        in.hidden == 0 &&
-        in.system == 0 &&
-        in.volume_id == 0 &&
-        in.directory == 0 &&
-        in.archive == 0 &&
-        in.resbit1 == 0 &&
-        in.resbit2 == 0 &&
-        in.reserved == 0 &&
-        in.creation_time_low == 0 &&
-        in.creation_time_seconds == 0 &&
-        in.creation_time_minutes == 0 &&
-        in.creation_time_hours == 0 &&
-        in.creation_time_day == 0 &&
-        in.creation_time_month == 0 &&
-        in.creation_time_year == 0 &&
-        in.accessed_time_day == 0 &&
-        in.accessed_time_month == 0 &&
-        in.accessed_time_year == 0 &&
-        in.high_bits == 0 &&
-        in.modification_time_seconds == 0 &&
-        in.modification_time_minutes == 0 &&
-        in.modification_time_hours == 0 &&
-        in.modification_time_day == 0 &&
-        in.modification_time_month == 0 &&
-        in.modifcation_time_year == 0 &&
-        in.cluster_number == 0 &&
-        in.size == 0
-    );
+    char* checker = (char*) &in;
+    for(uint32_t i = 0; i < sizeof(DirectoryEntry); i++){
+        if(checker[i] != 0) return 0;
+    }
+    return 1;
 }
 
-/*
-void dir(uint32_t currentCluster, char dirname[8]){
-    struct FAT32DriverRequest request = {
-        .parent_cluster_number = 2,
-        .name = dirname,
-    };
+FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster){
+    FAT32DirectoryReader retval;
+    syscall(SYSCALL_SELF_DIR_INFO, current_cluster, (uint32_t) &retval, 0);
+    return retval;
+}
 
+
+void dir(uint32_t currentCluster){
+    FAT32DirectoryReader directory_reader;
+
+    directory_reader = get_self_dir_info(currentCluster);
+    char char_buffer[9];
+    uint32_t counter = 1;
+    DirectoryEntry read_entry;
+    
+    print("\n    No   Name        Ext    Size      Creation time");
+    for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
+        for(uint16_t j = 1; j < SECTOR_COUNT; j++){
+            read_entry = directory_reader.content[i].entry[j];
+            
+            if(!is_empty_empty(read_entry)){
+                print("\n    ");
+                    int_toString(counter, char_buffer);
+                    print(char_buffer);
+                    print(".");
+                    for(int i = strlen(char_buffer); i < 4; i++){
+                        print(" ");
+                    }
+
+                    for(int j = 0; j < 8; j++){
+                        if(read_entry.filename[j] == 0){
+                           print_char(' ');
+                        }
+                        print_char(read_entry.filename[j]);
+                    }
+
+                    print("    ");
+                    for(int j = 0; j < 3; j++){
+                        if(read_entry.extension[j] == 0){
+                            print_char(' ');
+                        }
+                        else print_char(read_entry.extension[j]);
+                    }
+                    
+                    print("    ");
+                    int_toString(read_entry.size, char_buffer);
+                    print(char_buffer);
+
+
+                    for(int i = strlen(char_buffer); i < 10; i++){
+                        print(" ");
+                    }
+
+                    int_toString(read_entry.creation_time_hours, char_buffer);
+                    print(char_buffer);
+                    print(":");
+                    int_toString(read_entry.creation_time_minutes, char_buffer);
+                    print(char_buffer);
+                    print(":");
+                    int_toString(read_entry.creation_time_seconds, char_buffer);
+                    print(char_buffer);
+
+                    print("  ");
+                    int_toString(read_entry.creation_time_day, char_buffer);
+                    print(char_buffer);
+                    print("/");
+                    int_toString(read_entry.creation_time_month, char_buffer);
+                    print(char_buffer);
+                    print("/");
+                    time current_time = get_time();
+                    int_toString((read_entry.creation_time_year) + current_time.century * 100, char_buffer);
+                    print(char_buffer);
+
+                    counter++;
+            }
+        }
+    }
+}
+/*
     FAT32DirectoryReader reader;
     reader = readf_dir(request);
 

@@ -96,7 +96,6 @@ void newline_shell(){
 
 
 
-char currentDir[8] = {'r', 'o', 'o', 't',' ', ' ', ' ', ' '};
 uint32_t currentCluster = 2;
 
 void evaluate_shell(){
@@ -104,6 +103,9 @@ void evaluate_shell(){
     if (get_parsed_word_count() > 0){
         if(strcmp(get_parsed_result()[0], "clear") == 0){
             clear();
+        }
+        else if(strcmp(get_parsed_result()[0], "dir") == 0){
+            dir(currentCluster);
         }
         else{
             print("\nNo Command found: ");
@@ -115,23 +117,29 @@ void evaluate_shell(){
 }
 
 int main(void){
-    char* hello = "hewwo\n";
+    char* hello = "hewwo you are in user mode 0W0\n";
     print(hello);
 
     initialize_shell();
 
-    /*
-    struct ClusterBuffer cl           = {0};
+   struct ClusterBuffer cbuf[5];
+    for (uint32_t i = 0; i < 5; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = i + 'a';
+
     struct FAT32DriverRequest request = {
-        .buf                   = &cl,
+        .buf                   = cbuf,
         .name                  = "ikanaide",
-        .ext                   = "\0\0\0",
+        .ext                   = "uwu",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
-        .buffer_size           = CLUSTER_SIZE,
-    };
-    int32_t retcode;
-    syscall(SYSCALL_READ_FILE, (uint32_t) &request, (uint32_t) &retcode, 0);
-    */
+        .buffer_size           = 0,
+    } ;
+
+    writef(request);  // Create folder "ikanaide"
+    deletef(request); // Delete first folder, thus creating hole in FS
+    
+    request.buffer_size = 5*CLUSTER_SIZE;
+    writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {

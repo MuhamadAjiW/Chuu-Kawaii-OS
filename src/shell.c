@@ -84,7 +84,6 @@ void newline_shell(){
     }
 }
 
-*/
 void dir(){
     //TODO: Refactor
     uint32_t reader[CLUSTER_SIZE/4] = {0};
@@ -172,3 +171,4 @@ void dir(){
         }
     }           
 }
+*/
