@@ -1,14 +1,20 @@
 #include "../lib-header/idt.h"
 #include "../lib-header/isr.h"
 #include "../lib-header/tss.h"
+
 #include "../lib-header/portio.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/string.h"
 #include "../lib-header/graphics.h"
+#include "../lib-header/keyboard.h"
+#include "../lib-header/fat32.h"
 
 extern void* isr_stub_table[];
 
-struct TSSEntry _interrupt_tss_entry = {0};
+struct TSSEntry _interrupt_tss_entry = {
+    .ss0 = 0x10
+};
+
 InterruptService interruptHandlers[IDT_MAX_COUNT];
 InterruptDescriptorTable idt;
 IDTR idtr = {
@@ -16,12 +22,12 @@ IDTR idtr = {
     .address = &idt
 };
 
-void set_idt_gate(uint8_t n, void* input){
+void set_idt_gate(uint8_t n, void* input, uint8_t flags){
     idt.table[n].base_low = (uint32_t) input;
 
     idt.table[n].selector = SELECTOR;
-    idt.table[n].zero = 0;
-    idt.table[n].flags = KERNEL_FLAGS;
+    idt.table[n].reserved = 0;
+    idt.table[n].flags = flags;
 
     idt.table[n].base_high = (uint32_t)input >> 16 ;
 }
@@ -31,8 +37,12 @@ void initialize_idt(){
 
     //isr
     for(uint8_t i = 0; i < 48; i++){
-        set_idt_gate(i, isr_stub_table[i]);
+        set_idt_gate(i, isr_stub_table[i], KERNEL_FLAGS);
     }
+    for(uint8_t i = 48; i < 64; i++){
+        set_idt_gate(i, isr_stub_table[i], USER_FLAGS);
+    }
+
 
     load_idt(&idtr);
     
@@ -93,14 +103,30 @@ char *exception_msg[] = {
     "Intel Reserved"                    //31
 };
 
-void page_fault_handler(){
-    __asm__ volatile ("iret");
+void page_fault_handler(registers r){
+    if(r.err_code != 4){
+        graphics_print("received interrupt: 0x");
+        char s[3];
+        int_toString(r.int_no, s);
+        graphics_print(s);
+        graphics_print("\nexception: ");
+        graphics_print(exception_msg[r.int_no]);
+        graphics_print("\nerror code: ");
+        int_toString(r.err_code, s);
+        graphics_print(s);
+        __asm__ volatile("hlt");
+    }
+    else{
+        __asm__ volatile("ret");
+    }
 }
 
 void main_interrupt_handler(registers r){
-    //if(r.int_no == 14){
-    //    page_fault_handler();
-    //}
+    /*
+    if(r.int_no == 14){
+        page_fault_handler(r);
+    }
+    */
     if(r.int_no < 32){
         graphics_print("received interrupt: 0x");
         char s[3];
@@ -114,17 +140,18 @@ void main_interrupt_handler(registers r){
         __asm__ volatile("hlt");
     }
     else{
+        if(interruptHandlers[r.int_no] != 0){
+            InterruptService handler = interruptHandlers[r.int_no];
+            handler(r);
+        }
+
         if (r.int_no >=40){
             out(0xa0, 0x20);
         }
 
         out(0x20, 0x20);
-
-        if(interruptHandlers[r.int_no] != 0){
-            InterruptService handler = interruptHandlers[r.int_no];
-            handler(r);
-        }
     }
+    return;
 }
 
 void register_interrupt_handler(uint8_t n, InterruptService input){

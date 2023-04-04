@@ -2,10 +2,9 @@
 #ifndef _SYSCALL_H
 #define _SYSCALL_H
 
-#include "isr.h"
+#include "stdtype.h"
 
-#define SYSCALL_COUNT 128
-
+// Macros for system call codes, should always be synchronized with the kernel side
 #define SYSCALL_IDLE 0
 #define SYSCALL_MALLOC 1
 #define SYSCALL_REALLOC 2
@@ -29,26 +28,11 @@
 #define SYSCALL_GET_CMOS_DATA 20
 
 /**
- * Assigns system response functions to system call number
- * 
+ * Sends syscall to the kernel
+ * @attention   make sure to add a response in the kernel side if not already
+ *              eax should be filled with system call codes
+ *              the rest may be filled with function arguments
 */
-void enable_system_calls();
-
-/**
- * Call assigned response
- * 
- * @param r Sent register values
- * 
-*/
-void syscall_response(registers r);
-
-
-/**
- * 
- * Activate syscall interrupt and
- * Assign response functions into syscall codes 
- * 
-*/
-void activate_system_call();
+void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
 #endif

@@ -4,6 +4,11 @@
 
 //referensi https://wiki.osdev.org/CMOS
 
+/**
+ * Static struct to store time information from CMOS
+ * Reading should always be done to this variable
+ * 
+*/
 static cmos_reader cmos_data = {
     .century = 0,
     .second = 0,

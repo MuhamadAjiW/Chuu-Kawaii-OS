@@ -11,13 +11,11 @@
 #include "lib-header/fat32.h"
 #include "lib-header/disk.h"
 #include "lib-header/memory_manager.h"
-#include "lib-header/parser.h"
 #include "lib-header/graphics.h"
 #include "lib-header/cmos.h"
 #include "lib-header/paging.h"
 #include "lib-header/tss.h"
-
-#include "lib-header/shell.h"
+#include "lib-header/syscall.h"
 
 //debug purposes
 //uint32_t target[CLUSTER_SIZE/4] = {0};
@@ -40,10 +38,8 @@ void kernel_setup(void) {
     graphics_cursor_on();
     initialize_filesystem_fat32();
     
-    keyboard_state_activate();
     
-
-    /*
+    
     gdt_install_tss();
     set_tss_register();
 
@@ -51,7 +47,7 @@ void kernel_setup(void) {
 
     struct FAT32DriverRequest request = {
         .buf                   = (uint8_t*)0,
-        .name                  = "usersh",
+        .name                  = "sh",
         .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0x100000,
@@ -59,8 +55,12 @@ void kernel_setup(void) {
     load(request);
 
     set_tss_kernel_current_stack();
+    
+    enable_system_calls();
+
+    graphics_print_color("Hello from kernel\n", 84);
     kernel_execute_user_program((uint8_t*)0);
-    */
+    
     
     /*
     struct ClusterBuffer cbuf[5];
@@ -92,6 +92,7 @@ void kernel_setup(void) {
     write(request);  // Create fragmented file "daijoubu"
 
     memcpy(request.name, "kano2   ", 8);
+    request.parent_cluster_number = 6;
     write(request);
 
 
@@ -108,10 +109,9 @@ void kernel_setup(void) {
     request.buffer_size = 5*CLUSTER_SIZE;
     ClusterBuffer* reader = read(request);   // Success read on file "daijoubu"
     close(reader);
-    */
 
     
-    init_shell();
+    */
     while (TRUE);
 }
     /*

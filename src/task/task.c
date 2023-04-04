@@ -1,13 +1,13 @@
 #include "../lib-header/task.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/memory_manager.h"
-
+/*
 Task* current = 0;
 uint32_t process_counter = 0;
 uint8_t enabled = 0;
 
 Task* createProcess(char* processName, void* addr){
-    Task* process = (Task*) malloc(sizeof(Task));
+    Task* process = (Task*) kmalloc(sizeof(Task));
 
     memset(process, 0, sizeof(Task));
 
@@ -67,3 +67,4 @@ void initialize_tasking(){
 
     return;
 }
+*/

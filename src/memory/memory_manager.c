@@ -4,24 +4,19 @@
 #include "../lib-header/stdmem.h"
 #include "../lib-header/paging.h"
 
-uint32_t* kernel_dir;
-uint32_t* page_directory = 0;
-uint32_t* page_table_addr = 0;
-
-uint32_t last_alloc = 0;
-uint32_t heap_start = 0;
-uint32_t heap_end = 0;
+static uint32_t last_alloc = 0;
+static uint32_t heap_start = 0;
+static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
-
-extern struct PageDirectory _paging_kernel_page_directory;
 
 //heap
 void initialize_memory(){
     struct PageDirectoryEntryFlag flags ={
         .present_bit       = 1,
+        .user_supervisor   = 1,
         .write_bit         = 1,
-        .use_pagesize_4_mb = 1,
+        .use_pagesize_4_mb = 1
     };
     
     for (int i = 0; i < 4; i++)    {
@@ -39,7 +34,7 @@ void clean_memory(){
     last_alloc = heap_start;
 }
 
-void* malloc(uint32_t size){
+void* kmalloc(uint32_t size){
     void* memory = (void*) heap_start;
 
     if (size == 0){
@@ -84,37 +79,37 @@ void* malloc(uint32_t size){
         return 0;
     }
     else{
-        allocator* alloc = (allocator*) last_alloc;
-        alloc->status = 1;
-        alloc->size = size;
+        allocator* a = (allocator*) last_alloc;
+        a->status = 1;
+        a->size = size;
 
         last_alloc += size;
-        last_alloc += 2*sizeof(allocator);
-        memset((char*)((uint32_t)alloc + sizeof(allocator)), 0, size + sizeof(allocator));
+        last_alloc += sizeof(allocator);
+        memset((char*)((uint32_t)a + sizeof(allocator)), 0, size);
 
         dynamic_pointers++;
 
-        return (void*)((uint32_t)alloc + sizeof(allocator));
+        return (void*)((uint32_t)a + sizeof(allocator));
     }
 }
 
-void* realloc(void* ptr, uint32_t size){
+void* krealloc(void* ptr, uint32_t size){
     allocator* alloc = (allocator*)((uint32_t)ptr - sizeof(allocator));
     uint32_t oldsize = alloc->size;
 
-    void* newptr = malloc(size);
+    void* newptr = kmalloc(size);
 
     if (oldsize > size) memcpy(newptr, ptr, size);
     else memcpy(newptr, ptr, oldsize);
     
-    free(ptr);
+    kfree(ptr);
 
     return newptr;
 }
 
 
 
-void free(void* memory){
+void kfree(void* memory){
     allocator* alloc = (memory - sizeof(allocator));
     alloc->status = 0;
     uint32_t oldsize = alloc->size;
