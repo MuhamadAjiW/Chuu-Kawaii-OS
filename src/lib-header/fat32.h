@@ -4,6 +4,7 @@
 
 #include "stdtype.h"
 
+// Necessary filesystem related macros
 #define END_OF_FILE 0xfffffff8
 
 #define RESERVED_CLUSTER_NUMBER 0
@@ -127,7 +128,7 @@ static FAT32BootSector bootSector ={
 /**
  * Struct containing the value of bytes in a cluster
  * 
- * @param buf Array of each byte
+ * @param buf           Array of each byte
  */
 struct ClusterBuffer{
     uint8_t buf[CLUSTER_SIZE];
@@ -137,7 +138,7 @@ typedef struct ClusterBuffer ClusterBuffer;
 /**
  * Struct containing the FAT table
  * 
- * @param sector_next Array of next cluster location
+ * @param sector_next   Array of next cluster location
  */
 struct FAT32FileAllocationTable{
     uint32_t sector_next[CLUSTER_SIZE/4];
@@ -314,7 +315,7 @@ int cluster_to_lba(int clusters);
 
 
 /**
- * Create a fat directory entry in a directory cluster
+ * Deletes a fat directory entry in a directory cluster
  * 
  * @param request                   requested file
  * 
@@ -349,7 +350,7 @@ void write_clusters(void* writer, uint16_t cluster, uint16_t sector_count);
 
 /**
  * Read a file from a request
- *  Note: this function uses malloc, be sure to close the reader afterwards
+ * @warning                         this function uses malloc, be sure to close the reader afterwards
  * 
  * @param request                   requested file
  * 
@@ -359,7 +360,7 @@ FAT32FileReader read(FAT32DriverRequest request);
 
 /**
  * Read a folder from a request
- *  Note: this function uses malloc, be sure to close the reader afterwards
+ * @warning                         this function uses malloc, be sure to close the reader afterwards
  * 
  * @param request                   requested folder
  * 
@@ -369,7 +370,7 @@ FAT32DirectoryReader read_directory(FAT32DriverRequest request);
 
 /**
  * Reads a cluster as a folder without input handling
- *  Note: this function uses malloc, be sure to close the reader afterwards
+ * @warning                         this function uses malloc, be sure to close the reader afterwards
  * 
  * @param cluster_number            requested folder cluster number
  * 
@@ -379,7 +380,7 @@ FAT32DirectoryReader self_directory_info(uint32_t cluster_number);
 
 /**
  * Unallocates file reader buffer
- *  Note: this function is for allocated pointers, do not use on unallocated pointers
+ * @warning                         this function is for allocated pointers, do not use on unallocated pointers
  * 
  * @param pointer                   an allocated file reader pointer
  * 
@@ -388,7 +389,7 @@ void close_file(FAT32FileReader pointer);
 
 /**
  * Unallocates folder reader buffer
- *  Note: this function is for allocated pointers, do not use on unallocated pointers
+ * @warning                         this function is for allocated pointers, do not use on unallocated pointers
  * 
  * @param pointer                   an allocated folder reader pointer
  * 
@@ -397,11 +398,11 @@ void close_directory(FAT32DirectoryReader pointer);
 
 /**
  * Copies a requested file to a requested address
- *  Note: this function is referred to by the specification as the read function
- *        due to malloc being possible and the second milestone was done without the guidebook
- *        the read function in this operating system was modified to copy the file into heap memory
- *        this function was made to compensate for the missing functionalities of the original function
- *        Might cause some confusion here and there, sorry for the inconvenience.
+ * @details this function is referred to by the specification as the read function
+ *          due to malloc being possible and the second milestone was done without the guidebook
+ *          the read function in this operating system was modified to copy the file into heap memory
+ *          this function was made to compensate for the missing functionalities of the original function
+ *          Might cause some confusion here and there, sorry for the inconvenience.
  * 
  * @param request                   requested file
  *                                  request.buf is the requested buffer destination
@@ -430,8 +431,8 @@ uint32_t expand_folder(int cluster_number);
 
 /**
  * Updates file time modified data by inserting CMOS data
- *  Note: reading of CMOS is not done inside this function in case of a complex long running operation
- *        be sure to call read_cmos before updating file time
+ * @warning reading of CMOS is not done inside this function in case of a complex long running operation,
+ *          be sure to call read_cmos before updating file time
  * 
  * @param entry                     FAT entry to be updated
  * 

@@ -225,7 +225,7 @@ void graphics_scroll();
 
 /**
  * Assigns null terminated string with default colors at current cursor location to writable buffer
- *  Note: DO NOT USE ON NON-NULL-TERMINATED STRINGS
+ * @warning         Do not use on non-null-terminated strings
  * 
  * @param string    written string
  */
@@ -233,7 +233,7 @@ void graphics_print(char* string);
 
 /**
  * Writes null terminated string with user-defined colors at current cursor location
- *  Note: DO NOT USE ON NON-NULL-TERMINATED STRINGS
+ * @warning         Do not use on non-null-terminated strings
  * 
  * @param string    written string
  * @param color     index of color palette

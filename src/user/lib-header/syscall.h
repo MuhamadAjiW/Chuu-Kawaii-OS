@@ -4,6 +4,7 @@
 
 #include "stdtype.h"
 
+// Macros for system call codes, should always be synchronized with the kernel side
 #define SYSCALL_IDLE 0
 #define SYSCALL_MALLOC 1
 #define SYSCALL_REALLOC 2
@@ -26,6 +27,12 @@
 #define SYSCALL_CLOSE_DIR 19
 #define SYSCALL_GET_CMOS_DATA 20
 
+/**
+ * Sends syscall to the kernel
+ *  Note: make sure to add a response in the kernel side if not already
+ *        eax should be filled with system call codes
+ *        the rest may be filled with function arguments
+*/
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
 #endif

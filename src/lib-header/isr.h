@@ -30,10 +30,10 @@ typedef void (*InterruptService)(registers);
 
 /**
  *  Assign default interrupt response to interrupt number
- *    Note: only viable for interrupt number larger than 31 as 0-31 is reserved for exception and is handled manually
+ *  @warning            only viable for interrupt number larger than 31 as 0-31 is reserved for exception and is handled manually
  * 
- *  @param int_no interrupt number
- *  @param function function to be assigned
+ *  @param int_no       interrupt number
+ *  @param function     function to be assigned
  */
 void register_interrupt_handler(uint8_t int_no, InterruptService function);
 

@@ -5,10 +5,6 @@
 static char** parsed = (char**) 1;
 static int parsed_word_count = 1;
 
-void initialize_parser(){
-    parsed_word_count = 1;
-}
-
 // Kalo split jangan lupa clear, memory leak ntar
 void parser_clear(){
     if(parsed != 0){

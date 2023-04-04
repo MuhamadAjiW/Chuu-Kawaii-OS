@@ -4,6 +4,11 @@
 
 #include "stdtype.h"
 
+/**
+ * Struct to store time information
+ * Should be self explanatory
+ * 
+*/
 struct time
 {
     uint8_t century;
@@ -16,6 +21,11 @@ struct time
 };
 typedef struct time time;
 
+/**
+ * Get current time information
+ * 
+ * @return          current time
+*/
 time get_time();
 
 #endif
