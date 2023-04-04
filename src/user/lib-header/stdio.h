@@ -96,7 +96,9 @@ struct FAT32DriverRequest{
 typedef struct FAT32DriverRequest FAT32DriverRequest;
 
 void print(char* string);
+void print_color(char* string, uint8_t color);
 void print_char(char c);
+void print_char_color(char c, uint8_t color);
 char getc();
 
 FAT32FileReader readf(FAT32DriverRequest request);

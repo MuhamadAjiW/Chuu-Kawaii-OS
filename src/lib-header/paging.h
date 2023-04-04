@@ -12,8 +12,14 @@ extern struct PageDirectory _paging_kernel_page_directory;
 /**
  * Page Directory Entry Flag, only first 8 bit
  * 
- * @param present_bit       Indicate whether this entry is exist or not
- * ...
+ * @param present_bit           Indicate whether this entry is exist or not
+ * @param write_bit             Indicate whether this entry is writable or not
+ * @param user_supervisor       Indicate whether this entry is accessible for users
+ * @param write_through         Indicate whether this entry uses write through, if not, write-back is used
+ * @param cache_disable         Indicate whether this entry is cachable
+ * @param accessed              Indicate whether this entry has been accessed or not. This flag should only be set by the CPU
+ * @param dirty                 Indicate whether this entry has been written into. This flag should only be set by the CPU
+ * @param use_pagesize_4_mb     Indicate whether this entry is using 4mb page size
  */
 struct PageDirectoryEntryFlag {
     uint8_t present_bit        : 1;
@@ -24,7 +30,6 @@ struct PageDirectoryEntryFlag {
     uint8_t accessed           : 1;
     uint8_t dirty              : 1;
     uint8_t use_pagesize_4_mb  : 1;
-    // TODO : Continue. Note: Only first 8 bit flags
 } __attribute__((packed));
 
 /**
@@ -33,7 +38,11 @@ struct PageDirectoryEntryFlag {
  * 
  * @param flag            Contain 8-bit page directory entry flag
  * @param global_page     Is this page translation global (also cannot be flushed)
- * ...
+ * @param AVL             Free flags for programmers use
+ * @param PAT             Page Attribute Table flag, indicates memory caching type
+ * @param higher_address  39-32 bits of address, should be set to 0 for 32 bit operating systems  
+ * @param RSVD            Indicates whether a reserved bit was set in some page-structure entry
+ * @param lower_address   31-22 bits of paged address
  */
 struct PageDirectoryEntry {
     struct PageDirectoryEntryFlag flag;
@@ -43,7 +52,6 @@ struct PageDirectoryEntry {
     uint16_t higher_address : 8;
     uint16_t RSVD           : 1;
     uint16_t lower_address  : 10;
-    // TODO : Continue, Use uint16_t + bitfield here, Do not use uint8_t
 } __attribute__((packed));
 
 /**

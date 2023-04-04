@@ -7,6 +7,7 @@
 #define PSTATE_DONE 1
 #define PSTATE_DEAD 2
 
+//work in progress
 struct Task
 {
     char* name;

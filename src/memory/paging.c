@@ -41,7 +41,6 @@ int8_t allocate_single_user_page_frame(void *virtual_addr) {
     };
 
     update_page_directory_entry((void*)last_physical_addr, virtual_addr, flag);
-    // TODO : Allocate Page Directory Entry with user privilege
     
     return -1;
 }

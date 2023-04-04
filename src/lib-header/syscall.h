@@ -12,21 +12,43 @@
 #define SYSCALL_FREE 3
 #define SYSCALL_GET_KEYBOARD_LAST_KEY 4
 #define SYSCALL_PRINT_STR 5
-#define SYSCALL_PRINT_CHAR 6
-#define SYSCALL_CLEAR_SCREEN 7
-#define SYSCALL_MOVE_CURSOR 8
-#define SYSCALL_LIMIT_CURSOR 9
-#define SYSCALL_BACKSPACE 10
-#define SYSCALL_READ_FILE 11
-#define SYSCALL_READ_DIR 12
-#define SYSCALL_SELF_DIR_INFO 13
-#define SYSCALL_WRITE_FILE 14
-#define SYSCALL_DELETE_FILE 15
-#define SYSCALL_CLOSE_FILE 16
-#define SYSCALL_CLOSE_DIR 17
-#define SYSCALL_GET_CMOS_DATA 18
+#define SYSCALL_PRINT_STR_C 6
+#define SYSCALL_PRINT_CHAR 7
+#define SYSCALL_PRINT_CHAR_C 8
+#define SYSCALL_CLEAR_SCREEN 9
+#define SYSCALL_MOVE_CURSOR 10
+#define SYSCALL_LIMIT_CURSOR 11
+#define SYSCALL_BACKSPACE 12
+#define SYSCALL_READ_FILE 13
+#define SYSCALL_READ_DIR 14
+#define SYSCALL_SELF_DIR_INFO 15
+#define SYSCALL_WRITE_FILE 16
+#define SYSCALL_DELETE_FILE 17
+#define SYSCALL_CLOSE_FILE 18
+#define SYSCALL_CLOSE_DIR 19
+#define SYSCALL_GET_CMOS_DATA 20
 
+/**
+ * Assigns system response functions to system call number
+ * 
+*/
+void enable_system_calls();
+
+/**
+ * Call assigned response
+ * 
+ * @param r Sent register values
+ * 
+*/
 void syscall_response(registers r);
+
+
+/**
+ * 
+ * Activate syscall interrupt and
+ * Assign response functions into syscall codes 
+ * 
+*/
 void activate_system_call();
 
 #endif

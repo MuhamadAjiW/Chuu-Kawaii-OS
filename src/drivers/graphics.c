@@ -146,6 +146,7 @@ void initialize_vga(){
 uint8_t colLimit = SCREEN_WIDTH/BLOCK_WIDTH;
 uint8_t rowLimit = SCREEN_HEIGHT/BLOCK_HEIGHT;
 char screenMap[SCREEN_HEIGHT/BLOCK_HEIGHT][SCREEN_WIDTH/BLOCK_WIDTH] = {0};
+char screenMapColor[SCREEN_HEIGHT/BLOCK_HEIGHT][SCREEN_WIDTH/BLOCK_WIDTH] = {0};
 uint8_t backBuffer[320*200];
 
 void clear_graphics_memory(){
@@ -167,6 +168,7 @@ void graphics_clear_buffer(){
     for(int i = 0; i < rowLimit; i++){
         for(int j = 0; j < colLimit; j++){
             screenMap[i][j] = 0;
+            screenMapColor[i][j] = 0;
         }
     }
     graphics_clear();
@@ -269,10 +271,10 @@ void graphics_hide_cursor(){
 uint8_t graphics_get_cursor_status(){
     return cursor.status;
 }
-uint8_t get_cursor_x(){
+uint8_t graphics_get_cursor_x(){
     return cursor.x;
 }
-uint8_t get_cursor_y(){
+uint8_t graphics_get_cursor_y(){
     return cursor.y;
 }
 
@@ -356,6 +358,11 @@ void graphics_write_char_c(uint8_t x, uint8_t y, char c, uint8_t color){
 }
 
 void graphics_write_char(char c){
+    graphics_write_char_color(c, DEFAULT_COLOR_FG);
+    return;
+}
+
+void graphics_write_char_color(char c, uint8_t color){
     if(c != '\n'){
         if(cursor.x == colLimit && cursor.y == rowLimit-1){
             graphics_scroll();
@@ -366,9 +373,11 @@ void graphics_write_char(char c){
         uint16_t loc = cursor.y*colLimit + cursor.x;
         for(int i = end-1; i >= loc; i--){
             screenMap[0][i] = screenMap[0][i - 1];
+            screenMapColor[0][i] = screenMapColor[0][i-1];
         }
 
         screenMap[cursor.y][cursor.x] = c;
+        screenMap[cursor.y][cursor.x] = color;
         graphics_move_cursor(1);
         refresh_screen_buffer();
     }
@@ -381,10 +390,6 @@ void graphics_write_char(char c){
             graphics_set_cursor(0, cursor.y+1);
         }
     }
-    
-    
-
-
     return;
 }
 
@@ -394,7 +399,7 @@ void refresh_screen_buffer(){
     for(int i = 0; i < rowLimit; i++){
         for(int j = 0; j < colLimit; j++){
             if(screenMap[i][j] != 0){
-                graphics_write_char_c(j, i, screenMap[i][j], DEFAULT_COLOR_FG);
+                graphics_write_char_c(j, i, screenMap[i][j], screenMapColor[i][j]);
             }
         }
     }
@@ -406,11 +411,18 @@ void refresh_screen_buffer(){
 void graphics_scroll(){
     for(int i = 0; i < rowLimit-1; i++){
         memcpy(screenMap[i], screenMap[i+1], colLimit);
+        memcpy(screenMapColor[i], screenMapColor[i+1], colLimit);
     }
     memset(screenMap[rowLimit-1], 0, colLimit);
+    memset(screenMapColor[rowLimit-1], 0, colLimit);
 }
 
 void graphics_print(char* string){
+    graphics_print_color(string, DEFAULT_COLOR_FG);
+    return;
+}
+
+void graphics_print_color(char* string, uint8_t color){
     //kurang sangkil, masih bisa diimprove
     int i = 0;
     while (string[i] != 0){
@@ -424,9 +436,11 @@ void graphics_print(char* string){
             uint16_t loc = cursor.y*colLimit + cursor.x;
             for(int i = end-1; i >= loc; i--){
                 screenMap[0][i] = screenMap[0][i - 1];
+                screenMapColor[0][i] = screenMapColor[0][i - 1];
             }
 
             screenMap[cursor.y][cursor.x] = string[i];
+            screenMapColor[cursor.y][cursor.x] = color;
             graphics_move_cursor(1);
         }
         else{
@@ -453,8 +467,10 @@ bool graphics_backspace(){
         uint16_t loc = cursor.y*colLimit + cursor.x;
         for(int i = loc-1; i < end; i++){
             screenMap[0][i] = screenMap[0][i + 1];
+            screenMapColor[0][i] = screenMapColor[0][i + 1];
         }
         screenMap[0][end-1] = 0;
+        screenMapColor[0][end-1] = 0;
         success = 1;
     }
     else{

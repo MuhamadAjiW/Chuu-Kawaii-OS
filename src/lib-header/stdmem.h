@@ -26,6 +26,16 @@ void* memset(void *s, int c, uint32_t n);
  * @return Pointer dest
 */
 void* memcpy(void* restrict dest, const void* restrict src, uint32_t n);
+
+/**
+ * Like memcpy but backwards, might be useful in some occassion
+ * 
+ * @param dest Starting location for memory area to set
+ * @param src Pointer to source memory
+ * @param n Memory area size in byte 
+ * 
+ * @return Pointer dest
+*/
 void* memcpy_backwards(void* restrict dest, const void* restrict src, uint32_t n);
 
 /**

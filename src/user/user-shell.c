@@ -117,7 +117,7 @@ void evaluate_shell(){
 }
 
 int main(void){
-    char* hello = "hewwo you are in user mode 0W0\n";
+    char* hello = "hewwo you are in user mode UWU\n";
     print(hello);
 
     initialize_shell();
@@ -175,7 +175,7 @@ int main(void){
         
         else if(buf[0] >= 32 && buf[0] <= 126){
             append_shell(buf[0]);
-            print(buf);
+            print_color(buf, 84);
         }
     }
     

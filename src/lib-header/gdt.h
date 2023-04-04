@@ -7,6 +7,8 @@
 
 extern struct GDTR _gdt_gdtr;
 
+//further reading: https://wiki.osdev.org/GDT_Tutorial
+
 /**
  * Segment Descriptor storing system segment information.
  * Struct defined exactly as Intel Manual Segment Descriptor definition (Figure 3-8 Segment Descriptor).

@@ -1,4 +1,7 @@
 /*
+
+//obsolete, superceded with user-shell
+
 #ifndef _PARSER_H
 #define _PARSER_H
 

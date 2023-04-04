@@ -11,6 +11,13 @@ void print_char(char c){
     syscall(SYSCALL_PRINT_CHAR, (uint32_t) c, 0, 0);
 }
 
+void print_color(char* string, uint8_t color){
+    syscall(SYSCALL_PRINT_STR_C, (uint32_t) string, (uint32_t) color, 0);
+}
+void print_char_color(char c, uint8_t color){
+    syscall(SYSCALL_PRINT_CHAR_C, (uint32_t) c, (uint32_t) color, 0);
+}
+
 char getc(){
     char c;
     syscall(SYSCALL_GET_KEYBOARD_LAST_KEY, (uint32_t) &c, 0, 0);

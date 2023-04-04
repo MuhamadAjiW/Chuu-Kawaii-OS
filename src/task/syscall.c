@@ -42,6 +42,14 @@ void sys_print_str(registers r){
 void sys_print_char(registers r){
     graphics_write_char((char) r.ebx);
 }
+
+void sys_print_str_color(registers r){
+    graphics_print_color((char*) r.ebx, (uint8_t) (r.ecx & 0xff));
+}
+void sys_print_char_color(registers r){
+    graphics_write_char_color((char) r.ebx, (uint8_t) (r.ecx & 0xff));
+}
+
 void sys_move_cursor(registers r){
     *(uint8_t*)r.ecx = graphics_move_cursor(r.ebx);
 }
@@ -52,7 +60,7 @@ void sys_graphics_clear(){
     graphics_clear_buffer();
 }
 void sys_graphics_limit_cursor(){
-    graphics_set_limit(get_cursor_x(), get_cursor_y());
+    graphics_set_limit(graphics_get_cursor_x(), graphics_get_cursor_y());
 }
 
 //TODO: assert stability
@@ -95,7 +103,9 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_FREE, sys_free);
     register_syscall_response(SYSCALL_GET_KEYBOARD_LAST_KEY, sys_get_last_key);
     register_syscall_response(SYSCALL_PRINT_STR, sys_print_str);
+    register_syscall_response(SYSCALL_PRINT_STR_C, sys_print_str_color);
     register_syscall_response(SYSCALL_PRINT_CHAR, sys_print_char);
+    register_syscall_response(SYSCALL_PRINT_CHAR_C, sys_print_char_color);
     register_syscall_response(SYSCALL_CLEAR_SCREEN, sys_graphics_clear);
     register_syscall_response(SYSCALL_MOVE_CURSOR, sys_move_cursor);
     register_syscall_response(SYSCALL_LIMIT_CURSOR, sys_graphics_limit_cursor);

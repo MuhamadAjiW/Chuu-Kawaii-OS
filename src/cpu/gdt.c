@@ -73,7 +73,7 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .G = 1,
             .base_high = 0,
         },
-        {
+        {//tss
             .segment_low       = sizeof(struct TSSEntry),
             .base_low          = 0,
             .base_mid          = 0,
