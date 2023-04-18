@@ -43,6 +43,9 @@ uint8_t is_entry_empty(DirectoryEntry in);
  */
 FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster);
 
+//TODO: Document
+void animation();
+
 /**
  * Prints information of current cluster
  * 

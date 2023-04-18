@@ -74,6 +74,12 @@ typedef struct cursor_t cursor_t;
  */
 void initialize_vga();
 
+
+//TODO: Document
+void clear_graphics_memory();
+void graphics_display_animation();
+void graphics_user_animation(int framecode);
+
 /**
  * Overwrites every pixel with current given background image
  * 

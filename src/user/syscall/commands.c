@@ -34,6 +34,27 @@ FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster){
     return retval;
 }
 
+
+void delay(uint32_t ms){
+    uint32_t currentTick = 0;
+    uint32_t cachedTick = 0;
+    syscall(SYSCALL_GETTICK, (uint32_t) &currentTick, 0, 0);
+    cachedTick = currentTick + ms;
+
+    while (currentTick < cachedTick){
+        syscall(SYSCALL_GETTICK, (uint32_t) &currentTick, 0, 0);
+    }
+}
+
+#define ANIM_FRAMECOUNT 29
+void animation(){
+    for (uint8_t i = 0; i < ANIM_FRAMECOUNT; i++)
+    {
+        syscall(SYSCALL_ANIMATION, i, 0, 0);
+        delay(100);
+    }
+}
+
 void dir(uint32_t currentCluster){
     FAT32DirectoryReader directory_reader;
 

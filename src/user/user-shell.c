@@ -104,6 +104,9 @@ void evaluate_shell(){
         if(strcmp(get_parsed_result()[0], "clear") == 0){
             clear();
         }
+        else if(strcmp(get_parsed_result()[0], "chuu") == 0){
+            animation();
+        }
         else if(strcmp(get_parsed_result()[0], "dir") == 0){
             dir(currentCluster);
         }

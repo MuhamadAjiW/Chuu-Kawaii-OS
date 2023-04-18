@@ -20,12 +20,12 @@ void initialize_memory(){
     };
     
     for (int i = 0; i < 4; i++)    {
-        update_page_directory_entry((void *)(0x800000 + (i*0x400000)), (void *)(0xc0400000 + (i*0x400000)), flags);
+        update_page_directory_entry((void *)(0xc00000 + (i*0x400000)), (void *)(0xc0800000 + (i*0x400000)), flags);
     }
 
-    last_alloc = 0xc0400000; //start alignment
+    last_alloc = 0xc0800000; //start alignment
     heap_start = last_alloc;
-    heap_end = 0xc1400000; // 16mb heap
+    heap_end = 0xc1800000; // 16mb heap
     memset((char*) heap_start, 0, heap_end - heap_start);
 }
 

@@ -10,6 +10,7 @@
 #include "../lib-header/keyboard.h"
 #include "../lib-header/cmos.h"
 #include "../lib-header/fat32.h"
+#include "../lib-header/pit.h"
 
 
 InterruptService syscall_handler[SYSCALL_COUNT];
@@ -92,6 +93,12 @@ void sys_close_directory(registers r){
 void sys_get_cmos_data(registers r){
     *((cmos_reader*) r.ebx) = get_cmos_data();
 }
+void sys_play_animation(registers r){
+    graphics_user_animation(r.ebx);
+}
+void sys_get_timer_tick(registers r){
+    *(uint32_t*)r.ebx = get_tick();
+}
 
 
 void enable_system_calls(){
@@ -118,6 +125,8 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_WRITE_FILE, sys_write);
     register_syscall_response(SYSCALL_DELETE_FILE, sys_delete);
     register_syscall_response(SYSCALL_GET_CMOS_DATA, sys_get_cmos_data);
+    register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
+    register_syscall_response(SYSCALL_GETTICK, sys_get_timer_tick);
 }
 
 void syscall_response(registers r) {

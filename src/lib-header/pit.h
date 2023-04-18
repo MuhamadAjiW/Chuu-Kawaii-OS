@@ -3,7 +3,7 @@
 
 #include "stdtype.h"
 
-#define DEFAULT_FREQUENCY 20
+#define DEFAULT_FREQUENCY 1000          //every ms so it is easily translateable to other time units
 
 /**
  *  Call assigned interrupt response
