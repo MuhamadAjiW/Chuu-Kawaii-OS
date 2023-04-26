@@ -100,6 +100,11 @@ void sys_get_timer_tick(registers r){
     *(uint32_t*)r.ebx = get_tick();
 }
 
+void sys_mkdir(registers r){
+    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
+    *((int8_t*) r.ecx) = write(request);
+}
+
 
 void enable_system_calls(){
     register_interrupt_handler(0x30, syscall_response);
@@ -127,9 +132,12 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_GET_CMOS_DATA, sys_get_cmos_data);
     register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
     register_syscall_response(SYSCALL_GETTICK, sys_get_timer_tick);
+    register_syscall_response(SYSCALL_MKDIR, sys_mkdir);
+
 }
 
 void syscall_response(registers r) {
     InterruptService handler = syscall_handler[r.eax];
     handler(r);
 }
+

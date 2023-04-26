@@ -28,7 +28,7 @@
 #define SYSCALL_CLOSE_DIR 20
 #define SYSCALL_GET_CMOS_DATA 21
 #define SYSCALL_GETTICK 22
-
+#define SYSCALL_MKDIR 23
 /**
  * Sends syscall to the kernel
  * @attention   make sure to add a response in the kernel side if not already

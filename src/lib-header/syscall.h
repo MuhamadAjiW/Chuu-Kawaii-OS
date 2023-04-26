@@ -30,7 +30,7 @@
 #define SYSCALL_CLOSE_DIR 20
 #define SYSCALL_GET_CMOS_DATA 21
 #define SYSCALL_GETTICK 22
-
+#define SYSCALL_MKDIR 23
 /**
  * Assigns system response functions to system call number
  * 

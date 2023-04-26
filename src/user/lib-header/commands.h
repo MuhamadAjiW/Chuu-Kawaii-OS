@@ -58,4 +58,8 @@ void dir(uint32_t currentCluster);
  */
 void clear();
 
+/**
+ * Creates new folder
+ */
+void mkdir(char *dirname, uint32_t currentCluster);
 #endif

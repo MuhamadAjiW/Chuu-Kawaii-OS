@@ -111,7 +111,11 @@ void evaluate_shell(){
             dir(currentCluster);
         }
         //TODO: lengkapin command
-
+        else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
+            // Call the mkdir function here and pass the necessary arguments
+            mkdir(get_parsed_result()[1], currentCluster);
+        }  
+        
         else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);

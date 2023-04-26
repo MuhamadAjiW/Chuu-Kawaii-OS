@@ -130,6 +130,18 @@ void dir(uint32_t currentCluster){
 
     closef_dir(directory_reader);
 }
+void mkdir(char *dirname, uint32_t currentCluster){
+    uint8_t success = 0;
+    syscall(SYSCALL_MKDIR, (uint32_t) dirname, (uint32_t) &success, currentCluster);
+
+    if(success){
+        print("\nDirectory created successfully.");
+    }
+    else{
+        print("\nFailed to create directory.");
+    }
+}
+
 
 void clear(){
     syscall(SYSCALL_CLEAR_SCREEN, 0, 0, 0);
