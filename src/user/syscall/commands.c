@@ -132,7 +132,18 @@ void dir(uint32_t currentCluster){
 }
 void mkdir(char *dirname, uint32_t currentCluster){
     uint8_t success = 0;
-    syscall(SYSCALL_MKDIR, (uint32_t) dirname, (uint32_t) &success, currentCluster);
+    FAT32DriverRequest req;
+    req.name[0] = dirname[0];
+    req.name[1] = dirname[1];
+    req.name[2] = dirname[2];
+    req.name[3] = dirname[3];
+    req.name[4] = dirname[4];
+    req.name[5] = dirname[5];
+    req.name[6] = dirname[6];
+    req.name[7] = dirname[7];
+
+    req.parent_cluster_number = currentCluster;
+    syscall(SYSCALL_WRITE_FILE, (uint32_t) &req, (uint32_t) &success, currentCluster);
 
     if(success){
         print("\nDirectory created successfully.");
