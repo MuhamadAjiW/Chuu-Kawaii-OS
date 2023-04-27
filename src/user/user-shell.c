@@ -142,15 +142,17 @@ void evaluate_shell(){
         }
         else if(strcmp(get_parsed_result()[0], "cat") == 0){
             if (get_parsed_word_count() == 1){
-                print("\ngmn caranya ngeprint ulang");
-                // 
-            // }
-            // else if (is_filepath_v;alid(get_parsed_result()[1])){
-                // cat();
+                // masuk state mini program
+            } else if (is_filepath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                cat(current_dir.cluster_number);
+            } else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                print("\ncat: ");
+                print(get_parsed_result()[1]);
+                print(": Is a directory\n");
             } else {
                 print("\ncat: ");
                 print(get_parsed_result()[1]);
-                print(": No such file or directory\n");
+                print(": No such file\n");
             }
         }
         else if (strcmp(get_parsed_result()[0], "rm") == 0) {
@@ -178,17 +180,17 @@ int main(void){
 
     struct FAT32DriverRequest request = {
         .buf                   = cbuf,
-        .name                  = "contoh",
+        .name                  = "ikanaide",
         .ext                   = "uwu",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0,
     } ;
 
     writef(request);  // Create folder "ikanaide"
-    //deletef(request); // Delete first folder, thus creating hole in FS
+    deletef(request); // Delete first folder, thus creating hole in FS
     
     request.buffer_size = 5*CLUSTER_SIZE;
-    //writef(request);  // Create fragmented file "daijoubu"
+    writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {
@@ -232,3 +234,4 @@ int main(void){
     
     return 0;
 }
+

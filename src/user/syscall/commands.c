@@ -162,7 +162,9 @@ void rm(int currentCluster) {
 
     if (length >= 2) {
         if (is_directorypath_valid(get_parsed_result()[length - 1], currentCluster)) {
-            if (strcmp(get_parsed_result()[1],"-r") != 0) { // flag -r selalu di tengah
+            // TODO: check dir kosong / ngga
+            uint8_t isEmptyDir = 0; 
+            if (strcmp(get_parsed_result()[1],"-r") != 0 && !isEmptyDir) { // flag -r selalu di tengah
                 print("\nrm: cannot remove '");
                 print(get_parsed_result()[length - 1]);
                 print("': Is a directory");
@@ -174,5 +176,23 @@ void rm(int currentCluster) {
         } else {
             print("\nrm: Invalid command");
         }
+    } else {
+        print("\nrm: Invalid command");
     }
 }
+
+// void cp(int currentCluster) {
+
+// }
+
+void cat(int currentCluster) {
+    // prekondisi: path sudah valid, dan adalah path ke file
+    
+    FAT32FileReader result = readf(path_to_file_request(get_parsed_result()[get_parsed_path_word_count() - 1], currentCluster));
+    print("\n");
+    for (int i = 0; i < (int) result.cluster_count; i++) {
+        for (int j = 0; j < CLUSTER_SIZE; j++) {
+            print_char((char) result.content[i].buf[j]);
+        }
+    }
+} 

@@ -10,8 +10,7 @@ int memcmpr(const void *s1, const void *s2, uint32_t n) {
         }
         else if (buf1[i] > buf2[i]){
             return 1;
-        }
-            
+        }       
     }
 
     return 0;
