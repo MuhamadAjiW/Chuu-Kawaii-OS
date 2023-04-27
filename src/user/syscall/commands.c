@@ -7,77 +7,14 @@
 #include "../lib-header/stdlib.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/syscall.h"
+#include "../lib-header/commands-util.h"
 
 #include "../lib-header/parserpath.h"
+#include "../lib-header/parser.h"
+#include "../lib-header/user-shell.h"
+#include "../lib-header/commands-util.h"
 
-uint8_t move_cursor(int direction){
-    uint8_t success = 0;
-    syscall(SYSCALL_MOVE_CURSOR, (uint32_t) direction, (uint32_t) &success, 0);
-    return success;
-}
-
-uint8_t backspace(){
-    uint8_t success = 0;
-    syscall(SYSCALL_BACKSPACE, (uint32_t) &success, 0, 0);
-    return success;
-}
-
-
-uint8_t is_entry_empty(DirectoryEntry in){
-    char* checker = (char*) &in;
-    for(uint32_t i = 0; i < sizeof(DirectoryEntry); i++){
-        if(checker[i] != 0) return 0;
-    }
-    return 1;
-}
-
-uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table = {0};
-    parse_path(pathname);
-    uint8_t counter = 0;
-    uint8_t isFound = 0;
-    
-
-    if (strcmp(get_parsed_path_result()[0], "root") == 0){
-        current_cluster = 2;
-        counter = 1;
-    } 
-
-    for(int j = counter; j < get_parsed_path_word_count(); j++){
-        isFound = 0;
-        do {
-            readcluster((void*)reader, current_cluster, 1);
-            table = asdirectory(reader);
-            for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
-                    // print("\n");
-                    // print(table.entry[i].filename);
-                    if (isdirectory(table.entry[i].cluster_number)){
-                        current_cluster = table.entry[i].cluster_number;
-                        isFound = 1;
-                        print("\nfound!");
-                        break;
-                    }
-                }
-                }
-            
-            readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
-            current_cluster = reader[current_cluster];
-
-        } while (current_cluster != END_OF_FILE && isFound == 0);
-    }
-
-    parser_path_clear();
-    return isFound;
-}
-
-FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster){
-    FAT32DirectoryReader retval;
-    syscall(SYSCALL_SELF_DIR_INFO, current_cluster, (uint32_t) &retval, 0);
-    return retval;
-}
-
+#define ANIM_FRAMECOUNT 29
 
 void delay(uint32_t ms){
     uint32_t currentTick = 0;
@@ -90,7 +27,6 @@ void delay(uint32_t ms){
     }
 }
 
-#define ANIM_FRAMECOUNT 29
 void animation(){
     for (uint8_t i = 0; i < ANIM_FRAMECOUNT; i++)
     {
@@ -213,39 +149,30 @@ void ls(uint32_t currentCluster){
     }
 }
 
-uint32_t cd(char* pathname, uint32_t current_cluster){
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table = {0};
-    parse_path(pathname);
-    uint8_t counter = 0;
-    uint8_t isFound = 0;
+directory_info cd(char* pathname, directory_info current_dir){
+    directory_info new_dir = {
+        .cluster_number = path_to_cluster(pathname, current_dir.cluster_number)
+    };
+    memcopy(new_dir.directory_path, pathname, 255);
+    return new_dir;
+}
 
-    if (strcmp(get_parsed_path_result()[0], "root") == 0){
-        current_cluster = 2;
-        counter = 1;
-    } 
+void rm(int currentCluster) {
+    int length = get_parsed_word_count();
 
-    for(int j = counter; j < get_parsed_path_word_count(); j++){
-        isFound = 0;
-        do {
-            readcluster((void*)reader, current_cluster, 1);
-            table = asdirectory(reader);
-            for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0) &&
-                    (isdirectory((uint32_t) &table.entry[i].cluster_number))){
-                        current_cluster = (uint32_t) &table.entry[i].cluster_number;
-                        isFound = 1;
-                        break;
-                }
+    if (length >= 2) {
+        if (is_directorypath_valid(get_parsed_result()[length - 1], currentCluster)) {
+            if (strcmp(get_parsed_result()[1],"-r") != 0) { // flag -r selalu di tengah
+                print("\nrm: cannot remove '");
+                print(get_parsed_result()[length - 1]);
+                print("': Is a directory");
+            } else {
+                deletef(path_to_dir_request(get_parsed_result()[length - 1], currentCluster));
             }
-            if (!isFound){
-                readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
-                current_cluster = reader[current_cluster];
-            }
-
-        } while (current_cluster != END_OF_FILE && isFound == 0);
+        } else if (is_filepath_valid(get_parsed_result()[length - 1], currentCluster)) {
+            deletef(path_to_file_request(get_parsed_result()[length - 1], currentCluster));
+        } else {
+            print("\nrm: Invalid command");
+        }
     }
-
-    parser_path_clear();
-    return current_cluster;
 }

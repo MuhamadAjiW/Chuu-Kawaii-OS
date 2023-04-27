@@ -15,5 +15,16 @@
 */
 int memcmpr(const void *s1, const void *s2, uint32_t n);
 
+/**
+ * C standard memcpy, check man memcpy or
+ * https://man7.org/linux/man-pages/man3/memcpy.3.html for more details
+ * 
+ * @param dest Starting location for memory area to set
+ * @param src Pointer to source memory
+ * @param n Memory area size in byte 
+ * 
+ * @return Pointer dest
+*/
+void* memcopy(void* restrict dest, const void* restrict src, uint32_t n);
 
 #endif

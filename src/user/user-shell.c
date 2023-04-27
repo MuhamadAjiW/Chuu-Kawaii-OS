@@ -5,6 +5,7 @@
 #include "lib-header/stdio.h"
 #include "lib-header/string.h"
 #include "lib-header/commands.h"
+#include "lib-header/commands-util.h"
 
 #include "lib-header/parser.h"
 
@@ -13,6 +14,11 @@ static shell_reader shell = {
     .buffersize = INPUT_BUFFER_SIZE,
     .maxIdx = 0,
     .currentIdx = 0
+};
+
+static directory_info current_dir = {
+    .directory_path = " ",
+    .cluster_number = 2
 };
 
 void initialize_shell(){
@@ -84,7 +90,9 @@ char* get_keyboard_buffer(){
 }
 
 void newline_shell(){
-    print("\n    >> ");
+    print("\n");
+    print(current_dir.directory_path);
+    print(" >> ");
     syscall(SYSCALL_LIMIT_CURSOR, 0, 0, 0);
     return;
 }
@@ -112,7 +120,7 @@ void evaluate_shell(){
                 print("\nnow you're on root!");
             }
             else if (is_directorypath_valid(get_parsed_result()[1], currentCluster)){
-                currentCluster = cd(get_parsed_result()[1], currentCluster);
+                current_dir = cd(get_parsed_result()[1], current_dir);
             } else {
                 print("\ncd: no such file or directory: ");
                 print(get_parsed_result()[1]);
@@ -124,27 +132,28 @@ void evaluate_shell(){
                 ls(currentCluster);
             }
             else if (is_directorypath_valid(get_parsed_result()[1], currentCluster)){
-                ls(cd(get_parsed_result()[1], currentCluster));
+                ls(path_to_cluster(get_parsed_result()[1], currentCluster));
             } else {
                 print("\nls: ");
                 print(get_parsed_result()[1]);
                 print(": No such file or directory\n");
-            }
-                        
+            }  
         }
         else if(strcmp(get_parsed_result()[0], "cat") == 0){
             if (get_parsed_word_count() == 1){
                 print("\ngmn caranya ngeprint ulang");
                 // 
             // }
-            // else if (is_filepath_valid(get_parsed_result()[1])){
+            // else if (is_filepath_v;alid(get_parsed_result()[1])){
                 // cat();
             } else {
                 print("\ncat: ");
                 print(get_parsed_result()[1]);
                 print(": No such file or directory\n");
             }
-
+        }
+        else if (strcmp(get_parsed_result()[0], "rm") == 0) {
+            rm(currentCluster);
         } else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);
@@ -168,17 +177,17 @@ int main(void){
 
     struct FAT32DriverRequest request = {
         .buf                   = cbuf,
-        .name                  = "ikanaide",
+        .name                  = "contoh",
         .ext                   = "uwu",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0,
     } ;
 
     writef(request);  // Create folder "ikanaide"
-    deletef(request); // Delete first folder, thus creating hole in FS
+    //deletef(request); // Delete first folder, thus creating hole in FS
     
     request.buffer_size = 5*CLUSTER_SIZE;
-    writef(request);  // Create fragmented file "daijoubu"
+    //writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {
