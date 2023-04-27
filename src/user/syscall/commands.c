@@ -187,9 +187,19 @@ void rm(int currentCluster) {
 
 void cat(int currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
-    
-    FAT32FileReader result = readf(path_to_file_request(get_parsed_result()[get_parsed_path_word_count() - 1], currentCluster));
+    FAT32DriverRequest req = path_to_file_request(get_parsed_result()[get_parsed_path_word_count() - 1], currentCluster);
     print("\n");
+    print(req.name);
+    print(req.ext);
+    char cluster[10];
+    int_toString(req.parent_cluster_number, cluster);
+    print(cluster);
+    
+    FAT32FileReader result = readf(req);
+    
+    char testing[10];
+    int_toString((int)result.cluster_count, testing);
+    print(testing);
     for (int i = 0; i < (int) result.cluster_count; i++) {
         for (int j = 0; j < CLUSTER_SIZE; j++) {
             print_char((char) result.content[i].buf[j]);
