@@ -3,6 +3,7 @@
 #include "lib-header/syscall.h"
 #include "lib-header/stdlib.h"
 #include "lib-header/stdio.h"
+#include "lib-header/stdmem.h"
 #include "lib-header/string.h"
 #include "lib-header/commands.h"
 #include "lib-header/commands-util.h"
@@ -40,7 +41,6 @@ void clear_shell(){
     shell.currentIdx = 0;
     shell.maxIdx = 0;
 }
-
 
 void append_shell(char in){
     if(shell.maxIdx < shell.buffersize - 1){
@@ -99,7 +99,7 @@ void newline_shell(){
 
 
 
-uint32_t currentCluster = 2;
+// uint32_t currentCluster = 2;
 
 void evaluate_shell(){
     parse(shell.keyboard_buffer);
@@ -112,14 +112,15 @@ void evaluate_shell(){
             animation();
         }
         else if(strcmp(get_parsed_result()[0], "dir") == 0){
-            dir(currentCluster);
+            dir(current_dir.cluster_number);
         }
         else if(strcmp(get_parsed_result()[0], "cd") == 0){
             if (get_parsed_word_count() == 1){
-                currentCluster = 2;
+                current_dir.cluster_number = 2;
+                memcopy(current_dir.directory_path, " ", 255);
                 print("\nnow you're on root!");
             }
-            else if (is_directorypath_valid(get_parsed_result()[1], currentCluster)){
+            else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
                 current_dir = cd(get_parsed_result()[1], current_dir);
             } else {
                 print("\ncd: no such file or directory: ");
@@ -129,10 +130,10 @@ void evaluate_shell(){
         }
         else if(strcmp(get_parsed_result()[0], "ls") == 0){
             if (get_parsed_word_count() == 1){
-                ls(currentCluster);
+                ls(current_dir.cluster_number);
             }
-            else if (is_directorypath_valid(get_parsed_result()[1], currentCluster)){
-                ls(path_to_cluster(get_parsed_result()[1], currentCluster));
+            else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                ls(path_to_cluster(get_parsed_result()[1], current_dir.cluster_number));
             } else {
                 print("\nls: ");
                 print(get_parsed_result()[1]);
@@ -153,7 +154,7 @@ void evaluate_shell(){
             }
         }
         else if (strcmp(get_parsed_result()[0], "rm") == 0) {
-            rm(currentCluster);
+            rm(current_dir.cluster_number);
         } else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);
