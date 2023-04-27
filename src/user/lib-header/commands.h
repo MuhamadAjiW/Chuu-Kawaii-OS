@@ -34,6 +34,17 @@ uint8_t backspace();
 uint8_t is_entry_empty(DirectoryEntry in);
 
 /**
+ * Check if the path is valid
+ * 
+ * @param pathname          Pathname to be checked
+ * @param current_cluster   The cluster that it is on
+ * 
+ * @return      If in is empty, returns 1. 0 otherwise
+ */
+uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster);
+
+
+/**
  * Reads current cluster as a folder
  * @warning                         this function uses malloc, be sure to close the reader afterwards
  * 
@@ -57,5 +68,24 @@ void dir(uint32_t currentCluster);
  * Clears screen and reader
  */
 void clear();
+
+
+/**
+ * Prints information of current cluster
+ * 
+ * @param clusterCluster            current folder cluster number
+ */
+void ls(uint32_t currentCluster);
+
+/**
+ * Move directory
+ * 
+ * @param pathname          Pathname to be checked
+ * @param current_cluster   The cluster that it is on
+ * 
+ * @return      If in is empty, returns 1. 0 otherwise
+ */
+uint32_t cd(char* pathname, uint32_t current_cluster);
+
 
 #endif

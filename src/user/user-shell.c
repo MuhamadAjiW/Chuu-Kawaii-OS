@@ -91,15 +91,11 @@ void newline_shell(){
 
 
 
-
-
-
-
-
 uint32_t currentCluster = 2;
 
 void evaluate_shell(){
     parse(shell.keyboard_buffer);
+    // parse_path(shell.keyboard_buffer);
     if (get_parsed_word_count() > 0){
         if(strcmp(get_parsed_result()[0], "clear") == 0){
             clear();
@@ -110,15 +106,53 @@ void evaluate_shell(){
         else if(strcmp(get_parsed_result()[0], "dir") == 0){
             dir(currentCluster);
         }
-        //TODO: lengkapin command
+        else if(strcmp(get_parsed_result()[0], "cd") == 0){
+            if (get_parsed_word_count() == 1){
+                currentCluster = 2;
+                print("\nnow you're on root!");
+            }
+            else if (is_directorypath_valid(get_parsed_result()[1], currentCluster)){
+                currentCluster = cd(get_parsed_result()[1], currentCluster);
+            } else {
+                print("\ncd: no such file or directory: ");
+                print(get_parsed_result()[1]);
+                print("\n");
+            }
+        }
+        else if(strcmp(get_parsed_result()[0], "ls") == 0){
+            if (get_parsed_word_count() == 1){
+                ls(currentCluster);
+            }
+            else if (is_directorypath_valid(get_parsed_result()[1], currentCluster)){
+                ls(cd(get_parsed_result()[1], currentCluster));
+            } else {
+                print("\nls: ");
+                print(get_parsed_result()[1]);
+                print(": No such file or directory\n");
+            }
+                        
+        }
+        else if(strcmp(get_parsed_result()[0], "cat") == 0){
+            if (get_parsed_word_count() == 1){
+                print("\ngmn caranya ngeprint ulang");
+                // 
+            // }
+            // else if (is_filepath_valid(get_parsed_result()[1])){
+                // cat();
+            } else {
+                print("\ncat: ");
+                print(get_parsed_result()[1]);
+                print(": No such file or directory\n");
+            }
 
-        else{
+        } else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);
             print("\n");
         }
     }    
-    parser_clear();    
+    parser_clear(); 
+    
 }
 
 int main(void){

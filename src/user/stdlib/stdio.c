@@ -56,3 +56,18 @@ uint8_t deletef(FAT32DriverRequest request){
     return status;
 }
 
+void readcluster(void* target, uint16_t cluster, uint16_t sector_count){
+    syscall(SYSCALL_READ_CLUSTERS, (uint32_t) target, cluster, (uint32_t) sector_count);
+}
+
+DirectoryTable asdirectory(uint32_t* reader){
+    DirectoryTable table;
+    syscall(SYSCALL_AS_DIRECTORY, (uint32_t) reader, (uint32_t) &table, 0);
+    return table;
+}
+
+uint8_t isdirectory(uint32_t cluster){
+    uint8_t isTrue;
+    syscall(SYSCALL_IS_DIRECTORY, (uint32_t) cluster, (uint32_t) &isTrue, 0);
+    return isTrue;
+}

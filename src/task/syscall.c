@@ -100,6 +100,17 @@ void sys_get_timer_tick(registers r){
     *(uint32_t*)r.ebx = get_tick();
 }
 
+void sys_read_clusters(registers r){
+   read_clusters((void*) r.ebx, (uint16_t) r.ecx, (uint16_t) r.edx);
+}
+
+void sys_as_directory(registers r){
+   *((DirectoryTable*) r.ecx) = as_directory((uint32_t*) r.ebx);
+}
+
+void sys_is_directory(registers r){
+   *((uint8_t*) r.ecx) = is_directory((uint32_t)r.ebx);
+}
 
 void enable_system_calls(){
     register_interrupt_handler(0x30, syscall_response);
@@ -127,6 +138,9 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_GET_CMOS_DATA, sys_get_cmos_data);
     register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
     register_syscall_response(SYSCALL_GETTICK, sys_get_timer_tick);
+    register_syscall_response(SYSCALL_READ_CLUSTERS, sys_read_clusters);
+    register_syscall_response(SYSCALL_AS_DIRECTORY, sys_as_directory);
+    register_syscall_response(SYSCALL_IS_DIRECTORY, sys_is_directory);
 }
 
 void syscall_response(registers r) {
