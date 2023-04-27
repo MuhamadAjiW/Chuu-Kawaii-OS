@@ -115,7 +115,18 @@ void evaluate_shell(){
             // Call the mkdir function here and pass the necessary arguments
             mkdir(get_parsed_result()[1], currentCluster);
         }  
-        
+        else if(strcmp(get_parsed_result()[0], "whereis") == 0){
+            FAT32DriverRequest result_array[100];
+            uint16_t result_count = 100;
+            whereis(currentCluster, result_array, &result_count);
+            for(int i = 0; i < 100; i++){
+                print(result_array[i].name);
+                // print(".");
+                print(result_array[i].ext);
+                // print("\n");
+            }
+        } 
+        // check result array
         else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);

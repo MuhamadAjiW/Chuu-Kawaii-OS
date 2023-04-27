@@ -1,6 +1,6 @@
 
 #include "../lib-header/commands.h"
-
+#include "../lib-header/stdmem.h"
 #include "../lib-header/stdio.h"
 #include "../lib-header/string.h"
 #include "../lib-header/time.h"
@@ -152,6 +152,45 @@ void mkdir(char *dirname, uint32_t currentCluster){
         print("\nFailed to create directory.");
     }
 }
+
+DirectoryEntry emptyEntry = {0};
+
+void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count){
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    uint16_t count = 0;
+    uint16_t sector_count = 1;
+    uint32_t current_cluster = cluster_number;
+    DirectoryTable table;  // declare the table variable
+    do{
+        syscall(SYSCALL_READ_CLUSTERS, (uint32_t) reader, (uint32_t) &current_cluster, (uint32_t) &sector_count);
+        syscall(SYSCALL_AS_DIRECTORY, (uint32_t) reader, (uint32_t) &table, 0);
+        for(int i = 1; i < SECTOR_COUNT; i++){
+
+            if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
+                FAT32DriverRequest request;
+                syscall(SYSCALL_MEMCPY, (uint32_t) &request.name, (uint32_t) &table.entry[i].filename, 8);
+                syscall(SYSCALL_MEMCPY, (uint32_t) &request.ext, (uint32_t) &table.entry[i].extension, 3);
+                request.parent_cluster_number = cluster_number;
+                
+                
+                syscall(SYSCALL_MEMCPY, (uint32_t) &result_array[count], (uint32_t) &request, sizeof(FAT32DriverRequest));
+                count++;
+
+                if(count >= *result_count){
+                    *result_count = count;
+                    return;
+                }
+            }
+        }
+        syscall(SYSCALL_READ_CLUSTERS, (uint32_t) reader, (uint32_t) FAT_CLUSTER_NUMBER, (uint32_t) &sector_count);
+        current_cluster = reader[current_cluster];
+    } while (current_cluster != END_OF_FILE);
+
+    *result_count = count;
+    return;
+}
+
+
 
 
 void clear(){

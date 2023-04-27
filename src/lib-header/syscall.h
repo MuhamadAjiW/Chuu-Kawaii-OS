@@ -31,6 +31,12 @@
 #define SYSCALL_GET_CMOS_DATA 21
 #define SYSCALL_GETTICK 22
 #define SYSCALL_MKDIR 23
+#define SYSCALL_WHERE 24
+#define SYSCALL_MEMCPY 25
+#define SYSCALL_MEMCMP 26
+#define SYSCALL_READ_CLUSTERS 27
+#define SYSCALL_AS_DIRECTORY 28
+#define SYSCALL_NAME_EXISTS 29
 /**
  * Assigns system response functions to system call number
  * 
