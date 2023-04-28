@@ -105,12 +105,12 @@ void sys_mkdir(registers r){
     *((int8_t*) r.ecx) = write(request);
 }
 
-void sys_where(registers r){
-    uint16_t cluster_number = *((uint16_t*) r.ebx);
-    FAT32DriverRequest* result_array = (FAT32DriverRequest*) r.ecx;
-    uint16_t* result_count = (uint16_t*) r.edx;
-    whereis(cluster_number, result_array, result_count);
-}
+// void sys_where(registers r){
+//     uint16_t cluster_number = *((uint16_t*) r.ebx);
+//     FAT32DriverRequest* result_array = (FAT32DriverRequest*) r.ecx;
+//     uint16_t* result_count = (uint16_t*) r.edx;
+//     whereis(cluster_number, result_array, result_count);
+// }
 
 void sys_memcpy(registers r) {
     void* dest = (void*)r.ebx;
@@ -133,8 +133,8 @@ void sys_memcmp(registers r) {
 
 void sys_read_clusters(registers r){
     void* reader = (void*) r.ebx;
-    uint16_t cluster = *((uint16_t*) r.ecx);
-    uint16_t sector_count = *((uint16_t*) r.edx);
+    uint16_t cluster = ( (uint16_t) r.ecx);
+    uint16_t sector_count = ((uint16_t) r.edx);
     read_clusters(reader, cluster, sector_count);
 }
 
@@ -176,7 +176,7 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
     register_syscall_response(SYSCALL_GETTICK, sys_get_timer_tick);
     register_syscall_response(SYSCALL_MKDIR, sys_mkdir);
-    register_syscall_response(SYSCALL_WHERE, sys_where);
+    // register_syscall_response(SYSCALL_WHERE, sys_where);
     register_syscall_response(SYSCALL_MEMCPY, sys_memcpy);
     register_syscall_response(SYSCALL_MEMCMP, sys_memcmp);
     register_syscall_response(SYSCALL_READ_CLUSTERS, sys_read_clusters);

@@ -476,5 +476,5 @@ uint8_t name_exists(FAT32DriverRequest request);
  * 
  * @return                      none
  */
-void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count);
+// void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count);
 #endif

@@ -94,6 +94,7 @@ void newline_shell(){
 
 
 
+#define MAX_RESULTS 100 
 
 
 uint32_t currentCluster = 2;
@@ -112,20 +113,32 @@ void evaluate_shell(){
         }
         //TODO: lengkapin command
         else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
-            // Call the mkdir function here and pass the necessary arguments
+
             mkdir(get_parsed_result()[1], currentCluster);
         }  
-        else if(strcmp(get_parsed_result()[0], "whereis") == 0){
-            FAT32DriverRequest result_array[100];
-            uint16_t result_count = 100;
-            whereis(currentCluster, result_array, &result_count);
-            for(int i = 0; i < 100; i++){
-                print(result_array[i].name);
-                // print(".");
-                print(result_array[i].ext);
-                // print("\n");
+        else if (strcmp(get_parsed_result()[0], "whereis") == 0) {
+            uint16_t result_count = 100; // max results
+            FAT32DriverRequest result_array[100]; // array to store results
+            whereis(currentCluster, get_parsed_result()[1], result_array, &result_count);
+            if (result_count > 0) {
+                // Print the file/folder location for each result found
+                for (int i = 0; i < result_count; i++) {
+                    FAT32DriverRequest request = result_array[i];
+                    char buffer[256];
+                    int_toString(request.parent_cluster_number, buffer);
+                    print("\n");
+                    print("     File/Folder location: Cluster ");
+                    print(buffer);
+                    print("\n");
+                }
+                // Update current cluster to the cluster number of the first file/folder found
+                currentCluster = result_array[0].parent_cluster_number;
+            } else {
+                print("\n");
+                print("     File/Folder not found\n");
             }
-        } 
+        }
+
         // check result array
         else{
             print("\nNo Command found: ");

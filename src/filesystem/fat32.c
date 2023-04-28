@@ -559,42 +559,42 @@ void deleteFolder(uint16_t cluster_number){
     return;
 }
 
-void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count){
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table;
-    FAT32DriverRequest request;
+// void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count){
+//     uint32_t reader[CLUSTER_SIZE/4] = {0};
+//     DirectoryTable table;
+//     FAT32DriverRequest request;
 
-    uint32_t current_cluster = cluster_number;
-    *result_count = 0;
-    do{
-        read_clusters((void*)reader, current_cluster, 1);
-        table = as_directory(reader);
-        for(int i = 1; i < SECTOR_COUNT; i++){
-            if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
-                memcpy(&request.name, &table.entry[i].filename, 8);
-                memcpy(&request.ext, &table.entry[i].extension, 3);
-                request.parent_cluster_number = cluster_number;
+//     uint32_t current_cluster = cluster_number;
+//     *result_count = 0;
+//     do{
+//         read_clusters((void*)reader, current_cluster, 1);
+//         table = as_directory(reader);
+//         for(int i = 1; i < SECTOR_COUNT; i++){
+//             if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
+//                 memcpy(&request.name, &table.entry[i].filename, 8);
+//                 memcpy(&request.ext, &table.entry[i].extension, 3);
+//                 request.parent_cluster_number = cluster_number;
 
-                int a = 0;
-                for (int j = 0; j < *result_count; j++) {
-                    if (strcmp(request.name, result_array[j].name) == 0 && strcmp(request.ext, result_array[j].ext) == 0) {
-                        a = 1;
-                        break;
-                    }
-                }
-                if (a != 1) {
-                    result_array[*result_count] = request;
-                    (*result_count)++;
-                }
-            }
-        }
-        read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
-        current_cluster = reader[current_cluster];
+//                 int a = 0;
+//                 for (int j = 0; j < *result_count; j++) {
+//                     if (strcmp(request.name, result_array[j].name) == 0 && strcmp(request.ext, result_array[j].ext) == 0) {
+//                         a = 1;
+//                         break;
+//                     }
+//                 }
+//                 if (a != 1) {
+//                     result_array[*result_count] = request;
+//                     (*result_count)++;
+//                 }
+//             }
+//         }
+//         read_clusters((void*)reader, FAT_CLUSTER_NUMBER, 1);
+//         current_cluster = reader[current_cluster];
 
-    } while (current_cluster != END_OF_FILE);
+//     } while (current_cluster != END_OF_FILE);
 
-    return;
-}
+//     return;
+// }
 
 
 DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
