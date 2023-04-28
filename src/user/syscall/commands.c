@@ -188,6 +188,7 @@ void rm(int currentCluster) {
 void cat(int currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
     FAT32DriverRequest req = path_to_file_request(get_parsed_result()[1], currentCluster);
+    print("\n------------- GADIPAKE --------------\n");
     print("\n");
     print(req.name);
     print(req.ext);
@@ -200,6 +201,7 @@ void cat(int currentCluster) {
     char testing[10];
     int_toString((int)result.cluster_count, testing);
     print(testing);
+    print("\n\n-------------------\n\n");
     for (int i = 0; i < (int) result.cluster_count; i++) {
         for (int j = 0; j < CLUSTER_SIZE; j++) {
             print_char((char) result.content[i].buf[j]);
