@@ -28,12 +28,15 @@
 #define SYSCALL_CLOSE_DIR 20
 #define SYSCALL_GET_CMOS_DATA 21
 #define SYSCALL_GETTICK 22
-#define SYSCALL_MKDIR 23
+#define SYSCALL_WHERE 23
+#define SYSCALL_MKDIR 29
 #define SYSCALL_MEMCPY 24
 #define SYSCALL_MEMCMP 25
 #define SYSCALL_READ_CLUSTERS 26
 #define SYSCALL_AS_DIRECTORY 27
-#define SYSCALL_NAME_EXISTS 28
+#define SYSCALL_IS_DIRECTORY 28
+#define SYSCALL_NAME_EXISTS 30
+
 /**
  * Sends syscall to the kernel
  * @attention   make sure to add a response in the kernel side if not already

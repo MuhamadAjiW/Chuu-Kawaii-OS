@@ -233,4 +233,33 @@ uint8_t writef(FAT32DriverRequest request);
  */
 uint8_t deletef(FAT32DriverRequest request);
 
+
+/**
+ * Read clusters from the disk
+ * 
+ * @param reader                    destination buffer to store the read data
+ * @param cluster                   cluster index to read
+ * @param sector_count              number of clusters to read
+ */
+void readcluster(void* reader, uint16_t cluster, uint16_t sector_count);
+
+/**
+ * Copies a reader buffer and returns it as a directory table
+ *  Seems redundant but quite useful in a lot of cases. Might be a subject to refactor.
+ * 
+ * @param reader                    pointer to a reader buffer
+ * 
+ * @return                          reader as directory table, contents are copied and not as a casted pointer
+ */
+DirectoryTable asdirectory(uint32_t* reader);
+
+/**
+ * Checks whether a cluster is a directory, uses reserved bits and directory flags, still might not be 100% accurate
+ * 
+ * @param cluster                   Cluster to check
+ * 
+ * @return                          1 if is a folder, 0 if not
+ */
+uint8_t isdirectory(uint32_t cluster);
+
 #endif

@@ -1,5 +1,5 @@
-#ifndef _STDMEM_H
-#define _STDMEM_H
+#ifndef _STDMEMUSER_H
+#define _STDMEMUSER_H
 
 #include "stdtype.h"
 
@@ -39,15 +39,10 @@ void* memcpy(void* restrict dest, const void* restrict src, uint32_t n);
 void* memcpy_backwards(void* restrict dest, const void* restrict src, uint32_t n);
 
 /**
- * C standard memcmp, check man memcmp or
- * https://man7.org/linux/man-pages/man3/memcmp.3.html for more details
+ * C standard memcpy, check man memcpy or
+ * https://man7.org/linux/man-pages/man3/memcpy.3.html for more details
  * 
- * @param s1 Pointer to first memory area
- * @param s2 Pointer to second memory area
- * @param n Memory area size in byte 
- * 
- * @return Integer as error code, zero for equality, non-zero for inequality
-*/
+ * @param dest Starting location for memory area to set
 int memcmp(const void *s1, const void *s2, uint32_t n);
 
 /**
@@ -60,6 +55,7 @@ int memcmp(const void *s1, const void *s2, uint32_t n);
  * 
  * @return Pointer dest
 */
+
 void *memmove(void *dest, const void *src, uint32_t n);
 
 #endif
