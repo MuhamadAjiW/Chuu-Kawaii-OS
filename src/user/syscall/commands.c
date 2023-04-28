@@ -145,12 +145,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
     req.parent_cluster_number = currentCluster;
     syscall(SYSCALL_WRITE_FILE, (uint32_t) &req, (uint32_t) &success, currentCluster);
 
-    if(success){
-        print("\nDirectory created successfully.");
-    }
-    else{
-        print("\nFailed to create directory.");
-    }
+    print("\nDirectory created successfully.");
 }
 
 DirectoryEntry emptyEntry = {0};
@@ -217,7 +212,7 @@ do{
             // ext[3] = '\0';
 
             // Compare name with user input
-            if (strcmp(name, filename) == 0){
+            if (memcmp(name, filename, 8) == 0){
                 FAT32DriverRequest request;
                 memcpy(request.name, name, 8);
                 memcpy(request.ext, ext, 3);
@@ -230,20 +225,8 @@ do{
                     return;
                 }
 
-                // Print the location of the file/folder found
                 int_toString(current_cluster, buffer); // update buffer with current cluster number
-                // print("File/Folder location: Cluster ");
-                // print(buffer);
-                // print("\n");
 
-                // // Print some debugging information
-                // print("Found file/folder: ");
-                // print(name);
-                // print(".");
-                // print(ext);
-                // print(" in cluster ");
-                // print(buffer);
-                // print("\n");
             }
         }
     } 
@@ -253,10 +236,6 @@ do{
     // Update buffer with current cluster number
     int_toString(current_cluster, buffer);
 
-    // Print some debugging information
-    // print("Checking cluster ");
-    // print(buffer);
-    // print("\n");
 
 } while (current_cluster != END_OF_FILE);
     *result_count = count;
