@@ -187,7 +187,7 @@ void rm(int currentCluster) {
 
 void cat(int currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
-    FAT32DriverRequest req = path_to_file_request(get_parsed_result()[get_parsed_path_word_count() - 1], currentCluster);
+    FAT32DriverRequest req = path_to_file_request(get_parsed_result()[1], currentCluster);
     print("\n");
     print(req.name);
     print(req.ext);

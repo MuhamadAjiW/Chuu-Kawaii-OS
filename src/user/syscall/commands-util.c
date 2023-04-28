@@ -204,7 +204,6 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable table = {0};
     parse_path(pathname);
-    uint8_t counter = 0;
     uint8_t isFound = 0;
     int pathLength = get_parsed_path_word_count();
     char fileName[8];
@@ -212,10 +211,9 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     
     if (strcmp(get_parsed_path_result()[0], "root") == 0){
         current_cluster = 2;
-        counter = 1;
     }
 
-    for(int j = counter; j < pathLength - 1; j++){ // cari sampe ujung - 1
+    for(int j = 0; j < pathLength - 1; j++){ // cari sampe ujung - 1
         isFound = 0;
         do {
             readcluster((void*)reader, current_cluster, 1);
@@ -289,6 +287,8 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     // if (!isFound) {
     //     parentCluster = -1;
     // }
+    print(get_parsed_path_result()[0]);
+    print(get_parsed_path_result()[1]);
     FAT32DriverRequest req = {
         .parent_cluster_number = current_cluster,
         .buffer_size = 0
