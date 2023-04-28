@@ -347,6 +347,12 @@ bool graphics_move_cursor(int8_t direction){
                 }
             }
             break;
+        case (2):
+            if(cursor.y != 24){
+                graphics_set_cursor(0, cursor.y + 1);
+                success = 1;
+            }
+            break;
         case (-1):
             if(!(cursor.y == blocked_y && cursor.x == blocked_x)){
                 if(cursor.x != 0 ){
@@ -359,6 +365,12 @@ bool graphics_move_cursor(int8_t direction){
                         success = 1;
                     }
                 }
+            }
+            break;
+        case (-2):
+            if(cursor.y != 0){
+                graphics_set_cursor(0, cursor.y - 1);
+                success = 1;
             }
             break;
         
@@ -508,4 +520,35 @@ bool graphics_backspace(){
     
 
     return success;
+}
+
+void graphics_display_text(char* text){
+
+    uint16_t x = 0;
+    uint16_t y = 0;
+
+    uint16_t counter = 0;
+    uint16_t pos = 0;
+    while (pos < rowLimit*colLimit){
+        if(text == 0){
+            break;
+        }
+
+        screenMap[y][x] = text[counter];
+
+        if(text[counter] == '\n'){
+            y += 1;
+            x = 0;
+        }
+        else{
+            x += 1;
+        }
+
+        pos = x + y*colLimit;
+        counter++;
+    }
+    memset(screenMapColor, DEFAULT_COLOR_FG, 25*64);
+
+
+    refresh_screen_buffer();
 }

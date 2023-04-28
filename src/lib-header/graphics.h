@@ -79,6 +79,7 @@ void initialize_vga();
 void clear_graphics_memory();
 void graphics_display_animation();
 void graphics_user_animation(int framecode);
+void graphics_display_text(char* text);
 
 /**
  * Overwrites every pixel with current given background image

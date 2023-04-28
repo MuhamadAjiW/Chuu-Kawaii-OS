@@ -99,6 +99,9 @@ void sys_play_animation(registers r){
 void sys_get_timer_tick(registers r){
     *(uint32_t*)r.ebx = get_tick();
 }
+void sys_display_text(registers r){
+    graphics_display_text((char*) r.ebx);
+}
 
 
 void enable_system_calls(){
@@ -127,6 +130,15 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_GET_CMOS_DATA, sys_get_cmos_data);
     register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
     register_syscall_response(SYSCALL_GETTICK, sys_get_timer_tick);
+
+
+
+
+
+
+
+    
+    register_syscall_response(SYSCALL_DISPLAY_TEXT, sys_display_text);
 }
 
 void syscall_response(registers r) {

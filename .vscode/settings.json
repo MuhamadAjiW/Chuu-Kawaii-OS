@@ -20,7 +20,8 @@
         "syscall.h": "c",
         "tss.h": "c",
         "user-shell.h": "c",
-        "pit.h": "c"
+        "pit.h": "c",
+        "commands.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

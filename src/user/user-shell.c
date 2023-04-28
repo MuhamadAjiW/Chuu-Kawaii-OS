@@ -5,6 +5,7 @@
 #include "lib-header/stdio.h"
 #include "lib-header/string.h"
 #include "lib-header/commands.h"
+#include "lib-header/chuupad.h"
 
 #include "lib-header/parser.h"
 
@@ -110,6 +111,10 @@ void evaluate_shell(){
         else if(strcmp(get_parsed_result()[0], "dir") == 0){
             dir(currentCluster);
         }
+        else if(strcmp(get_parsed_result()[0], "chuupad") == 0){
+            clear();
+            reader_main();
+        }
         //TODO: lengkapin command
 
         else{
@@ -135,7 +140,7 @@ int main(void){
     struct FAT32DriverRequest request = {
         .buf                   = cbuf,
         .name                  = "ikanaide",
-        .ext                   = "uwu",
+        .ext                   = "txt",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0,
     } ;

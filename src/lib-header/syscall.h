@@ -31,6 +31,13 @@
 #define SYSCALL_GET_CMOS_DATA 21
 #define SYSCALL_GETTICK 22
 
+
+
+
+
+
+#define SYSCALL_DISPLAY_TEXT 64
+
 /**
  * Assigns system response functions to system call number
  * 

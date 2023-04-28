@@ -29,6 +29,13 @@
 #define SYSCALL_GET_CMOS_DATA 21
 #define SYSCALL_GETTICK 22
 
+
+
+
+
+
+#define SYSCALL_DISPLAY_TEXT 64
+
 /**
  * Sends syscall to the kernel
  * @attention   make sure to add a response in the kernel side if not already
