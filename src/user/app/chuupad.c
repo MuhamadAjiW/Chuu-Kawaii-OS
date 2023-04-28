@@ -5,6 +5,7 @@
 #include "../lib-header/stdio.h"
 #include "../lib-header/string.h"
 #include "../lib-header/commands.h"
+#include "../lib-header/commands-util.h"
 
 #include "../lib-header/chuupad.h"
 
