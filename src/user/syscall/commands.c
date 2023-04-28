@@ -186,9 +186,74 @@ void rm(uint32_t currentCluster) {
     }
 }
 
-// void cp(int currentCluster) {
+void cp(uint32_t currentCluster) {
+    // if (get_parsed_word_count() >= 3) {
+    //     uint8_t isdir = 0;
+    //     uint8_t isfile = 0;
 
-// }
+    //     FAT32DriverRequest srcs[get_parsed_word_count() - 2];
+    //     for (int i = 1; i < get_parsed_word_count() - 1; i++) {
+    //         isdir = is_directorypath_valid(get_parsed_result()[i]);
+    //         isfile = is_filepath_valid(get_parsed_result()[i]);
+    //         if (!isdir && !isfile) {
+    //             print("\ncp: Invalid path");
+    //             return;
+    //         } else {
+    //             FAT32DriverRequest temp;
+
+    //             srcs[i - 1] = 
+    //         }
+    //     }
+
+    //     // semua source valid
+    //     isdir = is_directorypath_valid(get_parsed_result()[get_parsed_word_count() - 1]);
+    //     isfile = is_filepath_valid(get_parsed_result()[get_parsed_word_count() - 1]);
+
+    //     if (get_parsed_word_count() > 3) {
+    //         if (isfile) {
+    //             print("\ncp: Destination is not a directory");
+    //         } else if (isdir) {
+    //             // 
+    //         } else {
+    //             print("\ncp: Destination is not a directory");
+    //         }
+    //     } else {
+
+    //     }
+    // } else {
+    //     print("\ncp: Invalid command");
+    // }
+    // dummy
+    FAT32DriverRequest src = path_to_file_request(get_parsed_result()[1], currentCluster);
+    FAT32FileReader result = readf(src);
+
+    struct FAT32DriverRequest dest = {
+        .name                  = "12345678",
+        .ext                   = "abc",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = 0,
+    };
+
+    copy1(result, dest);
+}
+
+void mv(uint32_t currentCluster) {
+    cp(currentCluster);
+    rm(currentCluster);
+}
+
+void copy1(FAT32FileReader readed, FAT32DriverRequest destFile) {
+    destFile.buffer_size = readed.cluster_count * CLUSTER_SIZE;
+    struct ClusterBuffer cbuf[destFile.buffer_size];
+
+    for (uint32_t i = 0; i < destFile.buffer_size; i++)
+        for (uint32_t j = 0; j < CLUSTER_SIZE; j++)
+            cbuf[i].buf[j] = readed.content[i].buf[j];
+
+    destFile.buf = cbuf;
+
+    writef(destFile);
+}
 
 void cat(uint32_t currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
@@ -204,7 +269,7 @@ void cat(uint32_t currentCluster) {
     FAT32FileReader result = readf(req);
     
     // char testing[10];
-    // int_toString((int)result.cluster_count, testing);
+    // int_toString((int)result.clsuster_count, testing);
     // print(testing);
     // print("\n\n-------------------\n\n");
     for (int i = 0; i < (int) result.cluster_count; i++) {

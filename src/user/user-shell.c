@@ -158,6 +158,9 @@ void evaluate_shell(){
         }
         else if (strcmp(get_parsed_result()[0], "rm") == 0) {
             rm(current_dir.cluster_number);
+
+        } else if (strcmp(get_parsed_result()[0], "cp") == 0) {
+            cp(current_dir.cluster_number);
         } else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);

@@ -44,4 +44,7 @@ void rm(uint32_t currentCluster);
 
 void cat(uint32_t currentCluster);
 void cp(uint32_t currentCluster);
+void mv(uint32_t currentCluster);
+void copy1(FAT32FileReader readed, FAT32DriverRequest destFile);
+
 #endif
