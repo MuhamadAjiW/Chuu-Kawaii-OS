@@ -21,7 +21,8 @@
         "tss.h": "c",
         "user-shell.h": "c",
         "pit.h": "c",
-        "commands.h": "c"
+        "commands.h": "c",
+        "typeinfo": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

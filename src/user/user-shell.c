@@ -222,15 +222,15 @@ int main(void){
     struct FAT32DriverRequest request = {
         .buf                   = cbuf,
         .name                  = "ikanaide",
-        .ext                   = "txt",
+        .ext                   = "uwu",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER,
         .buffer_size           = 0,
     } ;
 
+    request.buffer_size = 5*CLUSTER_SIZE;
     writef(request);  // Create folder "ikanaide"
     //deletef(request); // Delete first folder, thus creating hole in FS
     
-    //request.buffer_size = 5*CLUSTER_SIZE;
     //writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};

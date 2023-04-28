@@ -45,7 +45,8 @@ void rm(uint32_t currentCluster);
 void cat(uint32_t currentCluster);
 void cp(uint32_t currentCluster);
 void mv(uint32_t currentCluster);
-void copy1(FAT32FileReader readed, FAT32DriverRequest destFile);
+void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest);
+void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest);
 
 /**
  * Creates new folder

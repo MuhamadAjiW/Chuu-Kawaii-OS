@@ -604,6 +604,11 @@ DirectoryEntry get_parent_info(uint16_t parent_cluster_number){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, parent_cluster_number, 1);
     table = as_directory(reader);
+
+    if(table.entry[0].cluster_number == 2){
+        return table.entry[0];
+    }
+
     read_clusters((void*)reader, table.entry[0].cluster_number, 1);
     table = as_directory(reader);
 
@@ -651,6 +656,7 @@ DirectoryEntry get_self_info(FAT32DriverRequest request){
 
                     info = table.entry[i];
                     found = 1;
+                    break;
                 }
             }
         }
@@ -701,7 +707,7 @@ FAT32FileReader read(FAT32DriverRequest request){
         retval.content = (void*) 2;
         return retval;
     }
-    else if (!name_exists(request) && !(
+    else if (!name_exists(request) || (
         request.name[0] == 'r' &&
         request.name[1] == 'o' &&
         request.name[2] == 'o' &&
@@ -765,7 +771,7 @@ FAT32DirectoryReader read_directory(FAT32DriverRequest request){
         retval.content = (void*) 2;
         return retval;
     }
-    else if (!name_exists(request) && !(
+    else if (!name_exists(request) || (
         request.name[0] == 'r' &&
         request.name[1] == 'o' &&
         request.name[2] == 'o' &&
