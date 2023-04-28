@@ -72,12 +72,50 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
 }
 
 uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
+    parse_path(pathname);
+
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable table = {0};
-    parse_path(pathname);
-    uint8_t counter = 0;
     uint8_t isFound = 0;
     int pathLength = get_parsed_path_word_count();
+    int counter = 0;
+
+    char fileName[8];
+    char fileExt[3];
+
+    int dotIdx  = -1;
+    int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
+    
+    // search .
+    for (int i = fileNameExtLen - 1; i >= 0; i--) {
+        if (get_parsed_path_result()[pathLength - 1][i] == '.') {
+            dotIdx = i;
+            break;
+        }
+    }
+
+    if (dotIdx == -1) { // dot not found, not a valid file name
+        return 0;
+    } else {
+        // split into file name and file ext
+        int minNameLen = 8;
+        if (dotIdx < minNameLen) {
+            minNameLen = dotIdx;
+        }
+
+        int minExtLen = 3;
+        if (fileNameExtLen - 1 - dotIdx < minExtLen) {
+            minExtLen = fileNameExtLen - dotIdx - 1;
+        }
+
+        for (int i = 0; i < minNameLen; i++) {
+            fileName[i] = get_parsed_path_result()[pathLength - 1][i];
+        }
+
+        for (int i = 0; i < minExtLen; i++) {
+            fileExt[i] = get_parsed_path_result()[pathLength - 1][dotIdx + 1 + i];
+        }
+    }
     
     if (strcmp(get_parsed_path_result()[0], "root") == 0){
         current_cluster = 2;
@@ -105,61 +143,26 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
         } while (current_cluster != END_OF_FILE && isFound == 0);
     }
 
+    uint32_t parentCluster = current_cluster;
+
     if (isFound || pathLength == 2) {
         isFound = 0;
-
         do {
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
 
-            int dotIdx  = -1;
-            int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
-            
-            // search .
-            for (int i = fileNameExtLen - 1; i >= 0; i--) {
-                if (get_parsed_path_result()[pathLength - 1][i] == '.') {
-                    dotIdx = i;
-                    break;
-                }
-            }
-
-            if (dotIdx == -1) { // dot not found, not a valid file name
-                isFound = 0;
-            } else {
-                // split into file name and file ext
-                char fileName[8];
-                char fileExt[3];
-
-                int minNameLen = 8;
-                if (dotIdx < minNameLen) {
-                    minNameLen = dotIdx;
-                }
-
-                int minExtLen = 3;
-                if (fileNameExtLen - 1 - dotIdx < minExtLen) {
-                    minExtLen = fileNameExtLen - dotIdx - 1;
-                }
-
-                for (int i = 0; i < minNameLen; i++) {
-                    fileName[i] = get_parsed_path_result()[pathLength - 1][i];
-                }
-
-                for (int i = 0; i < minExtLen; i++) {
-                    fileExt[i] = get_parsed_path_result()[pathLength - 1][dotIdx + 1 + i];
-                }
-
-                for(int i = 1; i < SECTOR_COUNT; i++){
-                    if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
-                        if (!isdirectory(table.entry[i].cluster_number)){
-                            current_cluster = table.entry[i].cluster_number;
-                            isFound = 1;
-                            print("\nfound!");
-                            break;
-                        }
+            for(int i = 1; i < SECTOR_COUNT; i++){
+                print(table.entry[i].filename);
+                if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
+                    if (!isdirectory(table.entry[i].cluster_number)){
+                        current_cluster = table.entry[i].cluster_number;
+                        isFound = 1;
+                        print("\nfound!");
+                        break;
                     }
                 }
             }
-            
+
             readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
             current_cluster = reader[current_cluster];
         } while (current_cluster != END_OF_FILE && isFound == 0);
@@ -208,14 +211,52 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
 }
 
 FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster) {
+    parse_path(pathname);
+
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable table = {0};
-    parse_path(pathname);
     uint8_t isFound = 0;
     int pathLength = get_parsed_path_word_count();
     int counter = 0;
+
     char fileName[8];
     char fileExt[3];
+
+    int dotIdx  = -1;
+    int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
+
+    FAT32DriverRequest emptyReq;
+    
+    // search .
+    for (int i = fileNameExtLen - 1; i >= 0; i--) {
+        if (get_parsed_path_result()[pathLength - 1][i] == '.') {
+            dotIdx = i;
+            break;
+        }
+    }
+
+    if (dotIdx == -1) { // dot not found, not a valid file name
+        return emptyReq;
+    } else {
+        // split into file name and file ext
+        int minNameLen = 8;
+        if (dotIdx < minNameLen) {
+            minNameLen = dotIdx;
+        }
+
+        int minExtLen = 3;
+        if (fileNameExtLen - 1 - dotIdx < minExtLen) {
+            minExtLen = fileNameExtLen - dotIdx - 1;
+        }
+
+        for (int i = 0; i < minNameLen; i++) {
+            fileName[i] = get_parsed_path_result()[pathLength - 1][i];
+        }
+
+        for (int i = 0; i < minExtLen; i++) {
+            fileExt[i] = get_parsed_path_result()[pathLength - 1][dotIdx + 1 + i];
+        }
+    }
     
     if (strcmp(get_parsed_path_result()[0], "root") == 0){
         current_cluster = 2;
@@ -228,10 +269,8 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
-                print(table.entry[i].filename);
                 if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
                     if (isdirectory(table.entry[i].cluster_number)){
-                        
                         current_cluster = table.entry[i].cluster_number;
                         isFound = 1;
                         print("\nfound!");
@@ -244,6 +283,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
             current_cluster = reader[current_cluster];
         } while (current_cluster != END_OF_FILE && isFound == 0);
     }
+
     uint32_t parentCluster = current_cluster;
 
     if (isFound || pathLength == 2) {
@@ -252,49 +292,15 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
 
-            int dotIdx  = -1;
-            int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
-            
-            // search .
-            for (int i = fileNameExtLen - 1; i >= 0; i--) {
-                if (get_parsed_path_result()[pathLength - 1][i] == '.') {
-                    dotIdx = i;
-                    break;
-                }
-            }
-
-            if (dotIdx == -1) { // dot not found, not a valid file name
-                isFound = 0;
-            } else {
-                // split into file name and file ext
-                int minNameLen = 8;
-                if (dotIdx < minNameLen) {
-                    minNameLen = dotIdx;
-                }
-
-                int minExtLen = 3;
-                if (fileNameExtLen - 1 - dotIdx < minExtLen) {
-                    minExtLen = fileNameExtLen - dotIdx - 1;
-                }
-
-                for (int i = 0; i < minNameLen; i++) {
-                    fileName[i] = get_parsed_path_result()[pathLength - 1][i];
-                }
-
-                for (int i = 0; i < minExtLen; i++) {
-                    fileExt[i] = get_parsed_path_result()[pathLength - 1][dotIdx + 1 + i];
-                }
-
-                for(int i = 1; i < SECTOR_COUNT; i++){
-                    print(table.entry[i].filename);
-                    if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
-                        if (!isdirectory(table.entry[i].cluster_number)){
-                            // print(table.entry[i].filename);
-                            current_cluster = table.entry[i].cluster_number;
-                            isFound = 1;
-                            print("\nfound!");
-                            break;
-                        }
+            for(int i = 1; i < SECTOR_COUNT; i++){
+                print(table.entry[i].filename);
+                if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
+                    if (!isdirectory(table.entry[i].cluster_number)){
+                        // print(table.entry[i].filename);
+                        current_cluster = table.entry[i].cluster_number;
+                        isFound = 1;
+                        print("\nfound!");
+                        break;
                     }
                 }
             }
@@ -304,11 +310,6 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
         } while (current_cluster != END_OF_FILE && isFound == 0);
     }
 
-    // if (!isFound) {
-    //     parentCluster = -1;
-    // }
-    print(get_parsed_path_result()[0]);
-    print(get_parsed_path_result()[1]);
     FAT32DriverRequest req = {
         .parent_cluster_number = parentCluster,
         .buffer_size = 0
@@ -316,32 +317,6 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
 
     memcopy(req.name, fileName, 8);
     memcopy(req.ext, fileExt, 3);
-
-
-    print("\n");
-    print("\n-----ASLI-----\n");
-    print("File name: ");
-    print(fileName);
-    print("\n\n");
-     print("File ext: ");
-    print(fileExt);
-    print("\n\n");
-    print("File pc: ");
-    char cluster[10];
-    int_toString((int) current_cluster, cluster);
-    parser_path_clear();
-
-    print("\n");
-    print("\n-----REQ-----\n");
-     print("File name: ");
-    print(req.name);
-    print("\n\n");
-     print("File ext: ");
-    print(req.ext);
-    print("\n\n");
-     print("File pc: ");
-    char clustera[10];
-    int_toString((int) req.parent_cluster_number, clustera);
     parser_path_clear();
     return req;
 }

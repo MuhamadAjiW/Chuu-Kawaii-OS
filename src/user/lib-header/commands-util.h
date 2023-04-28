@@ -63,10 +63,25 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster);
  */
 uint32_t path_to_cluster(char* pathname, uint32_t current_cluster);
 
+/**
+ * Returns request to file from a path string
+ * 
+ * @param pathname          Pathname to be checked
+ * @param current_cluster   The cluster that it is on
+ * 
+ * @return      If in is empty, returns 1. 0 otherwise
+ */
+FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster);
 
-FAT32DriverRequest path_to_file_request();
-
-FAT32DriverRequest path_to_dir_request();
+/**
+ * Returns request to file from a path string
+ * 
+ * @param pathname          Pathname to be checked
+ * @param current_cluster   The cluster that it is on
+ * 
+ * @return      If in is empty, returns 1. 0 otherwise
+ */
+FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster);
 
 /**
  * Reads current cluster as a folder
