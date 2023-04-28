@@ -123,6 +123,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
     req.name[7] = dirname[7];
 
     req.parent_cluster_number = currentCluster;
+    req.buffer_size = 0;
     syscall(SYSCALL_WRITE_FILE, (uint32_t) &req, (uint32_t) &success, currentCluster);
 
     print("\nDirectory created successfully.");

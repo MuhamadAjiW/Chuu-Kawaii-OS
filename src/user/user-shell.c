@@ -228,10 +228,10 @@ int main(void){
     } ;
 
     writef(request);  // Create folder "ikanaide"
-    deletef(request); // Delete first folder, thus creating hole in FS
+    //deletef(request); // Delete first folder, thus creating hole in FS
     
-    request.buffer_size = 5*CLUSTER_SIZE;
-    writef(request);  // Create fragmented file "daijoubu"
+    //request.buffer_size = 5*CLUSTER_SIZE;
+    //writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {

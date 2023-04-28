@@ -41,7 +41,7 @@ void kernel_setup(void) {
     initialize_filesystem_fat32();
     
     
-    graphics_display_animation();
+    //graphics_display_animation();
     
     gdt_install_tss();
     set_tss_register();

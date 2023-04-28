@@ -54,7 +54,7 @@ void* kmalloc(uint32_t size){
                     a->status = 1;
                     a->size = size;
 
-                    memset(memory + sizeof(allocator), 0, size + sizeof(allocator));
+                    memset(memory + sizeof(allocator), 0, size);
 
                     if (oldsize != size){
                         a = (allocator*) ((uint32_t) a + sizeof(allocator) + size);
@@ -112,11 +112,6 @@ void* krealloc(void* ptr, uint32_t size){
 void kfree(void* memory){
     allocator* alloc = (memory - sizeof(allocator));
     alloc->status = 0;
-    uint32_t oldsize = alloc->size;
-
-    alloc += sizeof(allocator) + oldsize;
-    alloc->status = 0;
-    alloc->size = 0;
 
     dynamic_pointers--;
 
