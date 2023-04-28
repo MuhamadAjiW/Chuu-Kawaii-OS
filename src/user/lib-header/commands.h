@@ -40,8 +40,8 @@ void ls(uint32_t currentCluster);
  */
 directory_info cd(char* pathname, directory_info directory_info);
 
-void rm(int currentCluster);
+void rm(uint32_t currentCluster);
 
-void cat(int currentCluster);
-void cp(int currentCluster);
+void cat(uint32_t currentCluster);
+void cp(uint32_t currentCluster);
 #endif

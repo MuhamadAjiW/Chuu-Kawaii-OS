@@ -157,12 +157,12 @@ directory_info cd(char* pathname, directory_info current_dir){
     return new_dir;
 }
 
-void rm(int currentCluster) {
+void rm(uint32_t currentCluster) {
     int length = get_parsed_word_count();
 
     if (length >= 2) {
         if (is_directorypath_valid(get_parsed_result()[length - 1], currentCluster)) {
-            // TODO: check dir kosong / ngga
+            // TODO [minor]: check dir kosong / ngga
             uint8_t isEmptyDir = 0; 
             if (strcmp(get_parsed_result()[1],"-r") != 0 && !isEmptyDir) { // flag -r selalu di tengah
                 print("\nrm: cannot remove '");
@@ -185,23 +185,23 @@ void rm(int currentCluster) {
 
 // }
 
-void cat(int currentCluster) {
+void cat(uint32_t currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
     FAT32DriverRequest req = path_to_file_request(get_parsed_result()[1], currentCluster);
-    print("\n------------- GADIPAKE --------------\n");
-    print("\n");
-    print(req.name);
-    print(req.ext);
-    char cluster[10];
-    int_toString(req.parent_cluster_number, cluster);
-    print(cluster);
+    // print("\n------------- GADIPAKE --------------\n");
+    // print("\n");
+    // print(req.name);
+    // print(req.ext);
+    // char cluster[10];
+    // int_toString(req.parent_cluster_number, cluster);
+    // print(cluster);
     
     FAT32FileReader result = readf(req);
     
-    char testing[10];
-    int_toString((int)result.cluster_count, testing);
-    print(testing);
-    print("\n\n-------------------\n\n");
+    // char testing[10];
+    // int_toString((int)result.cluster_count, testing);
+    // print(testing);
+    // print("\n\n-------------------\n\n");
     for (int i = 0; i < (int) result.cluster_count; i++) {
         for (int j = 0; j < CLUSTER_SIZE; j++) {
             print_char((char) result.content[i].buf[j]);

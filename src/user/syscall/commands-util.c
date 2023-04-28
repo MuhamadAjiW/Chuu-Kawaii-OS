@@ -59,7 +59,7 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
                         break;
                     }
                 }
-                }
+            }
             
             readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
             current_cluster = reader[current_cluster];
@@ -143,16 +143,14 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
         } while (current_cluster != END_OF_FILE && isFound == 0);
     }
 
-    uint32_t parentCluster = current_cluster;
-
-    if (isFound || pathLength == 2) {
+    if (isFound || pathLength <= 2) {
         isFound = 0;
         do {
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
 
             for(int i = 1; i < SECTOR_COUNT; i++){
-                print(table.entry[i].filename);
+                //print(table.entry[i].filename);
                 if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
                     if (!isdirectory(table.entry[i].cluster_number)){
                         current_cluster = table.entry[i].cluster_number;
@@ -225,7 +223,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     int dotIdx  = -1;
     int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
 
-    FAT32DriverRequest emptyReq;
+    FAT32DriverRequest emptyReq = {};
     
     // search .
     for (int i = fileNameExtLen - 1; i >= 0; i--) {
@@ -286,14 +284,14 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
 
     uint32_t parentCluster = current_cluster;
 
-    if (isFound || pathLength == 2) {
+    if (isFound || pathLength <= 2) {
         isFound = 0;
         do {
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
 
             for(int i = 1; i < SECTOR_COUNT; i++){
-                print(table.entry[i].filename);
+                //print(table.entry[i].filename);
                 if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
                     if (!isdirectory(table.entry[i].cluster_number)){
                         // print(table.entry[i].filename);
@@ -322,17 +320,53 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
 }
 
 FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster) {
+    //prekondisi: path to dir valid
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
+    DirectoryTable table = {0};
     parse_path(pathname);
-    int parentCluster = path_to_cluster(pathname, current_cluster);
+    int counter = 0;
+    uint8_t isFound = 0;
+    uint32_t parentCluster = current_cluster;
+
+    if (strcmp(get_parsed_path_result()[0], "root") == 0){
+        current_cluster = 2;
+        counter = 1;
+    } 
+
+    for(int j = counter; j < get_parsed_path_word_count(); j++){
+        isFound = 0;
+        do {
+            readcluster((void*)reader, current_cluster, 1);
+            table = asdirectory(reader);
+            for(int i= 1; i < SECTOR_COUNT; i++){
+                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
+                    if (isdirectory(table.entry[i].cluster_number)){
+                        current_cluster = table.entry[i].cluster_number;
+
+                        if (j == get_parsed_path_word_count() - 2) {
+                            parentCluster = current_cluster;
+                        }
+                        
+                        isFound = 1;
+                        print("\nfound!");
+                        break;
+                    }
+                }
+            }
+            
+            readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
+            current_cluster = reader[current_cluster];
+
+        } while (current_cluster != END_OF_FILE && isFound == 0);
+    }
+
     FAT32DriverRequest req = {
         .parent_cluster_number = parentCluster,
         .buffer_size = 0
     };
 
     memcopy(req.name, get_parsed_path_result()[get_parsed_path_word_count() - 1], 8);
-
     parser_path_clear();
-
     return req;
 }
 

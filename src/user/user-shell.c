@@ -123,7 +123,7 @@ void evaluate_shell(){
             else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
                 current_dir = cd(get_parsed_result()[1], current_dir);
             } else {
-                print("\ncd: no such file or directory: ");
+                print("\ncd: no such directory: ");
                 print(get_parsed_result()[1]);
                 print("\n");
             }
