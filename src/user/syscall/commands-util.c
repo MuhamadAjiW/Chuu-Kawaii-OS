@@ -190,8 +190,8 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
                 if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0) &&
-                    (isdirectory((uint32_t) &table.entry[i].cluster_number))){
-                        current_cluster = (uint32_t) &table.entry[i].cluster_number;
+                    (isdirectory((uint32_t) table.entry[i].cluster_number))){
+                        current_cluster = (uint32_t) table.entry[i].cluster_number;
                         isFound = 1;
                         break;
                 }
