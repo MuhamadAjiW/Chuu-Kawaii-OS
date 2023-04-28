@@ -33,7 +33,7 @@ uint8_t is_entry_empty(DirectoryEntry in){
 uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
     parse_path(pathname);
     uint8_t counter = 0;
-    uint8_t isFound = 0;
+    uint8_t isFound = 1;
     
 
     if (strcmp(get_parsed_path_result()[0], "root") == 0){
@@ -46,26 +46,33 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
     char string[9] = {0};
 
     for(int j = counter; j < get_parsed_path_word_count(); j++){
-        isFound = 0;
-
         read = get_self_dir_info(current_cluster);
-        for(uint32_t k = 0; k < read.cluster_count; k++){
-            for(uint8_t i= 1; i < SECTOR_COUNT; i++){
-                memcpy(string, emptyString, 8);
-                memcpy(string, &read.content[k].entry[i].filename, 8);
-                if ((strcmp(string, get_parsed_path_result()[j]) == 0)){
-                    // print("\n");
-                    // print(table.entry[i].filename);
-                    if (read.content[k].entry[i].directory){
-                        current_cluster = read.content[k].entry[i].cluster_number;
-                        isFound = 1;
-                        print("\nfound!");
-                        break;
+        if (strcmp(get_parsed_path_result()[j], "..") == 0){
+            current_cluster = read.content[0].entry[0].cluster_number;
+        }
+        else{
+            isFound = 0;
+            for(uint32_t k = 0; k < read.cluster_count; k++){
+                for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                    memcpy(string, emptyString, 8);
+                    memcpy(string, &read.content[k].entry[i].filename, 8);
+                    if ((strcmp(string, get_parsed_path_result()[j]) == 0)){
+                        // print("\n");
+                        // print(table.entry[i].filename);
+                        if (read.content[k].entry[i].directory){
+                            current_cluster = read.content[k].entry[i].cluster_number;
+                            isFound = 1;
+                            print("\nfound!");
+                            break;
+                        }
                     }
                 }
+                if(isFound){
+                    break;
+                }
             }
-            if(isFound){
-                break;
+            if(!isFound){
+                return isFound;        
             }
         }
         closef_dir(read);
@@ -210,26 +217,31 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
     char string[9] = {0};
 
     for(int j = counter; j < get_parsed_path_word_count(); j++){
-        isFound = 0;
-        
         read = get_self_dir_info(current_cluster);
-        for(uint32_t k = 0; k < read.cluster_count; k++){
-            for(uint8_t i= 1; i < SECTOR_COUNT; i++){
-                memcpy(string, emptyString, 8);
-                memcpy(string, &read.content[k].entry[i].filename, 8);
-                if ((strcmp(string, get_parsed_path_result()[j]) == 0)){
-                    // print("\n");
-                    // print(table.entry[i].filename);
-                    if (read.content[k].entry[i].directory){
-                        current_cluster = read.content[k].entry[i].cluster_number;
-                        isFound = 1;
-                        print("\nfound!");
-                        break;
+        if (strcmp(get_parsed_path_result()[j], "..") == 0){
+            current_cluster = read.content[0].entry[0].cluster_number;
+        }
+        else{
+            isFound = 0;
+            
+            for(uint32_t k = 0; k < read.cluster_count; k++){
+                for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                    memcpy(string, emptyString, 8);
+                    memcpy(string, &read.content[k].entry[i].filename, 8);
+                    if ((strcmp(string, get_parsed_path_result()[j]) == 0)){
+                        // print("\n");
+                        // print(table.entry[i].filename);
+                        if (read.content[k].entry[i].directory){
+                            current_cluster = read.content[k].entry[i].cluster_number;
+                            isFound = 1;
+                            print("\nfound!");
+                            break;
+                        }
                     }
                 }
-            }
-            if(isFound){
-                break;
+                if(isFound){
+                    break;
+                }
             }
         }
         closef_dir(read);

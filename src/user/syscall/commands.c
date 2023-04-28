@@ -309,17 +309,90 @@ void ls(uint32_t currentCluster){
     }
 }
 
-directory_info cd(char* pathname, directory_info current_dir){
+void cd(char* pathname, directory_info* current_dir){
     print("\nmulai masuk cd");
     print(pathname);
     print("\n");
-    directory_info new_dir = {
-        .cluster_number = path_to_cluster(pathname, current_dir.cluster_number)
-    };
+    current_dir->cluster_number = path_to_cluster(pathname, current_dir->cluster_number);
     print("\nsebelum memcpy");
-    memcpy(new_dir.directory_path, pathname, 255);
     print("\nsetelah memcpy");
-    return new_dir;
+    
+    uint32_t startleng = 0;
+    uint32_t maxleng = INPUT_BUFFER_SIZE;
+    char* appended = (char*) malloc (maxleng);
+
+    parse_path(pathname);
+    if (strcmp(get_parsed_path_result()[0], "root") == 0){
+        startleng = 0;
+        for(int j = 1; j < get_parsed_path_word_count(); j++){
+            if (strcmp(get_parsed_path_result()[j], "..") == 0){
+                while (current_dir->directory_path[startleng] != '/' && startleng > 5){
+                    startleng--;
+                }
+                appended[startleng] = 0;
+                startleng--;
+            }
+            else{
+                appended[startleng] = '/';
+                startleng++;
+
+                if (startleng > maxleng){    
+                    maxleng += INPUT_BUFFER_SIZE;
+                    appended = (char*) realloc (appended, maxleng);
+                }
+
+                for(int i = 0; i < strlen(get_parsed_path_result()[j]); i++){
+                    appended[startleng] = get_parsed_path_result()[j][i];
+                    startleng++;
+                    
+                    if (startleng > maxleng){    
+                        maxleng += INPUT_BUFFER_SIZE;
+                        appended = (char*) realloc (appended, maxleng);
+                    }
+                }
+                appended[startleng] = 0;
+            }
+        }
+    }
+
+    else{
+        startleng = strlen(current_dir->directory_path);
+        strcpy(appended, current_dir->directory_path);
+        for(int j = 0; j < get_parsed_path_word_count(); j++){
+            if (strcmp(get_parsed_path_result()[j], "..") == 0){
+                while (current_dir->directory_path[startleng] != '/' && startleng > 5){
+                    startleng--;
+                }
+                current_dir->directory_path[startleng] = 0;
+                appended[startleng] = 0;
+            }
+            else{
+                appended[startleng] = '/';
+                startleng++;
+                
+                if (startleng > maxleng){    
+                    maxleng += INPUT_BUFFER_SIZE;
+                    appended = (char*) realloc (appended, maxleng);
+                }
+
+                for(int i = 0; i < strlen(get_parsed_path_result()[j]); i++){
+                    appended[startleng] = get_parsed_path_result()[j][i];
+                    startleng++;
+                    
+                    if (startleng > maxleng){    
+                        maxleng += INPUT_BUFFER_SIZE;
+                        appended = (char*) realloc (appended, maxleng);
+                    }
+                }
+                appended[startleng] = 0;
+            }
+        }
+    }
+
+    free(current_dir->directory_path);
+    current_dir->directory_path = appended;
+    
+    parser_path_clear();
 }
 
 void rm(uint32_t currentCluster) {

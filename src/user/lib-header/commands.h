@@ -38,7 +38,7 @@ void ls(uint32_t currentCluster);
  * 
  * @return      If in is empty, returns 1. 0 otherwise
  */
-directory_info cd(char* pathname, directory_info directory_info);
+void cd(char* pathname, directory_info* directory_info);
 
 void rm(uint32_t currentCluster);
 

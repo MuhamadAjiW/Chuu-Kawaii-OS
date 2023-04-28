@@ -35,7 +35,7 @@ typedef struct shell_reader shell_reader;
  * @param cluster_number           Cluster Number 
  */
 struct directory_info{
-    char directory_path[255];
+    char* directory_path;
     uint32_t cluster_number;
 }__attribute__((packed));
 typedef struct directory_info directory_info;

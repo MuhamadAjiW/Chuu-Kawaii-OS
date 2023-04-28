@@ -19,11 +19,14 @@ static shell_reader shell = {
 };
 
 static directory_info current_dir = {
-    .directory_path = "/root",
-    .cluster_number = 2
+    .directory_path = (char*) 0,
+    .cluster_number = 0
 };
 
 void initialize_shell(){
+    current_dir.cluster_number = 2;
+    current_dir.directory_path = (char*) malloc (sizeof(char) * INPUT_BUFFER_SIZE);
+    memcpy(current_dir.directory_path, "/root", 6);
     shell.buffersize = INPUT_BUFFER_SIZE;
     shell.keyboard_buffer = (char*) malloc (sizeof(char) * INPUT_BUFFER_SIZE);
     newline_shell();
@@ -32,6 +35,7 @@ void initialize_shell(){
 void close_shell(){
     shell.buffersize = 0;
     free(shell.keyboard_buffer);
+    free(current_dir.directory_path);
 }
 
 void clear_shell(){
@@ -125,10 +129,9 @@ void evaluate_shell(){
             if (get_parsed_word_count() == 1){
                 current_dir.cluster_number = 2;
                 memcpy(current_dir.directory_path, "/root", 255);
-                print("\nnow you're on root!");
             }
             else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
-                current_dir = cd(get_parsed_result()[1], current_dir);
+                cd(get_parsed_result()[1], &current_dir);
             } else {
                 print("\ncd: no such directory: ");
                 print(get_parsed_result()[1]);
