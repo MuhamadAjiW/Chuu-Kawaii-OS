@@ -25,6 +25,8 @@
 //cmos_reader tester;
 
 void kernel_setup(void) {
+
+
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
@@ -39,6 +41,7 @@ void kernel_setup(void) {
     initialize_filesystem_fat32();
     
     
+    graphics_display_animation();
     
     gdt_install_tss();
     set_tss_register();

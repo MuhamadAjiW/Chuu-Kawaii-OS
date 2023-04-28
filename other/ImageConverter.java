@@ -24,10 +24,10 @@ public class ImageConverter {
 
     public static void main(String[] args) {
         try{
-            BufferedImage image = ImageIO.read(new File("waifu4.jpg"));     //kalo mau ganti nama file di sini
+            BufferedImage image = ImageIO.read(new File("waifu4dim.jpg"));     //kalo mau ganti nama file di sini
             
             int mod = 4;            //mod yang udah disebut
-            int leninency = 4;      //leninency yang udah disebut
+            int leninency = 3;      //leninency yang udah disebut
 
             int width = image.getWidth();
             int height = image.getHeight();

@@ -467,4 +467,14 @@ uint8_t is_directory(uint32_t cluster);
  */
 uint8_t name_exists(FAT32DriverRequest request);
 
+/**
+ * Searches for all files in a given folder with the same name and extension as the requested file
+ * 
+ * @param cluster_number        the cluster number of the parent folder
+ * @param result_array          an array to hold the results
+ * @param result_count          a pointer to a variable to store the number of results found
+ * 
+ * @return                      none
+ */
+// void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count);
 #endif

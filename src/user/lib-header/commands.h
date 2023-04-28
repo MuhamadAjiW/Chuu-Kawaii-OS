@@ -43,6 +43,9 @@ uint8_t is_entry_empty(DirectoryEntry in);
  */
 FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster);
 
+//TODO: Document
+void animation();
+
 /**
  * Prints information of current cluster
  * 
@@ -55,4 +58,10 @@ void dir(uint32_t currentCluster);
  */
 void clear();
 
+/**
+ * Creates new folder
+ */
+void mkdir(char *dirname, uint32_t currentCluster);
+
+void whereis(uint16_t cluster_number, char* filename, FAT32DriverRequest* result_array, uint16_t* result_count);
 #endif

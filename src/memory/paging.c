@@ -8,17 +8,29 @@ struct PageDirectory _paging_kernel_page_directory = {
             .lower_address          = 0,
             .flag.use_pagesize_4_mb = 1,
         },
+        [1] = {
+            .flag.present_bit       = 1,
+            .flag.write_bit         = 1,
+            .lower_address          = 1,
+            .flag.use_pagesize_4_mb = 1,
+        },
         [0x300] = {
             .flag.present_bit       = 1,
             .flag.write_bit         = 1,
             .lower_address          = 0,
             .flag.use_pagesize_4_mb = 1,
         },
+        [0x301] = {
+            .flag.present_bit       = 1,
+            .flag.write_bit         = 1,
+            .lower_address          = 1,
+            .flag.use_pagesize_4_mb = 1,
+        },
     }
 };
 
 static struct PageDriverState page_driver_state = {
-    .last_available_physical_addr = (uint8_t*) 0 + PAGE_FRAME_SIZE,
+    .last_available_physical_addr = (uint8_t*) (2 * PAGE_FRAME_SIZE),
 };
 
 void update_page_directory_entry(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag) {
