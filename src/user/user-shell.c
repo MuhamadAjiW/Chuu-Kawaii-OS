@@ -177,24 +177,7 @@ void evaluate_shell(){
             mkdir(get_parsed_result()[1], current_dir.cluster_number);
         }  
         else if (strcmp(get_parsed_result()[0], "whereis") == 0) {
-            uint16_t result_count = 100; // max results
-            FAT32DriverRequest result_array[100]; // array to store results
-            whereis(current_dir.cluster_number, get_parsed_result()[1], result_array, &result_count);
-            if (result_count > 0) {
-                // Print the file/folder location for each result found
-                for (int i = 0; i < result_count; i++) {
-                    FAT32DriverRequest request = result_array[i];
-                    char buffer[256];
-                    int_toString(request.parent_cluster_number, buffer);
-                    print("\n");
-                    print("     File/Folder location: Cluster ");
-                    print(buffer);
-                    print("\n");
-                }
-            } else {
-                print("\n");
-                print("     File/Folder not found\n");
-            }
+            whereis(current_dir.cluster_number, get_parsed_result()[1], current_dir.directory_path);
         }
 
         // check result array

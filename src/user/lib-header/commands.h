@@ -53,5 +53,5 @@ void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest);
  */
 void mkdir(char *dirname, uint32_t currentCluster);
 
-void whereis(uint16_t cluster_number, char* filename, FAT32DriverRequest* result_array, uint16_t* result_count);
+void whereis(uint16_t current_cluster, char* filename, char* path);
 #endif

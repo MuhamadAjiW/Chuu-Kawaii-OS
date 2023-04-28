@@ -168,58 +168,105 @@ DirectoryEntry emptyEntry = {0};
 //     return;
 // }
 
-void whereis(uint16_t cluster_number, char* filename, FAT32DriverRequest* result_array, uint16_t* result_count){
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    char buffer[256]; 
-    uint16_t count = 0;
-    uint16_t sector_count = 1;
-    uint32_t current_cluster = cluster_number;
-    DirectoryTable table = {0};
-do{
-    syscall(SYSCALL_READ_CLUSTERS, (uint32_t) reader, (uint32_t) current_cluster, (uint32_t) sector_count);
-    syscall(SYSCALL_AS_DIRECTORY, (uint32_t) reader, (uint32_t) &table, 0);
-    for(int i = 1; i < SECTOR_COUNT; i++){
-        if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
-            char name[8];
-            char ext[3];
+void whereis(uint16_t current_cluster, char* filename, char* path){
+    char fileName[8] = {0};
+    char fileExt[3] = {0};
 
-            // Extract the name and extension of the file/folder
-            memcpy(name, table.entry[i].filename, 8);
-            memcpy(ext, table.entry[i].extension, 3);
+    int dotIdx  = -1;
+    int fileNameExtLen = strlen(filename);
+    
+    // search .
+    for (int i = fileNameExtLen - 1; i >= 0; i--) {
+        if (filename[i] == '.') {
+            dotIdx = i;
+            break;
+        }
+    }
 
-            // Null-terminate the name and extension strings
-            // name[8] = '\0';
-            // ext[3] = '\0';
+    if (dotIdx == -1) { // dot not found, not a valid file name
+        for (int i = 0; i < 8; i++) {
+            if(filename[i] == 0){
+                break;
+            }
+            fileName[i] = filename[i];
+        }
+    } else {
+        // split into file name and file ext
+        int minNameLen = 8;
+        if (dotIdx < minNameLen) {
+            minNameLen = dotIdx;
+        }
 
-            // Compare name with user input
-            if (memcmp(name, filename, 8) == 0){
-                FAT32DriverRequest request;
-                memcpy(request.name, name, 8);
-                memcpy(request.ext, ext, 3);
-                request.parent_cluster_number = cluster_number;
-                memcpy(&result_array[count], &request, sizeof(FAT32DriverRequest));
-                count++;
+        for (int i = 0; i < minNameLen; i++) {
+            if(filename[i] == 0){
+                break;
+            }
+            fileName[i] = filename[i];
+        }
 
-                if(count >= *result_count){
-                    *result_count = count;
-                    return;
+        int minExtLen = 3;
+        if (fileNameExtLen - 1 - dotIdx < minExtLen) {
+            minExtLen = fileNameExtLen - dotIdx - 1;
+        }
+        for (int i = 0; i < minExtLen; i++) {
+            if(filename[dotIdx + 1 + i] == 0){
+                break;
+            }
+            fileExt[i] = filename[dotIdx + 1 + i];
+        }
+    }
+
+    FAT32DirectoryReader read;
+    char emptyString[9] = {0};
+    char string[9] = {0};
+    char extstring[4] = {0};
+
+
+    read = get_self_dir_info(current_cluster);
+    for(uint32_t k = 0; k < read.cluster_count; k++){
+        for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+            memcpy(string, emptyString, 8);
+            memcpy(string, &read.content[k].entry[i].filename, 8);
+            memcpy(extstring, emptyString, 3);
+            memcpy(extstring, &read.content[k].entry[i].extension, 3);
+            if (read.content[k].entry[i].directory){
+                
+                uint8_t lencounter = 0;
+                while(lencounter < 8 && read.content[k].entry[i].filename[lencounter] != 0){
+                    lencounter++;
                 }
 
-                int_toString(current_cluster, buffer); // update buffer with current cluster number
+                char* appended = (char*) malloc(strlen(path) + lencounter + 2);
+                
+                uint8_t lencounter2 = 0;
+                while (lencounter2 < strlen(path)){
+                    appended[lencounter2] = path[lencounter2];
+                    lencounter2++;
+                }
+                appended[lencounter2] = '/';
+                lencounter2++;
 
+                for(uint8_t l = 0; l < lencounter; l++){
+                    appended[lencounter2] = read.content[k].entry[i].filename[l];
+                    lencounter2++;
+                }
+                appended[lencounter2] = '\0';
+
+
+                whereis(read.content[k].entry[i].cluster_number, filename, appended);
+                free(appended);
             }
+
+            if ((memcmp(string, fileName, 8) == 0) && (memcmp(extstring, fileExt, 3) == 0)){
+                print("\n    ");
+                print(path);
+                print("/");
+                print(filename);
+            }
+
         }
-    } 
-    syscall(SYSCALL_READ_CLUSTERS, (uint32_t) reader, (uint32_t) 1, (uint32_t) sector_count);
-    current_cluster = reader[current_cluster];
-
-    // Update buffer with current cluster number
-    int_toString(current_cluster, buffer);
-
-
-} while (current_cluster != END_OF_FILE);
-    *result_count = count;
-    return;
+    }
+    closef_dir(read);
 }
 
 

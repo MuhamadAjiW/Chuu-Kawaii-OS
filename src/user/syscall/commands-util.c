@@ -78,8 +78,6 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
 uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
     parse_path(pathname);
 
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table = {0};
     uint8_t isFound = 0;
     int pathLength = get_parsed_path_word_count();
     int counter = 0;
@@ -113,10 +111,16 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
         }
 
         for (int i = 0; i < minNameLen; i++) {
+            if(get_parsed_path_result()[pathLength - 1][i] == 0){
+                break;
+            }
             fileName[i] = get_parsed_path_result()[pathLength - 1][i];
         }
 
         for (int i = 0; i < minExtLen; i++) {
+            if(get_parsed_path_result()[pathLength - 1][dotIdx + 1 + i] == 0){
+                break;
+            }
             fileExt[i] = get_parsed_path_result()[pathLength - 1][dotIdx + 1 + i];
         }
     }
@@ -129,6 +133,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
     FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
+    char extstring[4] = {0};
 
     for(int j = counter; j < pathLength - 1; j++){ // cari sampe ujung - 1
         isFound = 0;
@@ -158,25 +163,30 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
 
     if (isFound || pathLength <= 2) {
         isFound = 0;
-        do {
-            readcluster((void*)reader, current_cluster, 1);
-            table = asdirectory(reader);
 
-            for(int i = 1; i < SECTOR_COUNT; i++){
-                //print(table.entry[i].filename);
-                if ((memcmp(&table.entry[i].filename, fileName, 8) == 0) && (memcmp(&table.entry[i].extension, fileExt, 3) == 0)){
-                    if (!isdirectory(table.entry[i].cluster_number)){
-                        current_cluster = table.entry[i].cluster_number;
+        read = get_self_dir_info(current_cluster);
+        for(uint32_t k = 0; k < read.cluster_count; k++){
+            for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                memcpy(string, emptyString, 8);
+                memcpy(string, &read.content[k].entry[i].filename, 8);
+                memcpy(extstring, emptyString, 3);
+                memcpy(extstring, &read.content[k].entry[i].extension, 3);
+                if ((memcmp(string, fileName, 8) == 0) && (memcmp(extstring, fileExt, 3) == 0)){
+                    // print("\n");
+                    // print(table.entry[i].filename);
+                    if (read.content[k].entry[i].directory){
+                        current_cluster = read.content[k].entry[i].cluster_number;
                         isFound = 1;
                         print("\nfound!");
                         break;
                     }
                 }
             }
-
-            readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
-            current_cluster = reader[current_cluster];
-        } while (current_cluster != END_OF_FILE && isFound == 0);
+            if(isFound){
+                break;
+            }
+        }
+        closef_dir(read);
     }
 
     parser_path_clear();
@@ -222,6 +232,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
                 break;
             }
         }
+        closef_dir(read);
     }
 
     parser_path_clear();
@@ -231,8 +242,6 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
 FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster) {
     parse_path(pathname);
 
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table = {0};
     uint8_t isFound = 0;
     int pathLength = get_parsed_path_word_count();
     int counter = 0;
@@ -281,51 +290,65 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
         counter = 1;
     }
 
-    for(int j = counter; j < pathLength - 1; j++){ // cari sampe ujung - 1
+    FAT32DirectoryReader read;
+    char emptyString[9] = {0};
+    char string[9] = {0};
+    char extstring[4] = {0};
+
+    for(int j = counter; j < get_parsed_path_word_count() - 1; j++){
         isFound = 0;
-        do {
-            readcluster((void*)reader, current_cluster, 1);
-            table = asdirectory(reader);
-            for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
-                    if (isdirectory(table.entry[i].cluster_number)){
-                        current_cluster = table.entry[i].cluster_number;
+        
+        read = get_self_dir_info(current_cluster);
+        for(uint32_t k = 0; k < read.cluster_count; k++){
+            for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                memcpy(string, emptyString, 8);
+                memcpy(string, &read.content[k].entry[i].filename, 8);
+                if ((strcmp(string, get_parsed_path_result()[j]) == 0)){
+                    // print("\n");
+                    // print(table.entry[i].filename);
+                    if (read.content[k].entry[i].directory){
+                        current_cluster = read.content[k].entry[i].cluster_number;
                         isFound = 1;
                         print("\nfound!");
                         break;
                     }
                 }
             }
-            
-            readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
-            current_cluster = reader[current_cluster];
-        } while (current_cluster != END_OF_FILE && isFound == 0);
+            if(isFound){
+                break;
+            }
+        }
+        closef_dir(read);
     }
 
     uint32_t parentCluster = current_cluster;
 
     if (isFound || pathLength <= 2) {
         isFound = 0;
-        do {
-            readcluster((void*)reader, current_cluster, 1);
-            table = asdirectory(reader);
 
-            for(int i = 1; i < SECTOR_COUNT; i++){
-                //print(table.entry[i].filename);
-                if ((memcmp(&table.entry[i].filename, fileName, 8) == 0) && (memcmp(&table.entry[i].extension, fileExt, 3) == 0)){
-                    if (!isdirectory(table.entry[i].cluster_number)){
-                        // print(table.entry[i].filename);
-                        current_cluster = table.entry[i].cluster_number;
+        read = get_self_dir_info(current_cluster);
+        for(uint32_t k = 0; k < read.cluster_count; k++){
+            for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                memcpy(string, emptyString, 8);
+                memcpy(string, &read.content[k].entry[i].filename, 8);
+                memcpy(extstring, emptyString, 3);
+                memcpy(extstring, &read.content[k].entry[i].extension, 3);
+                if ((memcmp(string, fileName, 8) == 0) && (memcmp(extstring, fileExt, 3) == 0)){
+                    // print("\n");
+                    // print(table.entry[i].filename);
+                    if (read.content[k].entry[i].directory){
+                        current_cluster = read.content[k].entry[i].cluster_number;
                         isFound = 1;
                         print("\nfound!");
                         break;
                     }
                 }
             }
-
-            readcluster((void*)reader, FAT_CLUSTER_NUMBER, 1);
-            current_cluster = reader[current_cluster];
-        } while (current_cluster != END_OF_FILE && isFound == 0);
+            if(isFound){
+                break;
+            }
+        }
+        closef_dir(read);
     }
 
     FAT32DriverRequest req = {
@@ -383,6 +406,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
                 break;
             }
         }
+        closef_dir(read);
 
     }
 
