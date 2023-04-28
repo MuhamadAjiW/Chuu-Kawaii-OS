@@ -47,4 +47,10 @@ void cp(uint32_t currentCluster);
 void mv(uint32_t currentCluster);
 void copy1(FAT32FileReader readed, FAT32DriverRequest destFile);
 
+/**
+ * Creates new folder
+ */
+void mkdir(char *dirname, uint32_t currentCluster);
+
+void whereis(uint16_t cluster_number, char* filename, FAT32DriverRequest* result_array, uint16_t* result_count);
 #endif

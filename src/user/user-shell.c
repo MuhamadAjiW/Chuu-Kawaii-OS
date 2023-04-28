@@ -101,6 +101,11 @@ void newline_shell(){
 
 // uint32_t currentCluster = 2;
 
+
+
+#define MAX_RESULTS 100 
+
+
 void evaluate_shell(){
     parse(shell.keyboard_buffer);
     // parse_path(shell.keyboard_buffer);
@@ -161,7 +166,37 @@ void evaluate_shell(){
 
         } else if (strcmp(get_parsed_result()[0], "cp") == 0) {
             cp(current_dir.cluster_number);
-        } else{
+        }
+        //TODO: lengkapin command
+        else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
+
+            mkdir(get_parsed_result()[1], currentCluster);
+        }  
+        else if (strcmp(get_parsed_result()[0], "whereis") == 0) {
+            uint16_t result_count = 100; // max results
+            FAT32DriverRequest result_array[100]; // array to store results
+            whereis(currentCluster, get_parsed_result()[1], result_array, &result_count);
+            if (result_count > 0) {
+                // Print the file/folder location for each result found
+                for (int i = 0; i < result_count; i++) {
+                    FAT32DriverRequest request = result_array[i];
+                    char buffer[256];
+                    int_toString(request.parent_cluster_number, buffer);
+                    print("\n");
+                    print("     File/Folder location: Cluster ");
+                    print(buffer);
+                    print("\n");
+                }
+                // Update current cluster to the cluster number of the first file/folder found
+                currentCluster = result_array[0].parent_cluster_number;
+            } else {
+                print("\n");
+                print("     File/Folder not found\n");
+            }
+        }
+
+        // check result array
+        else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);
             print("\n");
