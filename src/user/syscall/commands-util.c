@@ -49,7 +49,7 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
+                if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
                     // print("\n");
                     // print(table.entry[i].filename);
                     if (isdirectory(table.entry[i].cluster_number)){
@@ -128,7 +128,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
+                if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
                     if (isdirectory(table.entry[i].cluster_number)){
                         current_cluster = table.entry[i].cluster_number;
                         isFound = 1;
@@ -151,7 +151,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
 
             for(int i = 1; i < SECTOR_COUNT; i++){
                 //print(table.entry[i].filename);
-                if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
+                if ((memcmp(&table.entry[i].filename, fileName, 8) == 0) && (memcmp(&table.entry[i].extension, fileExt, 3) == 0)){
                     if (!isdirectory(table.entry[i].cluster_number)){
                         current_cluster = table.entry[i].cluster_number;
                         isFound = 1;
@@ -189,7 +189,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0) &&
+                if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0) &&
                     (isdirectory((uint32_t) &table.entry[i].cluster_number))){
                         current_cluster = (uint32_t) &table.entry[i].cluster_number;
                         isFound = 1;
@@ -267,7 +267,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
+                if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
                     if (isdirectory(table.entry[i].cluster_number)){
                         current_cluster = table.entry[i].cluster_number;
                         isFound = 1;
@@ -292,7 +292,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
 
             for(int i = 1; i < SECTOR_COUNT; i++){
                 //print(table.entry[i].filename);
-                if ((memcmpr(&table.entry[i].filename, fileName, 8) == 0) && (memcmpr(&table.entry[i].extension, fileExt, 3) == 0)){
+                if ((memcmp(&table.entry[i].filename, fileName, 8) == 0) && (memcmp(&table.entry[i].extension, fileExt, 3) == 0)){
                     if (!isdirectory(table.entry[i].cluster_number)){
                         // print(table.entry[i].filename);
                         current_cluster = table.entry[i].cluster_number;
@@ -313,8 +313,8 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
         .buffer_size = 0
     };
 
-    memcopy(req.name, fileName, 8);
-    memcopy(req.ext, fileExt, 3);
+    memcpy(req.name, fileName, 8);
+    memcpy(req.ext, fileExt, 3);
     parser_path_clear();
     return req;
 }
@@ -339,7 +339,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
             readcluster((void*)reader, current_cluster, 1);
             table = asdirectory(reader);
             for(int i= 1; i < SECTOR_COUNT; i++){
-                if ((memcmpr(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
+                if ((memcmp(&table.entry[i].filename, get_parsed_path_result()[j], 8) == 0)){
                     if (isdirectory(table.entry[i].cluster_number)){
                         current_cluster = table.entry[i].cluster_number;
 
@@ -365,7 +365,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
         .buffer_size = 0
     };
 
-    memcopy(req.name, get_parsed_path_result()[get_parsed_path_word_count() - 1], 8);
+    memcpy(req.name, get_parsed_path_result()[get_parsed_path_word_count() - 1], 8);
     parser_path_clear();
     return req;
 }

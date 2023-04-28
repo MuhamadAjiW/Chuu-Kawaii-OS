@@ -110,6 +110,7 @@ void sys_as_directory(registers r){
 
 void sys_is_directory(registers r){
    *((uint8_t*) r.ecx) = is_directory((uint32_t)r.ebx);
+}
 
 void sys_mkdir(registers r){
     struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
@@ -139,20 +140,6 @@ void sys_memcmp(registers r) {
     int result = memcmp(s1, s2, n);
 
     r.eax = result;
-}
-
-
-void sys_read_clusters(registers r){
-    void* reader = (void*) r.ebx;
-    uint16_t cluster = ( (uint16_t) r.ecx);
-    uint16_t sector_count = ((uint16_t) r.edx);
-    read_clusters(reader, cluster, sector_count);
-}
-
-void sys_as_directory(registers r){
-    uint32_t* reader = (uint32_t*) r.ebx;
-    DirectoryTable table = as_directory(reader);
-    memcpy((void*)r.ecx, &table, sizeof(DirectoryTable));
 }
 
 void sys_name_exist(registers r){

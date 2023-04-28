@@ -123,7 +123,7 @@ void evaluate_shell(){
             // current_dir = cd(get_parsed_result()[1], current_dir);
             if (get_parsed_word_count() == 1){
                 current_dir.cluster_number = 2;
-                memcopy(current_dir.directory_path, "/root", 255);
+                memcpy(current_dir.directory_path, "/root", 255);
                 print("\nnow you're on root!");
             }
             else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
@@ -170,12 +170,12 @@ void evaluate_shell(){
         //TODO: lengkapin command
         else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
 
-            mkdir(get_parsed_result()[1], currentCluster);
+            mkdir(get_parsed_result()[1], current_dir.cluster_number);
         }  
         else if (strcmp(get_parsed_result()[0], "whereis") == 0) {
             uint16_t result_count = 100; // max results
             FAT32DriverRequest result_array[100]; // array to store results
-            whereis(currentCluster, get_parsed_result()[1], result_array, &result_count);
+            whereis(current_dir.cluster_number, get_parsed_result()[1], result_array, &result_count);
             if (result_count > 0) {
                 // Print the file/folder location for each result found
                 for (int i = 0; i < result_count; i++) {
@@ -187,8 +187,6 @@ void evaluate_shell(){
                     print(buffer);
                     print("\n");
                 }
-                // Update current cluster to the cluster number of the first file/folder found
-                currentCluster = result_array[0].parent_cluster_number;
             } else {
                 print("\n");
                 print("     File/Folder not found\n");
@@ -226,10 +224,10 @@ int main(void){
     } ;
 
     writef(request);  // Create folder "ikanaide"
-    // deletef(request); // Delete first folder, thus creating hole in FS
+    deletef(request); // Delete first folder, thus creating hole in FS
     
     request.buffer_size = 5*CLUSTER_SIZE;
-    // writef(request);  // Create fragmented file "daijoubu"
+    writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {

@@ -269,9 +269,9 @@ directory_info cd(char* pathname, directory_info current_dir){
     directory_info new_dir = {
         .cluster_number = path_to_cluster(pathname, current_dir.cluster_number)
     };
-    print("\nsebelum memcopy");
-    memcopy(new_dir.directory_path, pathname, 255);
-    print("\nsetelah memcopy");
+    print("\nsebelum memcpy");
+    memcpy(new_dir.directory_path, pathname, 255);
+    print("\nsetelah memcpy");
     return new_dir;
 }
 
