@@ -172,7 +172,6 @@ void evaluate_shell(){
             clear();
             reader_main();
         }
-        //TODO: lengkapin command
         else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
 
             mkdir(get_parsed_result()[1], current_dir.cluster_number);
