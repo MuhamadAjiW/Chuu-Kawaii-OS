@@ -3,9 +3,11 @@
 #include "lib-header/syscall.h"
 #include "lib-header/stdlib.h"
 #include "lib-header/stdio.h"
+#include "lib-header/stdmem.h"
 #include "lib-header/string.h"
 #include "lib-header/commands.h"
 #include "lib-header/chuupad.h"
+#include "lib-header/commands-util.h"
 
 #include "lib-header/parser.h"
 
@@ -14,6 +16,11 @@ static shell_reader shell = {
     .buffersize = INPUT_BUFFER_SIZE,
     .maxIdx = 0,
     .currentIdx = 0
+};
+
+static directory_info current_dir = {
+    .directory_path = "/root",
+    .cluster_number = 2
 };
 
 void initialize_shell(){
@@ -35,7 +42,6 @@ void clear_shell(){
     shell.currentIdx = 0;
     shell.maxIdx = 0;
 }
-
 
 void append_shell(char in){
     if(shell.maxIdx < shell.buffersize - 1){
@@ -85,22 +91,25 @@ char* get_keyboard_buffer(){
 }
 
 void newline_shell(){
-    print("\n    >> ");
+    print("\n");
+    print(current_dir.directory_path);
+    print(" >> ");
     syscall(SYSCALL_LIMIT_CURSOR, 0, 0, 0);
     return;
 }
 
 
 
+// uint32_t currentCluster = 2;
 
 
 
+#define MAX_RESULTS 100 
 
-
-uint32_t currentCluster = 2;
 
 void evaluate_shell(){
     parse(shell.keyboard_buffer);
+    // parse_path(shell.keyboard_buffer);
     if (get_parsed_word_count() > 0){
         if(strcmp(get_parsed_result()[0], "clear") == 0){
             clear();
@@ -109,21 +118,95 @@ void evaluate_shell(){
             animation();
         }
         else if(strcmp(get_parsed_result()[0], "dir") == 0){
-            dir(currentCluster);
+            dir(current_dir.cluster_number);
+        }
+        else if(strcmp(get_parsed_result()[0], "cd") == 0){
+            // current_dir = cd(get_parsed_result()[1], current_dir);
+            if (get_parsed_word_count() == 1){
+                current_dir.cluster_number = 2;
+                memcpy(current_dir.directory_path, "/root", 255);
+                print("\nnow you're on root!");
+            }
+            else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                current_dir = cd(get_parsed_result()[1], current_dir);
+            } else {
+                print("\ncd: no such directory: ");
+                print(get_parsed_result()[1]);
+                print("\n");
+            }
+        }
+        else if(strcmp(get_parsed_result()[0], "ls") == 0){
+            if (get_parsed_word_count() == 1){
+                ls(current_dir.cluster_number);
+            }
+            else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                ls(path_to_cluster(get_parsed_result()[1], current_dir.cluster_number));
+            } else {
+                print("\nls: ");
+                print(get_parsed_result()[1]);
+                print(": No such file or directory\n");
+            }  
+        }
+        else if(strcmp(get_parsed_result()[0], "cat") == 0){
+            if (get_parsed_word_count() == 1){
+                // masuk state mini program
+            } else if (is_filepath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                cat(current_dir.cluster_number);
+            } else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                print("\ncat: ");
+                print(get_parsed_result()[1]);
+                print(": Is a directory\n");
+            } else {
+                print("\ncat: ");
+                print(get_parsed_result()[1]);
+                print(": No such file\n");
+            }
+        }
+        else if (strcmp(get_parsed_result()[0], "rm") == 0) {
+            rm(current_dir.cluster_number);
+
+        } else if (strcmp(get_parsed_result()[0], "cp") == 0) {
+            cp(current_dir.cluster_number);
         }
         else if(strcmp(get_parsed_result()[0], "chuupad") == 0){
             clear();
             reader_main();
         }
         //TODO: lengkapin command
+        else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
 
+            mkdir(get_parsed_result()[1], current_dir.cluster_number);
+        }  
+        else if (strcmp(get_parsed_result()[0], "whereis") == 0) {
+            uint16_t result_count = 100; // max results
+            FAT32DriverRequest result_array[100]; // array to store results
+            whereis(current_dir.cluster_number, get_parsed_result()[1], result_array, &result_count);
+            if (result_count > 0) {
+                // Print the file/folder location for each result found
+                for (int i = 0; i < result_count; i++) {
+                    FAT32DriverRequest request = result_array[i];
+                    char buffer[256];
+                    int_toString(request.parent_cluster_number, buffer);
+                    print("\n");
+                    print("     File/Folder location: Cluster ");
+                    print(buffer);
+                    print("\n");
+                }
+            } else {
+                print("\n");
+                print("     File/Folder not found\n");
+            }
+        }
+
+        // check result array
         else{
             print("\nNo Command found: ");
             print(shell.keyboard_buffer);
             print("\n");
         }
     }    
-    parser_clear();    
+    parser_clear(); 
+    
 }
 
 int main(void){
@@ -193,3 +276,4 @@ int main(void){
     
     return 0;
 }
+

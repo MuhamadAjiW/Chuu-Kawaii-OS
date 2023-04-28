@@ -29,6 +29,18 @@ struct shell_reader
 typedef struct shell_reader shell_reader;
 
 /**
+ * Struct containing the value of bytes in a cluster
+ * 
+ * @param directory_path           Directory Path
+ * @param cluster_number           Cluster Number 
+ */
+struct directory_info{
+    char directory_path[255];
+    uint32_t cluster_number;
+}__attribute__((packed));
+typedef struct directory_info directory_info;
+
+/**
  *  Allocates keyboard_buffer with the default size
  */
 void initialize_shell();
