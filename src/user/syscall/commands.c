@@ -150,10 +150,15 @@ void ls(uint32_t currentCluster){
 }
 
 directory_info cd(char* pathname, directory_info current_dir){
+    print("\nmulai masuk cd");
+    print(pathname);
+    print("\n");
     directory_info new_dir = {
         .cluster_number = path_to_cluster(pathname, current_dir.cluster_number)
     };
+    print("\nsebelum memcopy");
     memcopy(new_dir.directory_path, pathname, 255);
+    print("\nsetelah memcopy");
     return new_dir;
 }
 

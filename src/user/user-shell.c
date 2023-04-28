@@ -18,7 +18,7 @@ static shell_reader shell = {
 };
 
 static directory_info current_dir = {
-    .directory_path = " ",
+    .directory_path = "/root",
     .cluster_number = 2
 };
 
@@ -115,9 +115,10 @@ void evaluate_shell(){
             dir(current_dir.cluster_number);
         }
         else if(strcmp(get_parsed_result()[0], "cd") == 0){
+            // current_dir = cd(get_parsed_result()[1], current_dir);
             if (get_parsed_word_count() == 1){
                 current_dir.cluster_number = 2;
-                memcopy(current_dir.directory_path, " ", 255);
+                memcopy(current_dir.directory_path, "/root", 255);
                 print("\nnow you're on root!");
             }
             else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
@@ -187,10 +188,10 @@ int main(void){
     } ;
 
     writef(request);  // Create folder "ikanaide"
-    deletef(request); // Delete first folder, thus creating hole in FS
+    // deletef(request); // Delete first folder, thus creating hole in FS
     
     request.buffer_size = 5*CLUSTER_SIZE;
-    writef(request);  // Create fragmented file "daijoubu"
+    // writef(request);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {
