@@ -171,6 +171,12 @@ void mkdir(char *dirname, uint32_t currentCluster){
                 req.name[i] = get_parsed_path_result()[counter][i];
             }
 
+            char forbidden[8] = "..\0\0\0\0\0\0";
+            if(memcmp(forbidden, req.name, 8) == 0){
+                print("\nmkdir: Operation halted because of forbidden folder name (..)\n");
+                return;
+            }
+
             writef(req);
             
             read = get_dir_info(current_cluster);
