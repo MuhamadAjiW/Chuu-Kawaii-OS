@@ -439,3 +439,51 @@ FAT32DirectoryReader get_dir_info(uint32_t current_cluster){
     syscall(SYSCALL_SELF_DIR_INFO, current_cluster, (uint32_t) &retval, 0);
     return retval;
 }
+
+uint8_t check_contain(uint32_t cluster_child, uint32_t cluster_parent){
+    if(cluster_child == 2){
+        return 0;
+    }
+    if(cluster_parent == 2){
+        return 1;
+    }
+    else{
+        uint32_t traversal_cluster = cluster_child;
+        FAT32DirectoryReader read = get_dir_info(traversal_cluster);
+
+        while (traversal_cluster != 2)
+        {
+            if(traversal_cluster == cluster_parent){
+                closef_dir(read);
+                return 1;
+            }
+            
+            traversal_cluster = read.content[0].entry[0].cluster_number;
+            read = get_dir_info(traversal_cluster);
+        }
+
+        closef_dir(read);
+        return 0;
+        
+    }
+
+}
+
+DirectoryEntry get_info(FAT32DriverRequest request){
+    FAT32DirectoryReader read = get_dir_info(request.parent_cluster_number);
+    DirectoryEntry self;
+    for(uint32_t i = 0; i < read.cluster_count; i++){
+        for(uint32_t j = 1; j < SECTOR_COUNT; j++){
+            // read.content[i].entry[j];
+            if(memcmp(&read.content[i].entry[j].filename, request.name, 8) == 0 &&
+                memcmp(&read.content[i].entry[j].extension, request.ext, 3) == 0
+            ){
+                self = read.content[i].entry[j];
+                break;
+            }
+        }
+    }
+    closef_dir(read);
+
+    return self;
+}

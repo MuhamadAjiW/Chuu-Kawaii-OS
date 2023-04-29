@@ -93,4 +93,8 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
  */
 FAT32DirectoryReader get_dir_info(uint32_t current_cluster);
 
+//TODO: document
+uint8_t check_contain(uint32_t cluster_child, uint32_t cluster_parent);
+DirectoryEntry get_info(FAT32DriverRequest request);
+
 #endif
