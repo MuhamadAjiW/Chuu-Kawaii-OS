@@ -41,6 +41,9 @@
 
 
 #define SYSCALL_DISPLAY_TEXT 64
+#define SYSCALL_GET_CURSOR_Y 65
+#define SYSCALL_GET_CURSOR_X 66
+#define SYSCALL_GET_TEXT_EDGE 67
 
 /**
  * Assigns system response functions to system call number

@@ -26,41 +26,15 @@ uint8_t get_cursor_y(){
     syscall(SYSCALL_GET_CURSOR_Y, (uint32_t) &yloc ,0,0);
     return yloc;
 }
-
-void scroll(int8_t direction){
-    if(direction == 1){
-        uint8_t counter = 0;
-        while(counter < 64){
-            if(reader.screen_buffer[counter] == '\n'){
-                counter++;
-                break;
-            }
-            counter++;
-        }
-        reader.minIdx += counter;
-        if(reader.minIdx > reader.len){
-            reader.minIdx = reader.len - (64*25);
-        }
-    }
-    else if(direction == -1){
-        if(reader.minIdx != 0){
-            uint8_t counter = 0;
-            while(counter < 64){
-                //TODO: benerin
-                if(reader.screen_buffer[64*24 + counter] == '\n'){
-                    counter++;
-                    break;
-                }
-                counter++;
-            }
-            if(counter > reader.minIdx){
-                reader.minIdx = 0;
-            }
-            else{
-                reader.minIdx -= counter;
-            }
-        }
-    }
+uint8_t get_cursor_x(){
+    uint8_t xloc;
+    syscall(SYSCALL_GET_CURSOR_X, (uint32_t) &xloc ,0,0);
+    return xloc;
+}
+uint8_t get_text_edge(uint8_t line){
+    uint8_t edge;
+    syscall(SYSCALL_GET_TEXT_EDGE, (uint32_t) line, (uint32_t) &edge,0);
+    return edge;
 }
 
 void initialize_reader(uint32_t cluster_number){
@@ -98,15 +72,40 @@ void append_reader(char in){
     }
 }
 void move_reader(int direction){
-    if(direction == 1 || direction == -1){
-        reader.currentIdx = reader.currentIdx + direction;
+    switch (direction){
+        case (1):
+            reader.currentIdx++;
+            break;
+        case (2):
+            if(get_cursor_y() != 24){
+                uint8_t edge = get_text_edge(get_cursor_y() + 1);
+                if (edge < get_cursor_x()){
+                    reader.currentIdx += edge;
+                }
+                else{
+                    reader.currentIdx += 25;
+                }
+            }
+            break;
+        case (-1):
+            reader.currentIdx--;
+            break;
+        case (-2):
+            if(get_cursor_y() != 0){
+                uint8_t edge = get_text_edge(get_cursor_y() - 1);
+                if (edge < get_cursor_x()){
+                    reader.currentIdx -= 25 - edge;
+                }
+                else{
+                    reader.currentIdx -= 25;
+                }
+            }
+            break;
+        
+        default:
+            break;
     }
-    if(direction == 2){
-        reader.currentIdx = reader.currentIdx + (64);
-    }
-    if(direction == -2){
-        reader.currentIdx = reader.currentIdx - (64);
-    }
+    reader.currentIdx = reader.currentIdx + direction;
     return;
 }
 
@@ -132,8 +131,7 @@ void load_buffer(){
 
 void display_text(){
     syscall(SYSCALL_DISPLAY_TEXT,  ((uint32_t)reader.screen_buffer + reader.minIdx), 0, 0);
-}
-
+} 
 
 void reader_with_file(uint32_t cluster_number){
     syscall(SYSCALL_LIMIT_CURSOR, 0, 0, 0);    
@@ -161,6 +159,45 @@ void reader_no_file(uint32_t cluster_number){
     reader_main();
 }
 
+void scroll(int8_t direction){
+    if(direction == 1){
+        uint8_t counter = 0;
+        while(counter < 64){
+            if(reader.screen_buffer[counter] == '\n'){
+                counter++;
+                break;
+            }
+            counter++;
+        }
+        move_reader(counter);
+        reader.minIdx += counter;
+        if(reader.minIdx > reader.len){
+            move_reader((-1)*(reader.len-(64*25) - reader.minIdx));
+            reader.minIdx = reader.len - (64*25);
+        }
+    }
+    else if(direction == -1){
+        if(reader.minIdx != 0){
+            uint8_t counter = 0;
+            while(counter < 64){
+                //TODO: benerin
+                if(reader.screen_buffer[64*24 + counter] == '\n'){
+                    counter++;
+                    break;
+                }
+                counter++;
+            }
+            if(counter > reader.minIdx){
+                reader.minIdx = 0;
+            }
+            else{
+                move_reader((-1)*(counter));
+                reader.minIdx -= counter;
+            }
+        }
+    }
+}
+
 void reader_main(){
     uint8_t running = 1;
     char buf[2] = {0, 0};
@@ -183,7 +220,6 @@ void reader_main(){
             }
             else{
                 scroll(-1);
-                move_reader(-2);
                 display_text();
             }
         }
@@ -194,7 +230,6 @@ void reader_main(){
 
                 if(get_cursor_y() == 24){
                     move_cursor(-2);
-                    move_reader(2);
                     scroll(1);
                     display_text();
                 }
@@ -207,7 +242,6 @@ void reader_main(){
             }
             else{
                 scroll(-1);
-                move_reader(-2);
                 display_text();
             }
         }
@@ -218,7 +252,6 @@ void reader_main(){
 
                 if(get_cursor_y() == 24){
                     move_cursor(-2);
-                    move_reader(2);
                     scroll(1);
                     display_text();
                 }
@@ -241,7 +274,6 @@ void reader_main(){
 
             if(get_cursor_y() == 24){
                 move_cursor(-2);
-                move_reader(-2);
                 scroll(1);
             }
             display_text();

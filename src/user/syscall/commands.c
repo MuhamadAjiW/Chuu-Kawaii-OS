@@ -334,7 +334,7 @@ void ls(uint32_t currentCluster){
                 // cleaning things out
                 for(int k = buff; k < 8; k++){
                     print_char(' ');
-                    }
+                }
             }
         }
     }

@@ -63,9 +63,6 @@ void sys_graphics_clear(){
 void sys_graphics_limit_cursor(){
     graphics_set_limit(graphics_get_cursor_x(), graphics_get_cursor_y());
 }
-void sys_graphics_get_cursor_y(registers r){
-    *(uint8_t*) r.ebx = graphics_get_cursor_y();
-}
 void sys_delete(registers r){
     struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
     *((int8_t*) r.ecx) =  delete(request);
@@ -117,6 +114,15 @@ void sys_name_exist(registers r){
 void sys_display_text(registers r){
     graphics_display_text((char*) r.ebx);
 }
+void sys_graphics_get_cursor_y(registers r){
+    *(uint8_t*) r.ebx = graphics_get_cursor_y();
+}
+void sys_graphics_get_cursor_x(registers r){
+    *(uint8_t*) r.ebx = graphics_get_cursor_x();
+}
+void sys_graphics_get_text_edge(registers r){
+    *(uint8_t*) r.ecx = graphics_find_edge(r.ebx);
+}
 
 void enable_system_calls(){
     register_interrupt_handler(0x30, syscall_response);
@@ -150,6 +156,8 @@ void enable_system_calls(){
 
     register_syscall_response(SYSCALL_DISPLAY_TEXT, sys_display_text);
     register_syscall_response(SYSCALL_GET_CURSOR_Y, sys_graphics_get_cursor_y);
+    register_syscall_response(SYSCALL_GET_CURSOR_X, sys_graphics_get_cursor_x);
+    register_syscall_response(SYSCALL_GET_TEXT_EDGE, sys_graphics_get_text_edge);
 }
 
 void syscall_response(registers r) {
