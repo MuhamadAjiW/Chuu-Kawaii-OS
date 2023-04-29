@@ -176,7 +176,7 @@ void evaluate_shell(){
             reader_main();
         }
         else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
-            if(get_parsed_word_count() > 2){
+            if(get_parsed_word_count() > 2 || get_parsed_word_count() < 2){
                 print("\nmkdir: Invalid command\n");
             }
             else{
