@@ -354,7 +354,9 @@ void cd(char* pathname, directory_info* current_dir){
 
     parse_path(pathname);
     if (strcmp(get_parsed_path_result()[0], "root") == 0){
-        startleng = 0;
+        startleng = 5;
+        memcpy(appended, "/root", 6);
+
         for(int j = 1; j < get_parsed_path_word_count(); j++){
             if (strcmp(get_parsed_path_result()[j], "..") == 0){
                 while (current_dir->directory_path[startleng] != '/' && startleng > 5){
