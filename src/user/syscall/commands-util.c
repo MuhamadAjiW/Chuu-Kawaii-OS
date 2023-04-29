@@ -46,7 +46,7 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
     char string[9] = {0};
 
     for(int j = counter; j < get_parsed_path_word_count(); j++){
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         if (strcmp(get_parsed_path_result()[j], "..") == 0){
             current_cluster = read.content[0].entry[0].cluster_number;
         }
@@ -145,7 +145,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
     for(int j = counter; j < pathLength - 1; j++){ // cari sampe ujung - 1
         isFound = 0;
         
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         for(uint32_t k = 0; k < read.cluster_count; k++){
             for(uint8_t i= 1; i < SECTOR_COUNT; i++){
                 memcpy(string, emptyString, 8);
@@ -171,7 +171,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
     if (isFound || pathLength <= 2) {
         isFound = 0;
 
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         for(uint32_t k = 0; k < read.cluster_count; k++){
             for(uint8_t i= 1; i < SECTOR_COUNT; i++){
                 memcpy(string, emptyString, 8);
@@ -217,7 +217,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
     char string[9] = {0};
 
     for(int j = counter; j < get_parsed_path_word_count(); j++){
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         if (strcmp(get_parsed_path_result()[j], "..") == 0){
             current_cluster = read.content[0].entry[0].cluster_number;
         }
@@ -310,7 +310,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     for(int j = counter; j < get_parsed_path_word_count() - 1; j++){
         isFound = 0;
         
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         for(uint32_t k = 0; k < read.cluster_count; k++){
             for(uint8_t i= 1; i < SECTOR_COUNT; i++){
                 memcpy(string, emptyString, 8);
@@ -338,7 +338,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     if (isFound || pathLength <= 2) {
         isFound = 0;
 
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         for(uint32_t k = 0; k < read.cluster_count; k++){
             for(uint8_t i= 1; i < SECTOR_COUNT; i++){
                 memcpy(string, emptyString, 8);
@@ -393,7 +393,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
     for(int j = counter; j < get_parsed_path_word_count(); j++){
         isFound = 0;
         
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         for(uint32_t k = 0; k < read.cluster_count; k++){
             for(uint8_t i= 1; i < SECTOR_COUNT; i++){
                 memcpy(string, emptyString, 8);
@@ -439,7 +439,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
     return req;
 }
 
-FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster){
+FAT32DirectoryReader get_dir_info(uint32_t current_cluster){
     FAT32DirectoryReader retval;
     syscall(SYSCALL_SELF_DIR_INFO, current_cluster, (uint32_t) &retval, 0);
     return retval;

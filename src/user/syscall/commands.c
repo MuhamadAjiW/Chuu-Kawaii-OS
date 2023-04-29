@@ -38,7 +38,7 @@ void animation(){
 void dir(uint32_t currentCluster){
     FAT32DirectoryReader directory_reader;
 
-    directory_reader = get_self_dir_info(currentCluster);
+    directory_reader = get_dir_info(currentCluster);
     char char_buffer[9];
     uint32_t counter = 1;
     DirectoryEntry read_entry;
@@ -126,7 +126,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
     char string[9] = {0};
 
     while (counter < get_parsed_path_word_count() && isFound){
-        read = get_self_dir_info(current_cluster);
+        read = get_dir_info(current_cluster);
         if (strcmp(get_parsed_path_result()[counter], "..") == 0){
             current_cluster = read.content[0].entry[0].cluster_number;
             counter++;
@@ -173,7 +173,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
 
             writef(req);
             
-            read = get_self_dir_info(current_cluster);
+            read = get_dir_info(current_cluster);
             DirectoryEntry self;
             for(uint32_t i = 0; i < read.cluster_count; i++){
                 for(uint32_t j = 1; j < SECTOR_COUNT; j++){
@@ -253,7 +253,7 @@ void whereis(uint16_t current_cluster, char* filename, char* path){
     char extstring[4] = {0};
 
 
-    read = get_self_dir_info(current_cluster);
+    read = get_dir_info(current_cluster);
     for(uint32_t k = 0; k < read.cluster_count; k++){
         for(uint8_t i= 1; i < SECTOR_COUNT; i++){
             memcpy(string, emptyString, 8);
@@ -309,7 +309,7 @@ void clear(){
 void ls(uint32_t currentCluster){
     FAT32DirectoryReader directory_reader;
 
-    directory_reader = get_self_dir_info(currentCluster);
+    directory_reader = get_dir_info(currentCluster);
     // char char_buffer[9];
     // uint32_t counter = 1;
     DirectoryEntry read_entry;
@@ -538,7 +538,7 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     dest.buffer_size = 0;
     writef(dest);
 
-    FAT32DirectoryReader read = get_self_dir_info(dest.parent_cluster_number);
+    FAT32DirectoryReader read = get_dir_info(dest.parent_cluster_number);
     DirectoryEntry self;
     for(uint32_t i = 0; i < read.cluster_count; i++){
         for(uint32_t j = 1; j < SECTOR_COUNT; j++){

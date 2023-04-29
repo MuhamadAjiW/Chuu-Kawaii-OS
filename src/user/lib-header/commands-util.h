@@ -91,6 +91,6 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
  * 
  * @return                          a struct containing the read data and number of read clusters
  */
-FAT32DirectoryReader get_self_dir_info(uint32_t current_cluster);
+FAT32DirectoryReader get_dir_info(uint32_t current_cluster);
 
 #endif
