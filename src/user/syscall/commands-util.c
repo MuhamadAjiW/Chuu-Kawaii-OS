@@ -487,3 +487,112 @@ DirectoryEntry get_info(FAT32DriverRequest request){
 
     return self;
 }
+
+uint8_t copy_create_folders(char* path, uint32_t currentCluster){
+    
+    char* dirname = path;
+    parse_path(dirname);
+    uint8_t counter = 0;
+    uint8_t isFound = 1;
+    
+    if (get_parsed_path_word_count() - 1 < 1){
+        parser_path_clear();
+        return 0;
+    }
+
+    uint32_t current_cluster = currentCluster;
+    if (strcmp(get_parsed_path_result()[0], "root") == 0){
+        current_cluster = 2;
+        counter = 1;
+    } 
+    FAT32DirectoryReader read;
+    char emptyString[9] = {0};
+    char string[9] = {0};
+    while (counter < get_parsed_path_word_count() - 1 && isFound){
+        read = get_dir_info(current_cluster);
+        if (strcmp(get_parsed_path_result()[counter], "..") == 0){
+            current_cluster = read.content[0].entry[0].cluster_number;
+            counter++;
+        }
+        else{
+            isFound = 0;
+            for(uint32_t k = 0; k < read.cluster_count; k++){
+                for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                    memcpy(string, emptyString, 8);
+                    memcpy(string, &read.content[k].entry[i].filename, 8);
+                    if ((strcmp(string, get_parsed_path_result()[counter]) == 0)){
+                        if (read.content[k].entry[i].directory){
+                            current_cluster = read.content[k].entry[i].cluster_number;
+                            isFound = 1;
+                            //print("\nfound!");
+                            break;
+                        }
+                    }
+                }
+                if(isFound){
+                    counter++;
+                    break;
+                }
+            }
+        }
+        closef_dir(read);
+    }
+    if(isFound){
+        print("\ncp: Directory already exists\n");
+    }
+    else{
+        while (counter < get_parsed_path_word_count() - 1){
+            FAT32DriverRequest req = {0};
+            req.parent_cluster_number = current_cluster;
+            req.buffer_size = 0;
+            for(uint8_t i = 0; i < 8; i++){
+                if(get_parsed_path_result()[counter][i] == 0){
+                    break;
+                }
+                req.name[i] = get_parsed_path_result()[counter][i];
+            }
+            char forbidden[8] = "..\0\0\0\0\0\0";
+            if(memcmp(forbidden, req.name, 8) == 0){
+                print("\ncp: Operation halted because of forbidden folder name (..)\n");
+                return 1;
+            }
+            writef(req);
+            read = get_dir_info(current_cluster);
+            DirectoryEntry self;
+            for(uint32_t i = 0; i < read.cluster_count; i++){
+                for(uint32_t j = 1; j < SECTOR_COUNT; j++){
+                    if(memcmp(&read.content[i].entry[j].filename, req.name, 8) == 0 &&
+                        memcmp(&read.content[i].entry[j].extension, req.ext, 3) == 0
+                    ){
+                        self = read.content[i].entry[j];
+                        break;
+                    }
+                }
+            }
+            current_cluster = self.cluster_number;
+            counter++;
+            closef_dir(read);
+        }
+        parser_path_clear();
+    }
+    return 0;
+}
+
+uint8_t is_filename(char* filename) {
+    int dotIdx  = -1;
+    int fileNameExtLen = strlen(filename);
+
+    // search .
+    for (int i = fileNameExtLen - 1; i >= 0; i--) {
+        if (filename[i] == '.') {
+            dotIdx = i;
+            break;
+        }
+    }
+
+    if (dotIdx == -1) { // dot not found, not a valid file name
+        return 0;
+    } else {
+        return 1;
+    }
+}

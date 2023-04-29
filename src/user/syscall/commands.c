@@ -575,6 +575,13 @@ void cp(uint32_t currentCluster) {
                 }
             } else {
                 if (hasR && hasDir) {
+                    if(is_filename(get_parsed_result()[len - 1])) {
+                        print("\ncp: Invalid file name\n");
+                        return;
+                    }
+                    uint8_t status = copy_create_folders(get_parsed_result()[len - 1], currentCluster);
+                    if(status != 0) return;
+
                     FAT32DriverRequest src = srcs[0];
                     FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
                     DirectoryEntry srcInfo = get_info(src);
@@ -587,6 +594,13 @@ void cp(uint32_t currentCluster) {
                 } else if (hasDir) { // aman
                     print("\ncp: Source is a directory\n");
                 } else { // aman
+                    if(!is_filename(get_parsed_result()[len - 1])) {
+                        print("\ncp: Invalid file name\n");
+                        return;
+                    }
+                    uint8_t status = copy_create_folders(get_parsed_result()[len - 1], currentCluster);
+                    if(status != 0) return;
+
                     // write file baru
                     FAT32DriverRequest src = srcs[0];
                     // ini bisa tapi gabisa loncat folder, ex: [ada]/gaada.txt, gabisa kek [ada]/[gaada]/gaada.txt
@@ -699,11 +713,18 @@ void mv(uint32_t currentCluster) {
                 }
             } else {
                 if (hasR && hasDir) {
+                    if(is_filename(get_parsed_result()[len - 1])) {
+                        print("\nmv: Invalid file name\n");
+                        return;
+                    }
+                    uint8_t status = copy_create_folders(get_parsed_result()[len - 1], currentCluster);
+                    if(status != 0) return;
+
                     FAT32DriverRequest src = srcs[0];
                     FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
                     DirectoryEntry srcInfo = get_info(src);
                     if (check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
-                        print("\ncp: Cannnot copy into itself\n");
+                        print("\nmv: Cannnot copy into itself\n");
                     }
                     else{
                         copy1Folder(src, dest);
@@ -712,6 +733,12 @@ void mv(uint32_t currentCluster) {
                     print("\nmv: Source is a directory\n");
                     return;
                 } else { // aman
+                    if(is_filename(get_parsed_result()[len - 1])) {
+                        print("\nmv: Invalid file name\n");
+                        return;
+                    }
+                    uint8_t status = copy_create_folders(get_parsed_result()[len - 1], currentCluster);
+                    if(status != 0) return;
                     // write file baru
                     FAT32DriverRequest src = srcs[0];
                     // ini bisa tapi gabisa loncat folder, ex: [ada]/gaada.txt, gabisa kek [ada]/[gaada]/gaada.txt
@@ -799,7 +826,6 @@ void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest) {
     FAT32FileReader read = readf(src);
     dest.buffer_size = read.cluster_count * CLUSTER_SIZE;
     dest.buf = read.content;
-    writef(dest);
     closef(read);
     
     uint8_t code = writef(dest);
