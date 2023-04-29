@@ -97,7 +97,7 @@ char* get_keyboard_buffer(){
 void newline_shell(){
     print("\n");
     print(current_dir.directory_path);
-    print(" >> ");
+    print("> ");
     syscall(SYSCALL_LIMIT_CURSOR, 0, 0, 0);
     return;
 }
@@ -128,7 +128,7 @@ void evaluate_shell(){
             // current_dir = cd(get_parsed_result()[1], current_dir);
             if (get_parsed_word_count() == 1){
                 current_dir.cluster_number = 2;
-                memcpy(current_dir.directory_path, "/root", 255);
+                memcpy(current_dir.directory_path, "/root", 6);
             }
             else if (is_directorypath_valid(get_parsed_result()[1], current_dir.cluster_number)){
                 cd(get_parsed_result()[1], &current_dir);
@@ -172,11 +172,30 @@ void evaluate_shell(){
             cp(current_dir.cluster_number);
         }
         else if(strcmp(get_parsed_result()[0], "chuupad") == 0){
-            clear();
-            reader_main();
+            if(get_parsed_word_count() == 1){
+                clear();
+                reader_no_file();
+                clear();
+            }
+            else if (get_parsed_word_count() == 2){
+                if (!is_filepath_valid(get_parsed_result()[1], current_dir.cluster_number)){
+                    print("\nchuupad: ");
+                    print(get_parsed_result()[1]);
+                    print(": No such file\n");
+                }
+                else{
+                    clear();
+                    reader_with_file(current_dir.cluster_number);
+                    clear();
+                }
+            }
+            else{
+                print("\nchuupad: Invalid command\n");
+            }
+
         }
         else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
-            if(get_parsed_word_count() > 2 || get_parsed_word_count() < 2){
+            if(get_parsed_word_count() != 2){
                 print("\nmkdir: Invalid command\n");
             }
             else{
@@ -217,7 +236,7 @@ int main(void){
         .buffer_size           = 0,
     } ;
 
-    request.buffer_size = 5*CLUSTER_SIZE;
+    request.buffer_size = CLUSTER_SIZE;
     writef(request);  // Create folder "ikanaide"
     //deletef(request); // Delete first folder, thus creating hole in FS
     

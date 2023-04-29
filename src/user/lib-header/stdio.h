@@ -104,6 +104,7 @@ typedef struct DirectoryTable DirectoryTable;
  */
 struct FAT32FileReader{
     uint32_t cluster_count;
+    uint32_t size;
     ClusterBuffer* content;
 }__attribute__((packed));
 typedef struct FAT32FileReader FAT32FileReader;

@@ -22,7 +22,9 @@
         "user-shell.h": "c",
         "pit.h": "c",
         "commands.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "commands-util.h": "c",
+        "chuupad.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
 }

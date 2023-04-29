@@ -17,9 +17,13 @@ struct text_reader
     uint32_t minIdx;
     uint32_t currentIdx;
     uint32_t len;
+    uint32_t cluster_number;
+    char screen_buffer[25*64 + 1];
 };
 typedef struct text_reader text_reader;
 
 void reader_main();
+void reader_with_file(uint32_t cluster_number);
+void reader_no_file();
 
 #endif

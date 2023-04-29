@@ -183,6 +183,33 @@ void keyboard_driver_graphics(uint8_t input){
                 */
                 break;
 
+            case 72:
+                set_keyboard_last_key(UARROW_CHAR);
+                /*
+                if (graphics_move_cursor(1)){
+                    move_reader(1);
+                };
+                */
+                break;
+
+            case 80:
+                set_keyboard_last_key(DARROW_CHAR);
+                /*
+                if (graphics_move_cursor(1)){
+                    move_reader(1);
+                };
+                */
+                break;
+
+            case 1:
+                set_keyboard_last_key(ESC_CHAR);
+                /*
+                if (graphics_move_cursor(1)){
+                    move_reader(1);
+                };
+                */
+                break;
+
             default:
                 if(input < 64){
                     if(scantable[input] != 0 && scantableCaps[input] != 0){

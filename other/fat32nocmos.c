@@ -411,7 +411,19 @@ uint8_t write(FAT32DriverRequest request){
         
         if(size != 0){
             void* writer = request.buf + index * 2048;
-            write_clusters(writer, i, 1);
+            
+            if(size < CLUSTER_SIZE){
+                uint8_t reader[CLUSTER_SIZE] = {0};
+                uint8_t* mover = (uint8_t*) writer;
+                for(uint32_t i = 0; i < size; i++){
+                    reader[i] = mover[i];
+                }
+                write_clusters((void*) reader, i, 1);
+            }
+            else{
+                write_clusters(writer, i, 1);
+            }
+
             index++;
         }
 

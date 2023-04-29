@@ -620,9 +620,9 @@ void cat(uint32_t currentCluster) {
     // int_toString((int)result.clsuster_count, testing);
     // print(testing);
     // print("\n\n-------------------\n\n");
-    for (int i = 0; i < (int) result.cluster_count; i++) {
-        for (int j = 0; j < CLUSTER_SIZE; j++) {
-            print_char((char) result.content[i].buf[j]);
-        }
+    for (uint32_t j = 0; j < result.size; j++) {
+        print_char(*(((char*)result.content) + j));
     }
+
+    closef(result);
 } 

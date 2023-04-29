@@ -179,14 +179,9 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
                 memcpy(extstring, emptyString, 3);
                 memcpy(extstring, &read.content[k].entry[i].extension, 3);
                 if ((memcmp(string, fileName, 8) == 0) && (memcmp(extstring, fileExt, 3) == 0)){
-                    // print("\n");
-                    // print(table.entry[i].filename);
-                    if (read.content[k].entry[i].directory){
-                        current_cluster = read.content[k].entry[i].cluster_number;
-                        isFound = 1;
-                        print("\nfound!");
-                        break;
-                    }
+                    isFound = 1;
+                    print("\nfound!");
+                    break;
                 }
             }
             if(isFound){

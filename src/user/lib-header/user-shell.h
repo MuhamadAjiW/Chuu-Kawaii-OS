@@ -9,7 +9,10 @@
 #define TAB_CHAR 1
 #define LARROW_CHAR 2
 #define RARROW_CHAR 3
-#define BACKSPACE_CHAR 4
+#define UARROW_CHAR 4
+#define DARROW_CHAR 5
+#define ESC_CHAR 6
+#define BACKSPACE_CHAR 7
 
 /**
  *  Singleton struct to store reader information

@@ -63,8 +63,9 @@ void sys_graphics_clear(){
 void sys_graphics_limit_cursor(){
     graphics_set_limit(graphics_get_cursor_x(), graphics_get_cursor_y());
 }
-
-//TODO: assert stability
+void sys_graphics_get_cursor_y(registers r){
+    *(uint8_t*) r.ebx = graphics_get_cursor_y();
+}
 void sys_delete(registers r){
     struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
     *((int8_t*) r.ecx) =  delete(request);
@@ -148,6 +149,7 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_NAME_EXISTS, sys_name_exist);
 
     register_syscall_response(SYSCALL_DISPLAY_TEXT, sys_display_text);
+    register_syscall_response(SYSCALL_GET_CURSOR_Y, sys_graphics_get_cursor_y);
 }
 
 void syscall_response(registers r) {

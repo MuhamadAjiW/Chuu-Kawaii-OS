@@ -336,9 +336,11 @@ bool graphics_move_cursor(int8_t direction){
     bool success = 0;
     switch (direction){
         case (1):
-            if((cursor.x == 63 && screenMap[cursor.y][cursor.x] != 0) && cursor.y != 24){
-                graphics_set_cursor(0, cursor.y + 1);
-                success = 1;
+            if((cursor.x == 63 && screenMap[cursor.y][cursor.x] != 0)){
+                if (cursor.y != 24){
+                    graphics_set_cursor(0, cursor.y + 1);
+                    success = 1;
+                }
             }
             else{
                 if(screenMap[cursor.y][cursor.x] != 0){
@@ -348,6 +350,19 @@ bool graphics_move_cursor(int8_t direction){
             }
             break;
         case (2):
+            if(cursor.y != 24){
+                uint8_t edge = graphics_find_edge(cursor.y+1);
+                if (edge < cursor.x){
+                    graphics_set_cursor(edge, cursor.y + 1);
+
+                }
+                else{
+                    graphics_set_cursor(cursor.x, cursor.y + 1);
+                }
+                success = 1;
+            }
+            break;
+        case (3):
             if(cursor.y != 24){
                 graphics_set_cursor(0, cursor.y + 1);
                 success = 1;
@@ -369,7 +384,14 @@ bool graphics_move_cursor(int8_t direction){
             break;
         case (-2):
             if(cursor.y != 0){
-                graphics_set_cursor(0, cursor.y - 1);
+                uint8_t edge = graphics_find_edge(cursor.y+1);
+                if (edge < cursor.x){
+                    graphics_set_cursor(edge, cursor.y - 1);
+
+                }
+                else{
+                    graphics_set_cursor(cursor.x, cursor.y - 1);
+                }
                 success = 1;
             }
             break;
@@ -530,7 +552,7 @@ void graphics_display_text(char* text){
     uint16_t counter = 0;
     uint16_t pos = 0;
     while (pos < rowLimit*colLimit){
-        if(text == 0){
+        if(text[counter] == 0){
             break;
         }
 
