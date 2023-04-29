@@ -315,24 +315,35 @@ void ls(uint32_t currentCluster){
     DirectoryEntry read_entry;
     print("\nfiles and directories: \n");
 
-    for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
+     for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
         for(uint16_t j = 1; j < SECTOR_COUNT; j++){
             read_entry = directory_reader.content[i].entry[j];
             
             if(!is_entry_empty(read_entry)){
-                int buff = 0;
                 for(int j = 0; j < 8; j++){
                     if(read_entry.filename[j] == 0){
                         print_char(' ');
                     }
                     else{
                         print_char(read_entry.filename[j]);
-                        buff++;
                     }
                 }
 
+                for(int k = 0; k < 3; k++){
+                    if(read_entry.extension[k] == 0){
+                        print_char(' ');
+                    }
+                    else{
+                        if(k == 0){
+                            print(".");
+                        }
+                        print_char(read_entry.filename[j]);
+                    }
+                }
+
+
                 // cleaning things out
-                for(int k = buff; k < 8; k++){
+                for(int k = 0; k < 4; k++){
                     print_char(' ');
                 }
             }
