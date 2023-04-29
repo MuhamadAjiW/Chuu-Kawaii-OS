@@ -89,8 +89,8 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
     int pathLength = get_parsed_path_word_count();
     int counter = 0;
 
-    char fileName[8];
-    char fileExt[3];
+    char fileName[8] = {0};
+    char fileExt[3] = {0};
 
     int dotIdx  = -1;
     int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
@@ -253,8 +253,8 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     int pathLength = get_parsed_path_word_count();
     int counter = 0;
 
-    char fileName[8];
-    char fileExt[3];
+    char fileName[8] = {0};
+    char fileExt[3] = {0};
 
     int dotIdx  = -1;
     int fileNameExtLen = strlen(get_parsed_path_result()[pathLength - 1]);
@@ -399,7 +399,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
                     if (read.content[k].entry[i].directory){
                         current_cluster = read.content[k].entry[i].cluster_number;
                         
-                        if (j == get_parsed_path_word_count() - 2) {
+                        if (j != get_parsed_path_word_count() - 1) {
                             parentCluster = current_cluster;
                         }
 
