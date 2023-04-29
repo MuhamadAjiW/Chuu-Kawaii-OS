@@ -242,7 +242,7 @@ int main(void){
         .buf                   = cbuf,
         .name                  = "babibabi",
         .ext                   = "uwu",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .parent_cluster_number = 18,
         .buffer_size           = CLUSTER_SIZE,
     } ;
 

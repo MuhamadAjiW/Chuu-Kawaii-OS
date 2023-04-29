@@ -62,7 +62,7 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
                         if (read.content[k].entry[i].directory){
                             current_cluster = read.content[k].entry[i].cluster_number;
                             isFound = 1;
-                            print("\nfound!");
+                            //print("\nfound!");
                             break;
                         }
                     }
@@ -156,7 +156,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
                     if (read.content[k].entry[i].directory){
                         current_cluster = read.content[k].entry[i].cluster_number;
                         isFound = 1;
-                        print("\nfound! zzzz");
+                        //print("\nfound! zzzz");
                         break;
                     }
                 }
@@ -180,7 +180,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
                 memcpy(extstring, &read.content[k].entry[i].extension, 3);
                 if ((memcmp(string, fileName, 8) == 0) && (memcmp(extstring, fileExt, 3) == 0) && !(read.content[k].entry[i].directory)){
                     isFound = 1;
-                    print("\nfound! hahaya");
+                   // print("\nfound! hahaya");
                     break;
                 }
             }
@@ -229,7 +229,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
                         if (read.content[k].entry[i].directory){
                             current_cluster = read.content[k].entry[i].cluster_number;
                             isFound = 1;
-                            print("\nfound!");
+                            //print("\nfound!");
                             break;
                         }
                     }
@@ -316,7 +316,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
                     if (read.content[k].entry[i].directory){
                         current_cluster = read.content[k].entry[i].cluster_number;
                         isFound = 1;
-                        print("\nfound!");
+                        //print("\nfound!");
                         break;
                     }
                 }
@@ -346,7 +346,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
                     if (!read.content[k].entry[i].directory){
                         current_cluster = read.content[k].entry[i].cluster_number;
                         isFound = 1;
-                        print("\nfound! 0000");
+                        //print("\nfound! 0000");
                         break;
                     }
                 }
@@ -404,7 +404,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
                         }
 
                         isFound = 1;
-                        print("\nfound!");
+                        //print("\nfound!");
                         break;
                     }
                 }

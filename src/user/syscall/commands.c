@@ -141,7 +141,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
                         if (read.content[k].entry[i].directory){
                             current_cluster = read.content[k].entry[i].cluster_number;
                             isFound = 1;
-                            print("\nfound!");
+                            //print("\nfound!");
                             break;
                         }
                     }
@@ -341,12 +341,12 @@ void ls(uint32_t currentCluster){
 }
 
 void cd(char* pathname, directory_info* current_dir){
-    print("\nmulai masuk cd");
-    print(pathname);
-    print("\n");
+    //print("\nmulai masuk cd");
+    //print(pathname);
+    //print("\n");
     current_dir->cluster_number = path_to_cluster(pathname, current_dir->cluster_number);
-    print("\nsebelum memcpy");
-    print("\nsetelah memcpy");
+    //print("\nsebelum memcpy");
+    //print("\nsetelah memcpy");
     
     uint32_t startleng = 0;
     uint32_t maxleng = INPUT_BUFFER_SIZE;
@@ -438,11 +438,11 @@ void rm(uint32_t currentCluster) {
                 print(get_parsed_result()[length - 1]);
                 print("': Is a directory");
             } else {
-                print("\ndianggep dir");
+                //print("\ndianggep dir");
                 deletef(path_to_dir_request(get_parsed_result()[length - 1], currentCluster));
             }
         } else if (is_filepath_valid(get_parsed_result()[length - 1], currentCluster)) {
-            print("\ndianggep file");
+            //print("\ndianggep file");
             deletef(path_to_file_request(get_parsed_result()[length - 1], currentCluster));
         } else {
             print("\nrm: Invalid command");
@@ -527,11 +527,6 @@ void cp(uint32_t currentCluster) {
                 print("\ncp: Cannot overwrite existing file");
             } else if (isdir) {
                 if (hasDir && hasR) { // masih pagefault :(
-
-
-
-
-
                     // FAT32DriverRequest src = srcs[0];
                     // uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
                     // FAT32DriverRequest dest = {
@@ -542,7 +537,7 @@ void cp(uint32_t currentCluster) {
                 } else if (hasDir) { // aman
                     print("\ncp: Source is a directory");
                 } else { // aman
-                    print("\nmasuksini");
+                    //print("\nmasuksini");
                     FAT32DriverRequest src = srcs[0];
                     uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
                     FAT32DriverRequest dest = {
@@ -554,22 +549,14 @@ void cp(uint32_t currentCluster) {
                 }
             } else {
                 if (hasR && hasDir) {
-
-
-
-
-
-
-
                     // FAT32DriverRequest src = srcs[0];
                     // mkdir(get_parsed_result()[len - 1], currentCluster);
                     // dir(currentCluster);
                     // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
                     // copy1Folder(src, dest);
-                    // FAT32DriverRequest src = srcs[0];
-                    // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
-                    // copy1Folder(src, dest);
-
+                    FAT32DriverRequest src = srcs[0];
+                    FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
+                    copy1Folder(src, dest);
                 } else if (hasDir) { // aman
                     print("\ncp: Source is a directory");
                 } else { // aman
@@ -667,7 +654,7 @@ void mv(uint32_t currentCluster) {
                     print("\nmv: Source is a directory");
                     return;
                 } else { // aman
-                    print("\nmasuksini");
+                    //print("\nmasuksini");
                     FAT32DriverRequest src = srcs[0];
                     uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
                     FAT32DriverRequest dest = {
@@ -711,7 +698,7 @@ void mv(uint32_t currentCluster) {
 void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     dest.buffer_size = 0;
     writef(dest);
-    dir(dest.parent_cluster_number);
+    //dir(dest.parent_cluster_number);
 
     FAT32DirectoryReader read = get_dir_info(dest.parent_cluster_number);
     DirectoryEntry self;
@@ -728,8 +715,22 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     }
     closef_dir(read);
 
-    read = readf_dir(src);
+    read = get_dir_info(src.parent_cluster_number);
+    DirectoryEntry source;
+    for(uint32_t i = 0; i < read.cluster_count; i++){
+        for(uint32_t j = 1; j < SECTOR_COUNT; j++){
+            // read.content[i].entry[j];
+            if(memcmp(&read.content[i].entry[j].filename, src.name, 8) == 0 &&
+                memcmp(&read.content[i].entry[j].extension, src.ext, 3) == 0
+            ){
+                source = read.content[i].entry[j];
+                break;
+            }
+        }
+    }
+    closef_dir(read);
 
+    read = readf_dir(src);
     for(uint32_t i = 0; i < read.cluster_count; i++){
         for(uint32_t j = 1; j < SECTOR_COUNT; j++){
             // read.content[i].entry[j];
@@ -745,7 +746,7 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
 
                 FAT32DriverRequest newSrc = {0};
                 memcpy(newSrc.name, read.content[i].entry[j].filename, 8);
-                newSrc.parent_cluster_number = self.cluster_number;
+                newSrc.parent_cluster_number = source.cluster_number;
                 newSrc.buffer_size = 0;
                 
                 copy1Folder(newSrc, newDest);
@@ -756,11 +757,11 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
                     .buffer_size = read.content[i].entry[j].size
                 };
                 
-                memcpy(newDest.name, self.filename, 8);
-                memcpy(newDest.ext, self.extension, 3);
+                memcpy(newDest.name, read.content[i].entry[j].filename, 8);
+                memcpy(newDest.ext, read.content[i].entry[j].extension, 3);
 
                 FAT32DriverRequest newSrc = {
-                    .parent_cluster_number = read.content[i].entry[j].cluster_number,
+                    .parent_cluster_number = source.cluster_number,
                     .buffer_size = read.content[i].entry[j].size
                 };
 
