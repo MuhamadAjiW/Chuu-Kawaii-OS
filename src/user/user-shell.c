@@ -176,8 +176,12 @@ void evaluate_shell(){
             reader_main();
         }
         else if(strcmp(get_parsed_result()[0], "mkdir") == 0){
-
-            mkdir(get_parsed_result()[1], current_dir.cluster_number);
+            if(get_parsed_word_count() > 2){
+                print("\nmkdir: Invalid command\n");
+            }
+            else{
+                mkdir(get_parsed_result()[1], current_dir.cluster_number);
+            }
         }  
         else if (strcmp(get_parsed_result()[0], "whereis") == 0) {
             whereis(current_dir.cluster_number, get_parsed_result()[1], current_dir.directory_path);

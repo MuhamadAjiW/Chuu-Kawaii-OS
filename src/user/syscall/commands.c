@@ -111,62 +111,93 @@ void dir(uint32_t currentCluster){
     closef_dir(directory_reader);
 }
 void mkdir(char *dirname, uint32_t currentCluster){
-    uint8_t success = 0;
-    FAT32DriverRequest req = {0};
+    parse_path(dirname);
+    uint8_t counter = 0;
+    uint8_t isFound = 1;
+    
+    uint32_t current_cluster = currentCluster;
+    if (strcmp(get_parsed_path_result()[0], "root") == 0){
+        current_cluster = 2;
+        counter = 1;
+    } 
 
-    for(uint8_t i = 0; i < 8; i++){
-        if(dirname[i] == 0){
-            break;
+    FAT32DirectoryReader read;
+    char emptyString[9] = {0};
+    char string[9] = {0};
+
+    while (counter < get_parsed_path_word_count() && isFound){
+        read = get_self_dir_info(current_cluster);
+        if (strcmp(get_parsed_path_result()[counter], "..") == 0){
+            current_cluster = read.content[0].entry[0].cluster_number;
+            counter++;
         }
-        req.name[i] = dirname[i];
+        else{
+            isFound = 0;
+            for(uint32_t k = 0; k < read.cluster_count; k++){
+                for(uint8_t i= 1; i < SECTOR_COUNT; i++){
+                    memcpy(string, emptyString, 8);
+                    memcpy(string, &read.content[k].entry[i].filename, 8);
+                    if ((strcmp(string, get_parsed_path_result()[counter]) == 0)){
+                        if (read.content[k].entry[i].directory){
+                            current_cluster = read.content[k].entry[i].cluster_number;
+                            isFound = 1;
+                            print("\nfound!");
+                            break;
+                        }
+                    }
+                }
+                if(isFound){
+                    counter++;
+                    break;
+                }
+            }
+        }
+        closef_dir(read);
     }
 
-    req.parent_cluster_number = currentCluster;
-    req.buffer_size = 0;
-    syscall(SYSCALL_WRITE_FILE, (uint32_t) &req, (uint32_t) &success, currentCluster);
+    if(isFound){
+        print("\nmkdir: Directory already exists\n");
+    }
+    else{
+        while (counter < get_parsed_path_word_count()){
+            FAT32DriverRequest req = {0};
+            req.parent_cluster_number = current_cluster;
+            req.buffer_size = 0;
 
-    print("\nDirectory created successfully.");
+            for(uint8_t i = 0; i < 8; i++){
+                if(get_parsed_path_result()[counter][i] == 0){
+                    break;
+                }
+                req.name[i] = get_parsed_path_result()[counter][i];
+            }
+
+            writef(req);
+            
+            read = get_self_dir_info(current_cluster);
+            DirectoryEntry self;
+            for(uint32_t i = 0; i < read.cluster_count; i++){
+                for(uint32_t j = 1; j < SECTOR_COUNT; j++){
+                    if(memcmp(&read.content[i].entry[j].filename, req.name, 8) == 0 &&
+                        memcmp(&read.content[i].entry[j].extension, req.ext, 3) == 0
+                    ){
+                        self = read.content[i].entry[j];
+                        break;
+                    }
+                }
+            }
+            current_cluster = self.cluster_number;
+            counter++;
+
+            closef_dir(read);
+        }
+
+        parser_path_clear();
+
+        print("\nDirectory created successfully\n");
+    }
 }
 
 DirectoryEntry emptyEntry = {0};
-
-// ngeprint smua file di cluster yg sama
-// void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count){
-//     uint32_t reader[CLUSTER_SIZE/4] = {0};
-//     uint16_t count = 0;
-//     uint16_t sector_count = 1;
-//     uint32_t current_cluster = cluster_number;
-//     DirectoryTable table;  // declare the table variable
-//     do{
-//         syscall(SYSCALL_READ_CLUSTERS, (uint32_t) reader, (uint32_t) &current_cluster, (uint32_t) &sector_count);
-//         syscall(SYSCALL_AS_DIRECTORY, (uint32_t) reader, (uint32_t) &table, 0);
-//         for(int i = 1; i < SECTOR_COUNT; i++){
-
-//             if (memcmp(&table.entry[i], &emptyEntry, 32) != 0){
-//                 FAT32DriverRequest request;
-//                 syscall(SYSCALL_MEMCPY, (uint32_t) &request.name, (uint32_t) &table.entry[i].filename, 8);
-//                 syscall(SYSCALL_MEMCPY, (uint32_t) &request.ext, (uint32_t) &table.entry[i].extension, 3);
-//                 request.parent_cluster_number = cluster_number;
-                
-                
-//                 syscall(SYSCALL_MEMCPY, (uint32_t) &result_array[count], (uint32_t) &request, sizeof(FAT32DriverRequest));
-//                 count++;
-
-//                 if(count >= *result_count){
-//                     *result_count = count;
-//                     return;
-//                 }
-//             }
-//         } 
-//         if (current_cluster != END_OF_FILE) {
-//         syscall(SYSCALL_READ_CLUSTERS, (uint32_t) reader, (uint32_t) FAT_CLUSTER_NUMBER, (uint32_t) &sector_count);
-//         current_cluster = reader[current_cluster];
-//         }
-//     } while (current_cluster != END_OF_FILE);
-
-//     *result_count = count;
-//     return;
-// }
 
 void whereis(uint16_t current_cluster, char* filename, char* path){
     char fileName[8] = {0};

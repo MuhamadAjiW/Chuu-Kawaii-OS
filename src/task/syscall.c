@@ -99,13 +99,6 @@ void sys_play_animation(registers r){
 void sys_get_timer_tick(registers r){
     *(uint32_t*)r.ebx = get_tick();
 }
-void sys_display_text(registers r){
-    graphics_display_text((char*) r.ebx);
-}
-
-void sys_read_clusters(registers r){
-   read_clusters((void*) r.ebx, (uint16_t) r.ecx, (uint16_t) r.edx);
-}
 
 void sys_as_directory(registers r){
    *((DirectoryTable*) r.ecx) = as_directory((uint32_t*) r.ebx);
@@ -115,45 +108,20 @@ void sys_is_directory(registers r){
    *((uint8_t*) r.ecx) = is_directory((uint32_t)r.ebx);
 }
 
-void sys_mkdir(registers r){
-    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) r.ebx;
-    *((int8_t*) r.ecx) = write(request);
-}
-
-// void sys_where(registers r){
-//     uint16_t cluster_number = *((uint16_t*) r.ebx);
-//     FAT32DriverRequest* result_array = (FAT32DriverRequest*) r.ecx;
-//     uint16_t* result_count = (uint16_t*) r.edx;
-//     whereis(cluster_number, result_array, result_count);
-// }
-
-void sys_memcpy(registers r) {
-    void* dest = (void*)r.ebx;
-    const void* src = (const void*)r.ecx;
-    uint32_t n = (uint32_t)r.edx;
-
-    memcpy(dest, src, n);
-}
-
-void sys_memcmp(registers r) {
-    const void* s1 = (const void*)r.ebx;
-    const void* s2 = (const void*)r.ecx;
-    uint32_t n = (uint32_t)r.edx;
-
-    int result = memcmp(s1, s2, n);
-
-    r.eax = result;
-}
-
 void sys_name_exist(registers r){
     FAT32DriverRequest request = *(FAT32DriverRequest*) r.ebx;
     *((int8_t*) r.ecx) = name_exists(request);
+}
+
+void sys_display_text(registers r){
+    graphics_display_text((char*) r.ebx);
 }
 
 void enable_system_calls(){
     register_interrupt_handler(0x30, syscall_response);
 
     register_syscall_response(SYSCALL_IDLE, idle);
+    register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
     register_syscall_response(SYSCALL_MALLOC, sys_malloc);
     register_syscall_response(SYSCALL_REALLOC, sys_realloc);
     register_syscall_response(SYSCALL_FREE, sys_free);
@@ -169,24 +137,17 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_READ_FILE, sys_read);
     register_syscall_response(SYSCALL_READ_DIR, sys_read_directory);
     register_syscall_response(SYSCALL_SELF_DIR_INFO, sys_self_directory_info);
-    register_syscall_response(SYSCALL_CLOSE_FILE, sys_close_file);
-    register_syscall_response(SYSCALL_CLOSE_DIR, sys_close_directory);
     register_syscall_response(SYSCALL_WRITE_FILE, sys_write);
     register_syscall_response(SYSCALL_DELETE_FILE, sys_delete);
+    register_syscall_response(SYSCALL_CLOSE_FILE, sys_close_file);
+    register_syscall_response(SYSCALL_CLOSE_DIR, sys_close_directory);
     register_syscall_response(SYSCALL_GET_CMOS_DATA, sys_get_cmos_data);
-    register_syscall_response(SYSCALL_ANIMATION, sys_play_animation);
     register_syscall_response(SYSCALL_GETTICK, sys_get_timer_tick);
-    register_syscall_response(SYSCALL_DISPLAY_TEXT, sys_display_text);
-    register_syscall_response(SYSCALL_READ_CLUSTERS, sys_read_clusters);
     register_syscall_response(SYSCALL_AS_DIRECTORY, sys_as_directory);
     register_syscall_response(SYSCALL_IS_DIRECTORY, sys_is_directory);
-    register_syscall_response(SYSCALL_MKDIR, sys_mkdir);
-    // register_syscall_response(SYSCALL_WHERE, sys_where);
-    register_syscall_response(SYSCALL_MEMCPY, sys_memcpy);
-    register_syscall_response(SYSCALL_MEMCMP, sys_memcmp);
-    register_syscall_response(SYSCALL_READ_CLUSTERS, sys_read_clusters);
-    register_syscall_response(SYSCALL_AS_DIRECTORY, sys_as_directory);
     register_syscall_response(SYSCALL_NAME_EXISTS, sys_name_exist);
+
+    register_syscall_response(SYSCALL_DISPLAY_TEXT, sys_display_text);
 }
 
 void syscall_response(registers r) {
