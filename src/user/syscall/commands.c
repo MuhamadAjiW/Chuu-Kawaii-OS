@@ -484,6 +484,11 @@ void cp(uint32_t currentCluster) {
             }
         }
 
+        if (hasDir && !hasR) {
+            print("\ncp: Source is a directory");
+            return;
+        }
+
         // semua source valid
 
         // cek apakah dest ada
@@ -507,6 +512,11 @@ void cp(uint32_t currentCluster) {
                         copy1File(src, dest);
                     } else {
                         // persis copy folder yg bawah tp masih bingung karna kena pagefault (again) :"
+
+
+
+
+                        
                     }
                 }
             } else { // aman
@@ -517,13 +527,18 @@ void cp(uint32_t currentCluster) {
                 print("\ncp: Cannot overwrite existing file");
             } else if (isdir) {
                 if (hasDir && hasR) { // masih pagefault :(
-                    FAT32DriverRequest src = srcs[0];
-                    uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
-                    FAT32DriverRequest dest = {
-                        .parent_cluster_number = destCluster
-                    };
-                    memcpy(dest.name, src.name, 8);
-                    copy1Folder(srcs[0], dest);
+
+
+
+
+
+                    // FAT32DriverRequest src = srcs[0];
+                    // uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
+                    // FAT32DriverRequest dest = {
+                    //     .parent_cluster_number = destCluster
+                    // };
+                    // memcpy(dest.name, src.name, 8);
+                    // copy1Folder(srcs[0], dest);
                 } else if (hasDir) { // aman
                     print("\ncp: Source is a directory");
                 } else { // aman
@@ -539,15 +554,28 @@ void cp(uint32_t currentCluster) {
                 }
             } else {
                 if (hasR && hasDir) {
-                    FAT32DriverRequest src = srcs[0];
-                    mkdir(get_parsed_result()[len - 1], currentCluster);
-                    FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
-                    copy1Folder(src, dest);
+
+
+
+
+
+
+
+                    // FAT32DriverRequest src = srcs[0];
+                    // mkdir(get_parsed_result()[len - 1], currentCluster);
+                    // dir(currentCluster);
+                    // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
+                    // copy1Folder(src, dest);
+                    // FAT32DriverRequest src = srcs[0];
+                    // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
+                    // copy1Folder(src, dest);
+
                 } else if (hasDir) { // aman
                     print("\ncp: Source is a directory");
                 } else { // aman
                     // write file baru
                     FAT32DriverRequest src = srcs[0];
+                    // ini bisa tapi gabisa loncat folder, ex: [ada]/gaada.txt, gabisa kek [ada]/[gaada]/gaada.txt
                     FAT32DriverRequest dest = path_to_file_request(get_parsed_result()[len - 1], currentCluster);
                     copy1File(src, dest);
                 }
@@ -556,17 +584,134 @@ void cp(uint32_t currentCluster) {
     } else {
         print("\ncp: Invalid command");
     }
-
 }
 
 void mv(uint32_t currentCluster) {
-    cp(currentCluster);
-    rm(currentCluster);
+    // copy cp di atas, terus deletef setiap request untuk yg berhasil
+    int len = get_parsed_word_count();
+    if (len >= 3) { // mv minimal len cmd 3
+        uint8_t isdir = 0;
+        uint8_t isfile = 0;
+        uint8_t hasR = 1; // karna ga perlu flag r
+        uint8_t hasDir = 0;
+
+        FAT32DriverRequest srcs[len - 2]; // create arr of sources
+        uint8_t isFile[len - 2]; 
+
+        int nSrc = 0;
+        for (int i = 1; i < len - 1; i++) {
+            isdir = is_directorypath_valid(get_parsed_result()[i], currentCluster);
+            isfile = is_filepath_valid(get_parsed_result()[i], currentCluster);
+            if (isfile) {
+                srcs[nSrc] = path_to_file_request(get_parsed_result()[i], currentCluster);
+                isFile[nSrc] = 1;
+                nSrc++;
+            } else if (isdir) {
+                srcs[nSrc] = path_to_dir_request(get_parsed_result()[i], currentCluster);
+                isFile[nSrc] = 0;
+                hasDir = 1;
+                nSrc++;
+            } else { // aman
+                print("\nmv: Invalid path");
+                return;
+            }
+        }
+
+        // semua source valid
+
+        // cek apakah dest ada
+        isdir = is_directorypath_valid(get_parsed_result()[len - 1], currentCluster);
+        isfile = is_filepath_valid(get_parsed_result()[len - 1], currentCluster);
+
+        if (nSrc > 1) {
+            if (isfile) { // aman
+                print("\nmv: Destination is not a directory");
+                return;
+            } else if (isdir) {
+                // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
+                for (int i = 0; i < nSrc; i++) {
+                    FAT32DriverRequest src = srcs[i];
+                    if (isFile[i]) { // aman
+                        uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
+                        FAT32DriverRequest dest = {
+                            .parent_cluster_number = destCluster
+                        };
+                        memcpy(dest.name, src.name, 8);
+                        memcpy(dest.ext, src.ext, 3);
+                        copy1File(src, dest);
+                    } else {
+                        
+
+
+
+
+                    }
+                }
+            } else { // aman
+                print("\nmv: Destination is not a directory");
+                return;
+            }
+        } else {
+            if (isfile) { // aman
+                print("\nmv: Cannot overwrite existing file");
+                return;
+            } else if (isdir) {
+                if (hasDir && hasR) {
+                    
+
+
+
+
+
+                } else if (hasDir) { // aman
+                    print("\nmv: Source is a directory");
+                    return;
+                } else { // aman
+                    print("\nmasuksini");
+                    FAT32DriverRequest src = srcs[0];
+                    uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
+                    FAT32DriverRequest dest = {
+                        .parent_cluster_number = destCluster
+                    };
+                    memcpy(dest.name, src.name, 8);
+                    memcpy(dest.ext, src.ext, 3);
+                    copy1File(src, dest);
+                }
+            } else {
+                if (hasR && hasDir) {
+                    
+
+
+
+
+
+                } else if (hasDir) { // aman
+                    print("\nmv: Source is a directory");
+                    return;
+                } else { // aman
+                    // write file baru
+                    FAT32DriverRequest src = srcs[0];
+                    // ini bisa tapi gabisa loncat folder, ex: [ada]/gaada.txt, gabisa kek [ada]/[gaada]/gaada.txt
+                    FAT32DriverRequest dest = path_to_file_request(get_parsed_result()[len - 1], currentCluster);
+                    copy1File(src, dest);
+                }
+            }
+        }
+
+        for (int i = 0; i < nSrc; i++) {
+            deletef(srcs[i]);
+        }
+
+    } else {
+        print("\ncp: Invalid command");
+        return;
+    }
 }
 
 void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     dest.buffer_size = 0;
     writef(dest);
+    dir(dest.parent_cluster_number);
 
     FAT32DirectoryReader read = get_dir_info(dest.parent_cluster_number);
     DirectoryEntry self;

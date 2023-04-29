@@ -170,6 +170,8 @@ void evaluate_shell(){
 
         } else if (strcmp(get_parsed_result()[0], "cp") == 0) {
             cp(current_dir.cluster_number);
+        } else if (strcmp(get_parsed_result()[0], "mv") == 0) {
+            mv(current_dir.cluster_number);
         }
         else if(strcmp(get_parsed_result()[0], "chuupad") == 0){
             if(get_parsed_word_count() == 1){
