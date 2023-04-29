@@ -236,11 +236,19 @@ int main(void){
         .buffer_size           = 0,
     } ;
 
-    request.buffer_size = CLUSTER_SIZE;
+    struct FAT32DriverRequest file = {
+        .buf                   = cbuf,
+        .name                  = "babibabi",
+        .ext                   = "uwu",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER,
+        .buffer_size           = CLUSTER_SIZE,
+    } ;
+
+    // request.buffer_size = CLUSTER_SIZE;
     writef(request);  // Create folder "ikanaide"
     //deletef(request); // Delete first folder, thus creating hole in FS
     
-    //writef(request);  // Create fragmented file "daijoubu"
+    writef(file);  // Create fragmented file "daijoubu"
     
     char buf[2] = {0, 0};
     while (TRUE) {

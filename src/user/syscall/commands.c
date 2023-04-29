@@ -438,9 +438,11 @@ void rm(uint32_t currentCluster) {
                 print(get_parsed_result()[length - 1]);
                 print("': Is a directory");
             } else {
+                print("\ndianggep dir");
                 deletef(path_to_dir_request(get_parsed_result()[length - 1], currentCluster));
             }
         } else if (is_filepath_valid(get_parsed_result()[length - 1], currentCluster)) {
+            print("\ndianggep file");
             deletef(path_to_file_request(get_parsed_result()[length - 1], currentCluster));
         } else {
             print("\nrm: Invalid command");
@@ -459,6 +461,8 @@ void cp(uint32_t currentCluster) {
         uint8_t hasDir = 0;
 
         FAT32DriverRequest srcs[len - 2]; // create arr of sources
+        uint8_t isFile[len - 2]; 
+
         int nSrc = 0;
         for (int i = 1; i < len - 1; i++) {
             isdir = is_directorypath_valid(get_parsed_result()[i], currentCluster);
@@ -466,13 +470,15 @@ void cp(uint32_t currentCluster) {
             if (strcmp(get_parsed_result()[i], "-r") == 0) {
                 hasR = 1;
             } else if (isfile) {
-                srcs[i - 1] = path_to_file_request(get_parsed_result()[i], currentCluster);
+                srcs[nSrc] = path_to_file_request(get_parsed_result()[i], currentCluster);
+                isFile[nSrc] = 1;
                 nSrc++;
             } else if (isdir) {
-                srcs[i - 1] = path_to_dir_request(get_parsed_result()[i], currentCluster);
+                srcs[nSrc] = path_to_dir_request(get_parsed_result()[i], currentCluster);
+                isFile[nSrc] = 0;
                 hasDir = 1;
                 nSrc++;
-            } else {
+            } else { // aman
                 print("\ncp: Invalid path");
                 return;
             }
@@ -485,37 +491,61 @@ void cp(uint32_t currentCluster) {
         isfile = is_filepath_valid(get_parsed_result()[len - 1], currentCluster);
 
         if (nSrc > 1) {
-            if (isfile) {
+            if (isfile) { // aman
                 print("\ncp: Destination is not a directory");
             } else if (isdir) {
                 // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
                 for (int i = 0; i < nSrc; i++) {
-                    // copyAll(srcs[i], dest);
-                    // copy src [file/folder] ke folder
+                    FAT32DriverRequest src = srcs[i];
+                    if (isFile[i]) { // aman
+                        uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
+                        FAT32DriverRequest dest = {
+                            .parent_cluster_number = destCluster
+                        };
+                        memcpy(dest.name, src.name, 8);
+                        memcpy(dest.ext, src.ext, 3);
+                        copy1File(src, dest);
+                    } else {
+                        // persis copy folder yg bawah tp masih bingung karna kena pagefault (again) :"
+                    }
                 }
-            } else { // ga ketemu
+            } else { // aman
                 print("\ncp: Destination is not a directory");
             }
         } else {
-            if (isfile) {
+            if (isfile) { // aman
                 print("\ncp: Cannot overwrite existing file");
             } else if (isdir) {
-                // ini kalo 1 file ke 1 folder
-                // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
-                // copy src [file/folder] ke folder
-
-            } else { // ga ketemu 
+                if (hasDir && hasR) { // masih pagefault :(
+                    FAT32DriverRequest src = srcs[0];
+                    uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
+                    FAT32DriverRequest dest = {
+                        .parent_cluster_number = destCluster
+                    };
+                    memcpy(dest.name, src.name, 8);
+                    copy1Folder(srcs[0], dest);
+                } else if (hasDir) { // aman
+                    print("\ncp: Source is a directory");
+                } else { // aman
+                    print("\nmasuksini");
+                    FAT32DriverRequest src = srcs[0];
+                    uint32_t destCluster = path_to_cluster(get_parsed_result()[len - 1], currentCluster);
+                    FAT32DriverRequest dest = {
+                        .parent_cluster_number = destCluster
+                    };
+                    memcpy(dest.name, src.name, 8);
+                    memcpy(dest.ext, src.ext, 3);
+                    copy1File(src, dest);
+                }
+            } else {
                 if (hasR && hasDir) {
-                    //mkdir(get_parsed_result()[len - 1], currentCluster);
-                    // FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
-
-                    // copyAll(srcs[i], dest);
-                    FAT32DriverRequest src = srcs[1];
+                    FAT32DriverRequest src = srcs[0];
+                    mkdir(get_parsed_result()[len - 1], currentCluster);
                     FAT32DriverRequest dest = path_to_dir_request(get_parsed_result()[len - 1], currentCluster);
                     copy1Folder(src, dest);
-                } else if (hasDir) {
+                } else if (hasDir) { // aman
                     print("\ncp: Source is a directory");
-                } else {
+                } else { // aman
                     // write file baru
                     FAT32DriverRequest src = srcs[0];
                     FAT32DriverRequest dest = path_to_file_request(get_parsed_result()[len - 1], currentCluster);
