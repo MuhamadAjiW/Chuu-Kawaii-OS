@@ -267,16 +267,17 @@ void reader_main(){
         else if((buf[0] >= 32 && buf[0] <= 126) || buf[0] == '\n'){
             append_reader(buf[0]);
             load_buffer();
+            display_text();
+            
             if(buf[0] == '\n'){
                 move_cursor(3);
             }
             else move_cursor(1);
 
             if(get_cursor_y() == 24){
-                move_cursor(-2);
+                move_cursor(2);
                 scroll(1);
             }
-            display_text();
         }
     }
     

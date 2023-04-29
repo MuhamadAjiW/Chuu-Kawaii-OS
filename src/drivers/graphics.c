@@ -337,13 +337,21 @@ bool graphics_move_cursor(int8_t direction){
     switch (direction){
         case (1):
             if((cursor.x == 63 && screenMap[cursor.y][cursor.x] != 0)){
-                if (cursor.y != 24){
+                if(screenMap[cursor.y][cursor.x] == '\n'){
+                    graphics_set_cursor(0, cursor.y + 2);
+                    success = 1;
+                }
+                else if (cursor.y != 24){
                     graphics_set_cursor(0, cursor.y + 1);
                     success = 1;
                 }
             }
             else{
-                if(screenMap[cursor.y][cursor.x] != 0){
+                if(screenMap[cursor.y][cursor.x] == '\n'){
+                    graphics_set_cursor(0, cursor.y + 1);
+                    success = 1;
+                }
+                else if(screenMap[cursor.y][cursor.x] != 0){
                     graphics_set_cursor(cursor.x + 1,cursor.y);
                     success = 1;
                 }
